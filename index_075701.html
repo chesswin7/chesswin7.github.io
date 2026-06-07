@@ -1,0 +1,1913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>ChessWin7</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyCmh2qfo40DS0OuMxTY8YdrQRUztGg9gWQ",
+  authDomain:"chesswin7.firebaseapp.com",
+  projectId:"chesswin7",
+  storageBucket:"chesswin7.firebasestorage.app",
+  messagingSenderId:"932516349717",
+  appId:"1:932516349717:web:28f1cd3b0bead27dcf8b1c",
+  databaseURL:"https://chesswin7-default-rtdb.firebaseio.com"
+});
+const auth = firebase.auth();
+const db = firebase.firestore();
+const rtdb = firebase.database();
+</script>
+<style>
+:root{
+  --bg:#0f212e;--surface:#1a2c38;--surface2:#213743;--surface3:#2d4a5a;
+  --accent:#00e701;--accent2:#1a9aef;
+  --text:#ffffff;--muted:#b1bad3;
+  --border:rgba(255,255,255,.08);--border2:rgba(255,255,255,.15);
+  --red:#f93848;--green:#00e701;
+  --radius:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:14px;font-weight:500;overflow-x:hidden}
+
+/* HEADER */
+header{position:sticky;top:0;z-index:100;height:60px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px}
+.logo{font-size:20px;font-weight:900;color:var(--accent);cursor:pointer;display:flex;align-items:center;gap:8px}
+.hbtns{display:flex;gap:8px}
+
+/* BUTTONS */
+.btn{font-family:'Inter',sans-serif;font-size:13px;font-weight:700;padding:9px 20px;border-radius:var(--radius);border:none;cursor:pointer;transition:all .15s;white-space:nowrap;background:var(--accent);color:#000}
+.btn:hover{opacity:.9;transform:translateY(-1px)}
+.btn-o{background:var(--surface2);color:var(--text);border:1px solid var(--border2)}
+.btn-o:hover{background:var(--surface3)}
+.btn-sm{padding:7px 14px;font-size:12px}
+.btn-red{background:var(--red);color:#fff}
+
+/* MODAL */
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:999;align-items:center;justify-content:center}
+.modal.open{display:flex}
+.modal-box{background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:32px;width:360px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.modal-box h2{font-size:18px;font-weight:800;margin-bottom:20px}
+.modal-box input{width:100%;padding:11px 14px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-size:14px;font-family:'Inter',sans-serif;margin-bottom:10px;outline:none}
+.modal-box input:focus{border-color:var(--accent)}
+.google-btn{width:100%;padding:11px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;font-family:'Inter',sans-serif;transition:background .15s}
+.google-btn:hover{background:var(--surface3)}
+.divider{display:flex;align-items:center;gap:10px;margin:14px 0}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border2)}
+.divider span{color:var(--muted);font-size:12px;font-weight:600}
+.switch-link{text-align:center;margin-top:14px;font-size:13px;color:var(--muted)}
+.switch-link a{color:var(--accent);cursor:pointer;font-weight:700;text-decoration:none}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:var(--radius);font-weight:700;font-size:13px;z-index:9999;opacity:0;transform:translateY(20px);transition:all .3s;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.ok{background:var(--green);color:#000}
+.toast.err{background:var(--red);color:#fff}
+.toast.info{background:var(--accent2);color:#fff}
+
+/* SIDEBAR */
+.app{display:flex;min-height:calc(100vh - 60px)}
+.sidebar{width:240px;background:var(--surface);border-right:1px solid var(--border);flex-shrink:0;display:none;flex-direction:column;position:sticky;top:60px;height:calc(100vh - 60px);overflow-y:auto}
+.sidebar.show{display:flex}
+.sb-user{padding:16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.sb-avatar{width:36px;height:36px;border-radius:50%;background:var(--surface3);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:16px}
+.sb-name{font-weight:700;font-size:13px}
+.sb-tier{font-size:11px;color:var(--muted)}
+.sb-section{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:14px 16px 6px}
+.sb-link{display:flex;align-items:center;gap:10px;padding:10px 16px;cursor:pointer;color:var(--muted);font-size:13px;font-weight:600;border-left:3px solid transparent;transition:all .15s}
+.sb-link:hover,.sb-link.active{color:var(--text);background:var(--surface2);border-left-color:var(--accent)}
+.sb-icon{font-size:16px;width:20px;text-align:center}
+
+/* PAGES */
+.page{display:none;padding:32px 10px}
+.page.active{display:block}
+
+/* HERO */
+.hero{min-height:calc(100vh - 60px);display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;padding:60px 48px}
+.hero h1{font-size:48px;font-weight:900;line-height:1.1;margin-bottom:16px}
+.hero h1 span{color:var(--accent)}
+.hero p{font-size:16px;color:var(--muted);line-height:1.7;margin-bottom:32px}
+.hero-btns{display:flex;gap:12px}
+
+/* STATS BAR */
+.stats-bar{display:grid;grid-template-columns:repeat(3,1fr);background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.stat-item{padding:32px 24px;text-align:center;border-right:1px solid var(--border)}
+.stat-item:last-child{border-right:none}
+.stat-val{font-size:40px;font-weight:900;color:var(--accent)}
+.stat-label{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-top:4px}
+
+/* TICKER */
+.ticker{background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);overflow:hidden;white-space:nowrap;margin:0}
+.ticker-track{display:inline-flex;animation:ticker 45s linear infinite}
+.ticker-track:hover{animation-play-state:paused}
+@keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.tick-item{display:inline-flex;align-items:center;gap:10px;padding:12px 24px;border-right:1px solid var(--border)}
+
+/* LEADERBOARD */
+.lb-wrap{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.lb-head{display:grid;grid-template-columns:80px 1fr 140px 100px 80px 130px;background:var(--surface2);border-bottom:1px solid var(--border)}
+.lb-head span{padding:13px 16px;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.lb-viewport{height:440px;overflow:hidden;position:relative}
+.lb-row{display:grid;grid-template-columns:80px 1fr 140px 100px 80px 130px;align-items:center;border-bottom:1px solid var(--border);height:44px;position:absolute;width:100%;background:var(--surface);transition:top .5s ease}
+.lb-row:hover{background:var(--surface2)}
+.lb-row div{padding:0 16px;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lb-row .rank{color:var(--muted);font-weight:700}
+.lb-row .coins{color:var(--accent);text-align:right}
+.lb-row .rating{color:var(--accent2)}
+
+/* CARDS */
+.cards-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;transition:all .2s}
+.card:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:0 8px 32px rgba(0,0,0,.3)}
+.card-badge{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:4px 10px;border-radius:4px;background:var(--accent);color:#000;display:inline-block;margin-bottom:14px}
+.card h3{font-size:17px;font-weight:800;margin-bottom:14px}
+.card-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px}
+.card-row:last-of-type{border:none;margin-bottom:16px}
+.card-row .lbl{color:var(--muted)}
+.card-row .val{color:var(--accent);font-weight:700}
+
+/* SECTIONS */
+.section{padding:60px 48px}
+.section-tag{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+.section h2{font-size:32px;font-weight:900;margin-bottom:32px}
+
+/* CHESS BOARD */
+.board-wrap{position:relative}
+.chessboard{display:grid;grid-template-columns:repeat(8,60px);grid-template-rows:repeat(8,60px);border:2px solid rgba(0,231,1,.3);border-radius:4px;overflow:hidden;box-shadow:0 0 40px rgba(0,231,1,.1)}
+.sq{width:60px;height:60px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:filter .1s;position:relative}
+.sq.dark{background:#1a2c38}.sq.light{background:#213743}
+.sq.sel{background:rgba(0,231,1,.4)!important}
+.sq.lm::after{content:'';position:absolute;width:34%;height:34%;border-radius:50%;background:rgba(0,231,1,.6)}
+.sq.lc::after{content:'';position:absolute;inset:0;box-shadow:inset 0 0 0 4px rgba(0,231,1,.6)}
+.sq.lmv{background:rgba(0,231,1,.15)!important}
+.sq:hover{filter:brightness(1.3)}
+.piece{font-size:36px;pointer-events:none;user-select:none;line-height:1}
+.board-controls{display:flex;gap:8px;margin-top:12px;justify-content:center;flex-wrap:wrap}
+
+/* PROFILE BTN */
+.profile-btn{position:relative;width:36px;height:36px;border-radius:50%;background:var(--surface2);border:2px solid var(--border2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px}
+.profile-btn:hover{border-color:var(--accent)}
+.profile-drop{position:absolute;top:44px;right:0;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);min-width:180px;display:none;z-index:200;box-shadow:0 8px 32px rgba(0,0,0,.4)}
+.profile-drop.open{display:block}
+.drop-item{padding:11px 16px;font-size:13px;font-weight:600;cursor:pointer;color:var(--text);transition:background .15s}
+.drop-item:hover{background:var(--surface3)}
+
+/* MINI BOARDS */
+.mini-boards-section{padding:48px 0;background:var(--surface)}
+.mini-boards-section h2{font-size:28px;font-weight:900;margin-bottom:8px;text-align:center}
+.mini-boards-section p{color:var(--muted);text-align:center;margin-bottom:36px}
+.mini-boards-inner{padding:0 48px}
+.mini-tier-label{font-size:15px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:12px}
+.mini-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:16px}
+.mini-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;transition:all .2s}
+.mini-card:hover{border-color:var(--border2);transform:translateY(-2px)}
+.mini-board{display:grid;grid-template-columns:repeat(8,1fr);aspect-ratio:1;border-radius:4px;overflow:hidden;margin-bottom:8px}
+.mini-sq{aspect-ratio:1}
+.mini-piece{font-size:clamp(6px,1.5vw,18px);display:flex;align-items:center;justify-content:center;width:100%;height:100%;line-height:1}
+.mini-label{font-size:13px;font-weight:700;text-align:center;margin-bottom:5px}
+.mini-sub{font-size:10px;color:var(--muted);text-align:center;margin-top:2px}
+
+/* FOOTER */
+footer{padding:32px 48px;border-top:1px solid var(--border);text-align:center;color:var(--muted);font-size:13px}
+footer .logo{justify-content:center;margin-bottom:12px;font-size:16px}
+.footer-links{display:flex;gap:20px;justify-content:center;margin:12px 0}
+.footer-links a{color:var(--muted);cursor:pointer;font-weight:600;transition:color .15s}
+.footer-links a:hover{color:var(--accent)}
+
+/* FAQ */
+.faq-item{border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px;overflow:hidden}
+.faq-item.open{border-color:var(--border2)}
+.faq-q{display:flex;justify-content:space-between;align-items:center;padding:15px 18px;cursor:pointer;font-size:14px;font-weight:700;background:var(--surface);gap:12px}
+.faq-q:hover{background:var(--surface2)}
+.faq-icon{color:var(--accent);font-size:18px;transition:transform .25px;flex-shrink:0}
+.faq-item.open .faq-icon{transform:rotate(45deg)}
+.faq-a{display:none;padding:14px 18px;font-size:14px;color:var(--muted);line-height:1.7;background:var(--surface2);border-top:1px solid var(--border)}
+.faq-item.open .faq-a{display:block}
+
+/* LEGAL MODAL */
+#legalModal .modal-box{max-width:600px;width:95%;max-height:80vh;overflow-y:auto;text-align:left}
+#legalModal h2{margin-bottom:16px}
+#legalBody{font-size:14px;color:var(--muted);line-height:1.8}
+#legalBody h4{color:var(--text);font-size:14px;margin:16px 0 6px}
+
+/* PLAY PAGE */
+.play-layout{display:grid;grid-template-columns:1fr 340px;gap:24px;align-items:start}
+.play-board-wrap{display:flex;flex-direction:column;align-items:center;gap:12px}
+.player-bar{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);width:100%;max-width:500px;font-size:13px;font-weight:700}
+.player-bar.active{border-color:var(--accent)}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:14px}
+.panel h3{font-size:13px;font-weight:800;color:var(--accent);margin-bottom:14px;text-transform:uppercase;letter-spacing:.06em}
+.mode-tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.mt{font-size:12px;font-weight:700;padding:7px 12px;border-radius:var(--radius);border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all .15s}
+.mt.active,.mt:hover{background:var(--accent);color:#000;border-color:var(--accent)}
+.mc{display:none}.mc.active{display:block}
+.inp label{display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.inp select,.inp input{width:100%;padding:9px 12px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-size:14px;font-family:'Inter',sans-serif;margin-bottom:10px;outline:none}
+.move-list{max-height:160px;overflow-y:auto;display:grid;grid-template-columns:1fr 1fr;gap:3px;font-size:12px}
+.mv-w{color:var(--text)}.mv-b{color:var(--muted)}.mv-n{color:var(--accent);margin-right:3px}
+
+/* FINANCE PAGE */
+.finance-form{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;max-width:560px;margin-bottom:24px}
+.finance-form h3{font-size:16px;font-weight:800;margin-bottom:20px}
+.form-row{margin-bottom:14px}
+.form-row label{display:block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+.form-row input{width:100%;padding:10px 14px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-size:14px;font-family:'Inter',sans-serif;outline:none}
+.form-row input:focus{border-color:var(--accent)}
+.balance-box{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);padding:14px 18px;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.bal-label{font-size:12px;color:var(--muted);font-weight:600}
+.bal-value{font-size:20px;font-weight:900;color:var(--accent)}
+
+/* PROFILE */
+.profile-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;text-align:center;margin-bottom:20px}
+.profile-avatar{width:80px;height:80px;border-radius:50%;background:var(--surface2);border:3px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 14px}
+.profile-name{font-size:20px;font-weight:900;margin-bottom:4px}
+.profile-email{font-size:13px;color:var(--muted);margin-bottom:14px}
+.profile-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px}
+.pstat{background:var(--surface2);border-radius:var(--radius);padding:12px;text-align:center}
+.pstat-val{font-size:20px;font-weight:900;color:var(--accent)}
+.pstat-lbl{font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+
+/* TIER BADGE */
+.tier-badge{display:inline-block;padding:3px 10px;border-radius:4px;font-size:11px;font-weight:700;background:var(--surface2);border:1px solid var(--border2);color:var(--muted)}
+
+/* HISTORY TABLE */
+.hist-table{width:100%;border-collapse:collapse}
+.hist-table th{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:10px 12px;background:var(--surface2);text-align:left;border-bottom:1px solid var(--border)}
+.hist-table td{padding:10px 12px;border-bottom:1px solid var(--border);font-size:13px}
+.badge-pending{color:#f0a500;font-size:11px;font-weight:700}
+.badge-approved{color:var(--green);font-size:11px;font-weight:700}
+.badge-rejected{color:var(--red);font-size:11px;font-weight:700}
+
+/* THEME PICKER */
+.theme-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:20px}
+.theme-card{background:var(--surface);border:2px solid var(--border);border-radius:var(--radius);padding:16px;cursor:pointer;text-align:center;transition:all .2s}
+.theme-card:hover,.theme-card.active{border-color:var(--accent)}
+.theme-preview{display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(2,40px);border-radius:6px;overflow:hidden;margin-bottom:12px}
+.theme-sq{width:100%;height:40px;display:block}
+.theme-name{font-size:13px;font-weight:700;color:var(--muted);margin-top:4px}
+.theme-card.active .theme-name{color:var(--accent)}
+
+
+/* TOURNAMENT DROPDOWN IN SIDEBAR */
+.sb-sub{padding:9px 16px 9px 32px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .15s;display:block}
+.sb-sub:hover{color:var(--text);background:var(--surface3)}
+
+/* LANGUAGE DROPDOWN */
+.lang-wrap{position:relative}
+.lang-drop{position:absolute;top:38px;right:0;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);min-width:180px;display:none;z-index:300;box-shadow:0 8px 32px rgba(0,0,0,.4);max-height:320px;overflow-y:auto}
+.lang-drop.open{display:block}
+.lang-item{padding:10px 14px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .15s}
+.lang-item:hover{background:var(--surface3)}
+.lang-item.active{color:var(--accent)}
+
+/* LIVE SUPPORT MODAL */
+#supportModal .modal-box{max-width:420px;width:95%;text-align:left;padding:0;overflow:hidden}
+.support-header{background:linear-gradient(135deg,#1a9aef,#0d6ebd);padding:20px 24px;display:flex;align-items:center;gap:12px}
+.support-dot{width:10px;height:10px;border-radius:50%;background:#00e701;animation:pulse 1.5s infinite;flex-shrink:0}
+.support-body{padding:20px 24px}
+.support-msgs{height:220px;overflow-y:auto;background:var(--surface2);border-radius:var(--radius);padding:12px;margin-bottom:12px;display:flex;flex-direction:column;gap:8px}
+.sup-msg{max-width:80%;padding:8px 12px;border-radius:8px;font-size:13px;line-height:1.5}
+.sup-msg.agent{background:var(--surface3);color:var(--text);align-self:flex-start;border-bottom-left-radius:2px}
+.sup-msg.user{background:var(--accent);color:#000;align-self:flex-end;border-bottom-right-radius:2px}
+.support-input{display:flex;gap:8px}
+.support-input input{flex:1;padding:10px 12px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-size:13px;font-family:'Inter',sans-serif;outline:none}
+.support-input input:focus{border-color:var(--accent)}
+
+
+
+/* HOME LANG GRID */
+.home-lang-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.home-lang-btn{padding:11px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:10px;transition:all .2s}
+.home-lang-btn:hover{border-color:var(--border2);color:var(--text);background:var(--surface3);transform:translateY(-1px)}
+.home-lang-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(0,231,1,.07)}
+.home-lang-btn .flag{font-size:20px}
+.home-lang-btn .lname{font-size:13px;font-weight:700}
+
+/* HOME SUPPORT BOX */
+.home-support-box{background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:24px;cursor:pointer;transition:all .2s}
+.home-support-box:hover{border-color:var(--accent2);box-shadow:0 8px 32px rgba(26,154,239,.15);transform:translateY(-2px)}
+
+/* SIDEBAR FULL-NAME LANG LIST */
+.sb-lang-list{display:flex;flex-direction:column}
+.sb-lang-item{display:flex;align-items:center;gap:10px;padding:9px 16px 9px 20px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .15s;border-left:2px solid transparent}
+.sb-lang-item:hover{color:var(--text);background:var(--surface2)}
+.sb-lang-item.active{color:var(--accent);border-left-color:var(--accent);background:rgba(0,231,1,.05)}
+.sb-lang-item .flag{font-size:15px}
+
+/* SIDEBAR LANGUAGE GRID */
+.sb-lang-wrap{padding:0 12px 12px}
+.sb-lang-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:4px}
+.sb-lang-btn{padding:7px 6px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;font-size:11px;font-weight:700;color:var(--muted);cursor:pointer;text-align:center;transition:all .15s;line-height:1.4}
+.sb-lang-btn:hover{border-color:var(--border2);color:var(--text);background:var(--surface3)}
+.sb-lang-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(0,231,1,.08)}
+
+/* SIDEBAR SUPPORT BUTTON */
+.sb-support-btn{display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;background:rgba(26,154,239,.08);border-left:3px solid var(--accent2);margin:0 0 8px;transition:background .15s}
+.sb-support-btn:hover{background:rgba(26,154,239,.16)}
+.sb-sup-dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0;animation:pulse 1.5s infinite}
+
+/* WAITING DOT */
+.dot{width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;margin-right:6px;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* REVEAL */
+.reveal{opacity:0;transform:translateY(16px);transition:opacity .5s,transform .5s}
+.reveal.in{opacity:1;transform:translateY(0)}
+
+/* ── PROMOTIONS PAGE ── */
+.promo-page{
+  min-height:calc(100vh - 60px);
+  background:var(--bg);
+  padding:32px 24px;
+}
+.promo-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:16px;
+  max-width:1100px;
+  margin:0 auto;
+}
+.promo-item{
+  border-radius:12px;
+  overflow:hidden;
+  border:1px solid var(--border);
+  background:var(--surface);
+  transition:transform .2s, border-color .2s, box-shadow .2s;
+  cursor:pointer;
+}
+.promo-item:hover{
+  transform:translateY(-4px);
+  border-color:rgba(0,231,1,.4);
+  box-shadow:0 12px 40px rgba(0,0,0,.5);
+}
+.promo-item img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+.promo-item.wide{
+  grid-column:1 / -1;
+}
+.promo-item.square{
+  aspect-ratio:1/1;
+}
+.promo-item.tall{
+  aspect-ratio:3/4;
+}
+/* LB banner — no hover lift, decorative gold border */
+.promo-banner{
+  cursor:default;
+  border:3px solid transparent;
+  border-radius:14px;
+  background:
+    linear-gradient(var(--surface),var(--surface)) padding-box,
+    linear-gradient(135deg,#FFD700,#f0a500,#FFD700,#cd7f32,#FFD700) border-box;
+  box-shadow:
+    0 0 0 1px rgba(255,215,0,.15),
+    0 8px 40px rgba(255,180,0,.18),
+    0 2px 8px rgba(0,0,0,.4);
+  position:relative;
+}
+.promo-banner::before{
+  content:'';
+  position:absolute;
+  inset:-3px;
+  border-radius:16px;
+  background:linear-gradient(135deg,#FFD700,#f0a500,#FFD700,#cd7f32,#FFD700);
+  z-index:-1;
+  animation:borderShine 3s linear infinite;
+  background-size:200% 200%;
+}
+@keyframes borderShine{
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+}
+.promo-banner:hover{
+  transform:none;
+  box-shadow:
+    0 0 0 1px rgba(255,215,0,.3),
+    0 12px 50px rgba(255,180,0,.25),
+    0 2px 8px rgba(0,0,0,.5);
+}
+.promo-banner img{
+  border-radius:11px;
+}
+
+/* LIGHTBOX */
+.lightbox{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.92);
+  z-index:2000;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}
+.lightbox.open{display:flex;}
+.lightbox img{
+  max-width:90vw;
+  max-height:90vh;
+  object-fit:contain;
+  border-radius:8px;
+  box-shadow:0 20px 80px rgba(0,0,0,.8);
+}
+.lightbox-close{
+  position:absolute;
+  top:20px;
+  right:24px;
+  font-size:28px;
+  color:#fff;
+  cursor:pointer;
+  font-weight:700;
+  line-height:1;
+  opacity:.7;
+  transition:opacity .15s;
+}
+.lightbox-close:hover{opacity:1;}
+
+
+/* ═══════════════════════════════════════
+   MOBILE RESPONSIVE — All breakpoints
+   ═══════════════════════════════════════ */
+
+/* ── HAMBURGER BUTTON (mobile only) ── */
+.hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:6px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius)}
+.hamburger span{display:block;width:20px;height:2px;background:var(--text);border-radius:2px;transition:all .25s}
+.hamburger.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.hamburger.open span:nth-child(2){opacity:0}
+.hamburger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+
+/* ── MOBILE DRAWER (sidebar as overlay) ── */
+.mob-drawer{position:fixed;top:60px;left:0;width:280px;height:calc(100vh - 60px);background:var(--surface);border-right:1px solid var(--border);z-index:500;transform:translateX(-100%);transition:transform .3s ease;overflow-y:auto;display:flex;flex-direction:column}
+.mob-drawer.open{transform:translateX(0)}
+.mob-overlay{display:none;position:fixed;inset:0;top:60px;background:rgba(0,0,0,.6);z-index:499}
+.mob-overlay.open{display:block}
+
+@media(max-width:900px){
+  /* HAMBURGER VISIBLE */
+  .hamburger{display:flex}
+
+  /* HEADER */
+  header{padding:0 14px;gap:8px}
+  .logo{font-size:16px}
+  #guestNav{display:none!important}
+
+  /* PAGES */
+  .page{padding:16px 12px}
+
+  /* HERO — single column */
+  .hero{grid-template-columns:1fr;padding:24px 16px;gap:24px;min-height:auto}
+  .hero h1{font-size:28px}
+  .hero p{font-size:14px;margin-bottom:20px}
+  .hero-btns{flex-wrap:wrap;gap:10px}
+  .hero-btns .btn{flex:1;min-width:120px;text-align:center}
+
+  /* CHESS BOARD — home hero — truly centered */
+  .board-wrap{width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .hero{justify-items:center}
+  .board-wrap > div{display:flex;justify-content:center;align-items:flex-start}
+  .chessboard{grid-template-columns:repeat(8,min(9.5vw,44px))!important;grid-template-rows:repeat(8,min(9.5vw,44px))!important}
+  .sq{width:min(9.5vw,44px)!important;height:min(9.5vw,44px)!important}
+  #h-ranks span{height:min(9.5vw,44px)!important}
+  #h-files span{width:min(9.5vw,44px)!important}
+  .board-controls{justify-content:center;flex-wrap:wrap}
+
+  /* STATS BAR */
+  .stats-bar{grid-template-columns:repeat(3,1fr)}
+  .stat-val{font-size:24px}
+  .stat-item{padding:20px 10px}
+
+  /* TICKER */
+  .tick-item{padding:10px 14px}
+
+  /* MINI BOARDS */
+  .mini-boards-section{padding:24px 0}
+  .mini-boards-inner{padding:0 12px}
+  .mini-row{grid-template-columns:repeat(2,1fr);gap:10px}
+
+  /* ARENA CARDS */
+  .cards-grid{grid-template-columns:1fr;gap:14px}
+
+  /* LEADERBOARD — scrollable wrapper */
+  .lb-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .lb-head{grid-template-columns:44px 100px 90px 62px 50px 74px;min-width:420px}
+  .lb-row{grid-template-columns:44px 100px 90px 62px 50px 74px;min-width:420px}
+  .lb-head span{padding:10px 8px;font-size:10px}
+  .lb-row div{padding:0 8px;font-size:11px}
+  .lb-viewport{min-width:420px}
+
+  /* SECTION PADDING */
+  .section{padding:32px 16px}
+
+  /* PLAY PAGE */
+  .play-layout{grid-template-columns:1fr;gap:16px}
+  .play-board-wrap{width:100%}
+  #pBoard{grid-template-columns:repeat(8,min(9vw,44px))!important;grid-template-rows:repeat(8,min(9vw,44px))!important}
+  .player-bar{max-width:100%}
+  .board-controls{gap:6px}
+  .board-controls .btn{padding:6px 10px;font-size:11px}
+  #p-ranks span{height:min(9vw,44px)!important}
+  #p-files span{width:min(9vw,44px)!important}
+
+  /* STATS PAGE */
+  #page-stats > div:first-of-type + div{grid-template-columns:repeat(2,1fr)!important}
+
+  /* PROFILE PAGE */
+  #page-profile > div{grid-template-columns:1fr!important}
+  .profile-stats{grid-template-columns:repeat(3,1fr)}
+
+  /* FINANCE FORMS */
+  .finance-form{padding:18px 14px}
+  .balance-box{flex-direction:column;align-items:flex-start;gap:6px}
+
+  /* THEME GRID */
+  .theme-grid{grid-template-columns:repeat(2,1fr);gap:10px}
+
+  /* PROMO PAGE */
+  .promo-page{padding:16px 10px}
+  .promo-grid{grid-template-columns:1fr;gap:12px}
+  .promo-item.wide{grid-column:1}
+
+  /* HOME LANG+SUPPORT SECTION */
+  #langSupportSection > div{grid-template-columns:1fr!important;gap:24px}
+  .home-lang-grid{grid-template-columns:repeat(2,1fr)}
+
+  /* MODAL */
+  .modal-box{width:92vw;padding:20px}
+  #legalModal .modal-box{width:94vw}
+
+  /* SUPPORT MODAL */
+  #supportModal .modal-box{width:94vw}
+
+  /* SIDEBAR — HIDDEN, use mobile drawer instead */
+  .sidebar{display:none!important}
+
+  /* HEADER RIGHT — compact after login */
+  #headerRight .btn{padding:6px 10px;font-size:11px}
+  #headerRight > div{gap:6px}
+}
+
+@media(max-width:480px){
+  /* EXTRA SMALL */
+  header{padding:0 10px}
+  .logo{font-size:14px}
+  .hero h1{font-size:22px}
+  .stats-bar{grid-template-columns:1fr}
+  .stat-item{border-right:none;border-bottom:1px solid var(--border);padding:16px}
+  .stat-item:last-child{border-bottom:none}
+  .mini-row{grid-template-columns:1fr;gap:10px}
+  .lb-head{grid-template-columns:36px 90px 80px 56px 44px 66px;min-width:372px}
+  .lb-row{grid-template-columns:36px 90px 80px 56px 44px 66px;min-width:372px}
+  .lb-viewport{min-width:372px}
+  .chessboard{grid-template-columns:repeat(8,min(11vw,38px))!important;grid-template-rows:repeat(8,min(11vw,38px))!important}
+  .sq{width:min(11vw,38px)!important;height:min(11vw,38px)!important}
+  #h-ranks span{height:min(11vw,38px)!important}
+  #h-files span{width:min(11vw,38px)!important}
+  #pBoard{grid-template-columns:repeat(8,min(11vw,38px))!important;grid-template-rows:repeat(8,min(11vw,38px))!important}
+  #p-ranks span{height:min(11vw,38px)!important}
+  #p-files span{width:min(11vw,38px)!important}
+  .theme-grid{grid-template-columns:repeat(2,1fr)}
+  .home-lang-grid{grid-template-columns:1fr}
+  .profile-stats{grid-template-columns:repeat(3,1fr)}
+  .cards-grid{grid-template-columns:1fr}
+  .board-controls .btn{padding:5px 8px;font-size:10px}
+}
+
+</style>
+</head>
+<body>
+
+<!-- AUTH MODAL -->
+<div class="modal" id="authModal">
+  <div class="modal-box">
+    <h2 id="auth-title">Create Account</h2>
+    <div id="auth-form"></div>
+  </div>
+</div>
+
+<!-- LEGAL MODAL -->
+<div class="modal" id="legalModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal-box">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <h2 id="legal-title" style="margin:0"></h2>
+      <button class="btn btn-o btn-sm" onclick="document.getElementById('legalModal').classList.remove('open')">✕</button>
+    </div>
+    <div id="legalBody"></div>
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <span class="lightbox-close" onclick="closeLightbox()">✕</span>
+  <img id="lightboxImg" src="" alt="">
+</div>
+
+
+<!-- MOBILE OVERLAY -->
+<div class="mob-overlay" id="mobOverlay" onclick="closeMobDrawer()"></div>
+
+<!-- MOBILE DRAWER (mirrors sidebar content) -->
+<div class="mob-drawer" id="mobDrawer">
+  <div class="sb-user" id="mob-user" style="display:none">
+    <div class="sb-avatar">♟</div>
+    <div>
+      <div class="sb-name" id="mob-name">—</div>
+      <div class="sb-tier" id="mob-tier">—</div>
+    </div>
+  </div>
+  <!-- Guest links -->
+  <div id="mobGuestLinks">
+    <div class="sb-link" onclick="goPage('home');closeMobDrawer()"><span class="sb-icon">🏠</span>Home</div>
+    <div class="sb-link" onclick="goPage('play');closeMobDrawer()"><span class="sb-icon">♟</span>Play</div>
+    <div class="sb-link" onclick="scrollToId('arena');closeMobDrawer()"><span class="sb-icon">🏟</span>Arena</div>
+    <div class="sb-link" onclick="goPage('promotions');closeMobDrawer()"><span class="sb-icon">🎁</span>Promotions</div>
+    <div style="padding:12px 16px;display:flex;gap:8px">
+      <button class="btn btn-o btn-sm" style="flex:1" onclick="openAuth('login');closeMobDrawer()">Login</button>
+      <button class="btn btn-sm" style="flex:1" onclick="openAuth('signup');closeMobDrawer()">Sign Up</button>
+    </div>
+  </div>
+  <!-- Logged-in links -->
+  <div id="mobAuthLinks" style="display:none">
+    <div style="padding:10px 16px;display:flex;gap:8px;border-bottom:1px solid var(--border)">
+      <button class="btn btn-sm" style="flex:1;background:#00e701;color:#000;font-weight:800" onclick="goPage('deposit');closeMobDrawer()">💰 Deposit</button>
+      <button class="btn btn-sm btn-o" style="flex:1;font-weight:800" onclick="goPage('withdrawal');closeMobDrawer()">💸 Withdraw</button>
+    </div>
+    <div class="sb-section">Main</div>
+    <div class="sb-link" onclick="goPage('home');closeMobDrawer()"><span class="sb-icon">🏠</span>Home</div>
+    <div class="sb-link" onclick="goPage('play');closeMobDrawer()"><span class="sb-icon">♟</span>Play</div>
+    <div class="sb-link" onclick="goTourney('1v1');closeMobDrawer()"><span class="sb-icon">⚔️</span>1 vs 1</div>
+    <div class="sb-link" onclick="toggleMobTourn(event)"><span class="sb-icon">🏆</span>Tournaments <span style="margin-left:auto;font-size:10px">▾</span></div>
+    <div id="mobTournDrop" style="display:none;background:var(--surface2);border-left:3px solid var(--accent)">
+      <div class="sb-sub" onclick="goTourney('swiss');closeMobDrawer()">🔄 Swiss Tournament</div>
+      <div class="sb-sub" onclick="goTourney('knockout');closeMobDrawer()">🥊 Knockout (Elimination)</div>
+      <div class="sb-sub" onclick="goTourney('double');closeMobDrawer()">🏅 Double Elimination</div>
+      <div style="padding:6px 16px;font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--accent);text-transform:uppercase;border-top:1px solid var(--border);margin-top:4px">⚡ Arenas</div>
+      <div class="sb-sub" onclick="goTourney('rapid');closeMobDrawer()">⏱ Rapid Tournament</div>
+      <div class="sb-sub" onclick="goTourney('blitz');closeMobDrawer()">⚡ Blitz Tournament</div>
+      <div class="sb-sub" onclick="goTourney('bullet');closeMobDrawer()">🔫 Bullet Tournament</div>
+      <div class="sb-sub" onclick="goTourney('ultra');closeMobDrawer()">💨 Ultra Bullet Tournament</div>
+      <div style="padding:6px 16px;font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--accent2);text-transform:uppercase;border-top:1px solid var(--border);margin-top:4px">🌸 Seasonal</div>
+      <div class="sb-sub" onclick="goTourney('spring');closeMobDrawer()">🌸 Spring Open</div>
+      <div class="sb-sub" onclick="goTourney('summer');closeMobDrawer()">☀️ Summer Open</div>
+      <div class="sb-sub" onclick="goTourney('autumn');closeMobDrawer()">🍂 Autumn Open</div>
+      <div class="sb-sub" onclick="goTourney('winter');closeMobDrawer()">❄️ Winter Open</div>
+    </div>
+    <div class="sb-link" onclick="goPage('promotions');closeMobDrawer()"><span class="sb-icon">🎁</span>Promotions</div>
+    <div class="sb-section">Finance</div>
+    <div class="sb-link" onclick="goPage('deposit');closeMobDrawer()"><span class="sb-icon">💰</span>Deposit</div>
+    <div class="sb-link" onclick="goPage('withdrawal');closeMobDrawer()"><span class="sb-icon">💸</span>Withdraw</div>
+    <div class="sb-section">Account</div>
+    <div class="sb-link" onclick="goPage('stats');closeMobDrawer()"><span class="sb-icon">📊</span>Stats</div>
+    <div class="sb-link" onclick="goPage('profile');closeMobDrawer()"><span class="sb-icon">👤</span>Profile</div>
+    <div class="sb-link" onclick="goPage('theme');closeMobDrawer()"><span class="sb-icon">🎨</span>Board Theme</div>
+    <div class="sb-section">More</div>
+    <div class="sb-section" style="padding-top:0;padding-bottom:6px">🌐 Language</div>
+    <div class="sb-lang-list" id="mobLangGrid"></div>
+    <div class="sb-section" style="margin-top:4px">Support</div>
+    <div class="sb-support-btn" onclick="openSupport();closeMobDrawer()">
+      <span class="sb-sup-dot"></span>
+      <div>
+        <div style="font-size:13px;font-weight:700;color:var(--text)">💬 Live Support</div>
+        <div style="font-size:10px;color:var(--green);font-weight:600">● Online Now</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- HEADER -->
+<header>
+  <div style="display:flex;align-items:center;gap:10px">
+    <div class="hamburger" id="hamburger" onclick="toggleMobDrawer()"><span></span><span></span><span></span></div>
+    <div class="logo" onclick="goPage('home')">♛ ChessWin7</div>
+  </div>
+  <nav id="guestNav" style="display:flex;gap:4px;align-items:center">
+    <a class="btn btn-o btn-sm" onclick="goPage('home')">Home</a>
+    <a class="btn btn-o btn-sm" onclick="goPage('play')">Play</a>
+    <a class="btn btn-o btn-sm" onclick="scrollToId('arena')">Arena</a>
+    <a class="btn btn-sm" style="background:linear-gradient(135deg,#f0a500,#FFD700);color:#000;font-weight:800" onclick="goPage('promotions')">🎁 Promotions</a>
+  </nav>
+  <div id="headerRight">
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-o btn-sm" onclick="openAuth('login')">Login</button>
+      <button class="btn btn-sm" onclick="openAuth('signup')">Sign Up</button>
+    </div>
+  </div>
+</header>
+
+<!-- APP -->
+<div class="app">
+
+<!-- SIDEBAR -->
+<div class="sidebar" id="sidebar">
+  <!-- FIX 1: Close button -->
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border)">
+    <div class="sb-user" id="sb-user" style="padding:0;border:none;flex:1">
+      <div class="sb-avatar">♟</div>
+      <div>
+        <div class="sb-name" id="sb-name">—</div>
+        <div class="sb-tier" id="sb-tier">—</div>
+      </div>
+    </div>
+    <button onclick="closeSidebar()" style="background:var(--surface2);border:1px solid var(--border2);color:var(--muted);width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0" title="Close">✕</button>
+  </div>
+  <div class="sb-section">Main</div>
+  <!-- FIX 3: Home, Play, 1vs1 first, then Tournaments dropdown -->
+  <div class="sb-link active" onclick="goPage('home',this)"><span class="sb-icon">🏠</span>Home</div>
+  <div class="sb-link" onclick="goPage('play',this)"><span class="sb-icon">♟</span>Play</div>
+  <div class="sb-link" onclick="goTourney('1v1')"><span class="sb-icon">⚔️</span>1 vs 1</div>
+  <div class="sb-link" onclick="toggleTournDrop(event,this)" id="sbTourn"><span class="sb-icon">🏆</span>Tournaments <span style="margin-left:auto;font-size:10px">▾</span></div>
+  <div id="sbTournDrop" style="display:none;background:var(--surface2);border-left:3px solid var(--accent)">
+    <div class="sb-sub" onclick="goTourney('swiss')">🔄 Swiss Tournament</div>
+    <div class="sb-sub" onclick="goTourney('knockout')">🥊 Knockout (Elimination)</div>
+    <div class="sb-sub" onclick="goTourney('double')">🏅 Double Elimination</div>
+    <!-- FIX 4: Arenas heading before Rapid -->
+    <div style="padding:6px 16px;font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--accent);text-transform:uppercase;border-top:1px solid var(--border);margin-top:4px">⚡ Arenas</div>
+    <div class="sb-sub" onclick="goTourney('rapid')">⏱ Rapid Tournament</div>
+    <div class="sb-sub" onclick="goTourney('blitz')">⚡ Blitz Tournament</div>
+    <div class="sb-sub" onclick="goTourney('bullet')">🔫 Bullet Tournament</div>
+    <div class="sb-sub" onclick="goTourney('ultra')">💨 Ultra Bullet Tournament</div>
+    <div style="padding:6px 16px;font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--accent2);text-transform:uppercase;border-top:1px solid var(--border);margin-top:4px">🌸 Seasonal</div>
+    <div class="sb-sub" onclick="goTourney('spring')">🌸 Spring Open</div>
+    <div class="sb-sub" onclick="goTourney('summer')">☀️ Summer Open</div>
+    <div class="sb-sub" onclick="goTourney('autumn')">🍂 Autumn Open</div>
+    <div class="sb-sub" onclick="goTourney('winter')">❄️ Winter Open</div>
+  </div>
+  <div class="sb-link" onclick="goPage('promotions',this)"><span class="sb-icon">🎁</span>Promotions</div>
+  <div class="sb-section">Finance</div>
+  <div class="sb-link" onclick="goPage('deposit',this)"><span class="sb-icon">💰</span>Deposit</div>
+  <div class="sb-link" onclick="goPage('withdrawal',this)"><span class="sb-icon">💸</span>Withdraw</div>
+  <div class="sb-section">Account</div>
+  <div class="sb-link" onclick="goPage('stats',this)"><span class="sb-icon">📊</span>Stats</div>
+  <div class="sb-link" onclick="goPage('profile',this)"><span class="sb-icon">👤</span>Profile</div>
+  <div class="sb-link" onclick="goPage('theme',this)"><span class="sb-icon">🎨</span>Board Theme</div>
+  <!-- FIX 2: No logout button in sidebar -->
+  <div class="sb-section">More</div>
+  <div class="sb-lang-wrap">
+    <div class="sb-section" style="padding-top:0;padding-bottom:6px">🌐 Language</div>
+    <div class="sb-lang-list" id="sbLangGrid"></div>
+  </div>
+  <div class="sb-section" style="margin-top:4px">Support</div>
+  <div class="sb-support-btn" onclick="openSupport()">
+    <span class="sb-sup-dot"></span>
+    <div>
+      <div style="font-size:13px;font-weight:700;color:var(--text)">💬 Live Support</div>
+      <div style="font-size:10px;color:var(--green);font-weight:600">● Online Now</div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<main style="flex:1;overflow-x:hidden">
+
+<!-- HOME PAGE -->
+<div class="page active" id="page-home">
+  <div class="hero">
+    <div>
+      <p style="font-size:11px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:12px">♛ ChessWin7 — Skill Based Arena</p>
+      <h1>Play Chess.<br><span>Earn Real</span><br>Rewards.</h1>
+      <p>Challenge real players worldwide, climb the leaderboard, and win USDT with every victory. 1 COIN = 1 USDT.</p>
+      <div class="hero-btns">
+        <button class="btn" style="font-size:14px;padding:13px 28px" onclick="openAuth('signup')">▶ Play Now</button>
+        <button class="btn btn-o" style="font-size:14px;padding:13px 28px" onclick="scrollToId('leaderboard')">View Rankings</button>
+      </div>
+    </div>
+    <div class="board-wrap">
+      <div style="display:flex;gap:8px;align-items:flex-start;padding-left:45px;">
+        <div style="display:flex;flex-direction:column;width:20px" id="h-ranks"></div>
+        <div>
+          <div class="chessboard" id="hBoard"></div>
+          <div style="display:flex" id="h-files"></div>
+        </div>
+      </div>
+      <div style="text-align:center;color:var(--muted);font-size:13px;font-weight:600;margin-top:8px" id="hSt">White to move</div>
+      <div class="board-controls">
+        <button class="btn btn-o btn-sm" onclick="resetHome()">New</button>
+        <button class="btn btn-o btn-sm" onclick="undoHome()">Undo</button>
+        <button class="btn btn-o btn-sm" id="aiBtn" onclick="toggleAI()">AI: ON</button>
+        <button class="btn btn-sm" onclick="openAuth('signup')">Play Online</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats-bar">
+    <div class="stat-item reveal"><div class="stat-val">50K+</div><div class="stat-label">Active Players</div></div>
+    <div class="stat-item reveal"><div class="stat-val">25M</div><div class="stat-label">Coins Awarded</div></div>
+    <div class="stat-item reveal"><div class="stat-val">1,200+</div><div class="stat-label">Tournaments Run</div></div>
+  </div>
+
+  <div class="ticker">
+    <div class="ticker-track" id="tickerTrack"></div>
+  </div>
+
+  <div class="mini-boards-section">
+    <div class="mini-boards-inner">
+      <p style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);text-align:center;margin-bottom:8px">Live Games</p>
+      <h2>Active Arenas</h2>
+      <p>Watch live positions from ongoing matches across all skill levels</p>
+      <p class="mini-tier-label" style="color:#FFD700;margin-top:24px">♛ Gold Tier</p>
+      <div class="mini-row" id="rowGold"></div>
+      <p class="mini-tier-label" style="color:#C0C0C0;margin-top:24px">♜ Silver Tier</p>
+      <div class="mini-row" id="rowSilver"></div>
+      <p class="mini-tier-label" style="color:#CD7F32;margin-top:24px">♟ Bronze Tier</p>
+      <div class="mini-row" id="rowBronze"></div>
+    </div>
+  </div>
+
+  <div class="section" id="arena">
+    <p class="section-tag">Live Now</p>
+    <h2>The Arena</h2>
+    <div class="cards-grid">
+      <div class="card reveal">
+        <div class="card-badge">Beginner</div><h3>Royal Blitz</h3>
+        <div class="card-row"><span class="lbl">Entry Fee</span><span class="val">100 COINS</span></div>
+        <div class="card-row"><span class="lbl">Prize Pool</span><span class="val">1,000 COINS</span></div>
+        <div class="card-row"><span class="lbl">Time Control</span><span class="val">3+2 Blitz</span></div>
+        <button class="btn" style="width:100%" onclick="requireLogin()">Enter Tournament</button>
+      </div>
+      <div class="card reveal">
+        <div class="card-badge" style="background:var(--accent2);color:#fff">Intermediate</div><h3>Golden Rapid</h3>
+        <div class="card-row"><span class="lbl">Entry Fee</span><span class="val">250 COINS</span></div>
+        <div class="card-row"><span class="lbl">Prize Pool</span><span class="val">5,000 COINS</span></div>
+        <div class="card-row"><span class="lbl">Time Control</span><span class="val">10+5 Rapid</span></div>
+        <button class="btn" style="width:100%" onclick="requireLogin()">Enter Tournament</button>
+      </div>
+      <div class="card reveal">
+        <div class="card-badge" style="background:#f0a500;color:#000">Elite</div><h3>King War</h3>
+        <div class="card-row"><span class="lbl">Entry Fee</span><span class="val">500 COINS</span></div>
+        <div class="card-row"><span class="lbl">Prize Pool</span><span class="val">15,000 COINS</span></div>
+        <div class="card-row"><span class="lbl">Time Control</span><span class="val">15+10 Classical</span></div>
+        <button class="btn" style="width:100%" onclick="requireLogin()">Enter Tournament</button>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding:60px 0;background:var(--surface)" id="leaderboard">
+    <div style="padding:0 48px">
+      <p class="section-tag">Global Rankings</p>
+      <h2 style="font-size:32px;font-weight:900;margin-bottom:32px">Leaderboard</h2>
+    </div>
+    <div class="lb-wrap" style="margin:0">
+      <div class="lb-head">
+        <span>Rank</span><span>Player</span><span>Tier</span><span>Rating</span><span>Wins</span><span style="text-align:right">Coins</span>
+      </div>
+      <div class="lb-viewport" id="lbViewport"></div>
+    </div>
+  </div>
+
+  <div class="section" id="faqSection">
+    <p class="section-tag">Help</p>
+    <h2>Frequently Asked Questions</h2>
+    <div id="faqList"></div>
+  </div>
+
+  <!-- LANGUAGE + SUPPORT SECTION (Before Login & After Login) -->
+  <div class="section" id="langSupportSection" style="background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start">
+
+      <!-- LANGUAGE -->
+      <div>
+        <p class="section-tag">Choose Language</p>
+        <h2 style="font-size:22px;margin-bottom:20px">🌐 Select Your Language</h2>
+        <div class="home-lang-grid" id="homeLangGrid"></div>
+      </div>
+
+      <!-- LIVE SUPPORT -->
+      <div>
+        <p class="section-tag">Help &amp; Support</p>
+        <h2 style="font-size:22px;margin-bottom:20px">💬 Live Support</h2>
+        <div class="home-support-box" onclick="openSupport()">
+          <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
+            <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#1a9aef,#0d6ebd);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">💬</div>
+            <div>
+              <div style="font-size:16px;font-weight:800">Chat With Us</div>
+              <div style="font-size:12px;color:var(--green);font-weight:700;display:flex;align-items:center;gap:5px"><span style="width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;animation:pulse 1.5s infinite"></span>Online Now · Replies in minutes</div>
+            </div>
+          </div>
+          <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:16px">Have a question about deposits, withdrawals, or your account? Our support team is available 24/7.</p>
+          <button class="btn" style="width:100%;background:var(--accent2);color:#fff">💬 Start Live Chat</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <footer>
+    <div class="logo" style="justify-content:center;margin-bottom:12px">♛ ChessWin7</div>
+    <div class="footer-links">
+      <a onclick="showLegal('terms')">Terms & Conditions</a>
+      <a onclick="showLegal('faq')">FAQ</a>
+      <a onclick="showLegal('about')">About Us</a>
+    </div>
+    <p>© 2026 ChessWin7</p>
+  </footer>
+</div>
+
+<!-- PROMOTIONS PAGE -->
+<div class="page" id="page-promotions">
+  <div class="promo-page">
+
+    <!-- LB.png — landscape banner, full width -->
+    <div class="promo-grid">
+
+      <div class="promo-item wide promo-banner">
+        <img src="https://raw.githubusercontent.com/chesswin7/chesswin7.github.io/cc731950cbb0c83f808961c418edfc764cd047a6/promotions/LB.png"
+             alt="Leaderboard Promotion" style="aspect-ratio:1167/933;object-fit:cover">
+      </div>
+
+      <!-- Order: 1P, 15P, 2P, 25P, 3P, 5P -->
+      <div class="promo-item square" onclick="openLightbox(this.querySelector('img').src)">
+        <img src="https://raw.githubusercontent.com/chesswin7/chesswin7.github.io/cc731950cbb0c83f808961c418edfc764cd047a6/promotions/1P.png"
+             alt="1% Promotion">
+      </div>
+
+      <div class="promo-item square" onclick="openLightbox(this.querySelector('img').src)">
+        <img src="https://raw.githubusercontent.com/chesswin7/chesswin7.github.io/cc731950cbb0c83f808961c418edfc764cd047a6/promotions/15P.png"
+             alt="15% Promotion">
+      </div>
+
+      <div class="promo-item square" onclick="openLightbox(this.querySelector('img').src)">
+        <img src="https://raw.githubusercontent.com/chesswin7/chesswin7.github.io/cc731950cbb0c83f808961c418edfc764cd047a6/promotions/2P.png"
+             alt="2% Promotion">
+      </div>
+
+      <div class="promo-item square" onclick="openLightbox(this.querySelector('img').src)">
+        <img src="https://raw.githubusercontent.com/chesswin7/chesswin7.github.io/cc731950cbb0c83f808961c418edfc764cd047a6/promotions/25P.png"
+             alt="25% Promotion">
+      </div>
+
+      <div class="promo-item square" onclick="openLightbox(this.querySelector('img').src)">
+        <img src="https://raw.githubusercontent.com/chesswin7/chesswin7.github.io/cc731950cbb0c83f808961c418edfc764cd047a6/promotions/3P.png"
+             alt="3% Promotion">
+      </div>
+
+      <div class="promo-item square" onclick="openLightbox(this.querySelector('img').src)">
+        <img src="https://raw.githubusercontent.com/chesswin7/chesswin7.github.io/cc731950cbb0c83f808961c418edfc764cd047a6/promotions/5P.png"
+             alt="5% Promotion">
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- PLAY PAGE -->
+<div class="page" id="page-play">
+  <div style="margin-bottom:24px">
+    <p class="section-tag">Live Arena</p>
+    <h2 style="font-size:24px;font-weight:900">Play Chess Online</h2>
+  </div>
+  <div class="play-layout">
+    <div class="play-board-wrap">
+      <div class="player-bar" id="oppBar"><span id="oppName">Opponent</span><span id="oppTimer">—</span></div>
+      <div style="display:flex;gap:8px;align-items:flex-start">
+        <div style="display:flex;flex-direction:column;width:20px" id="p-ranks"></div>
+        <div>
+          <div class="chessboard" id="pBoard" style="grid-template-columns:repeat(8,55px);grid-template-rows:repeat(8,55px)"></div>
+          <div style="display:flex" id="p-files"></div>
+        </div>
+      </div>
+      <div class="player-bar active" id="meBar"><span id="meName">You (White)</span><span id="meTimer">—</span></div>
+      <div style="text-align:center;color:var(--muted);font-size:13px;font-weight:600" id="pSt">Choose a mode →</div>
+      <div class="board-controls">
+        <button class="btn btn-o btn-sm" onclick="resetPlay()">New</button>
+        <button class="btn btn-o btn-sm" onclick="undoPlay()">Undo</button>
+        <button class="btn btn-o btn-sm" onclick="offerDraw()">½ Draw</button>
+        <button class="btn btn-red btn-sm" onclick="resignGame()">Resign</button>
+      </div>
+    </div>
+    <div>
+      <div class="panel">
+        <h3>Game Mode</h3>
+        <div class="mode-tabs">
+          <button class="mt active" onclick="switchMode('ai',this)">vs AI</button>
+          <button class="mt" onclick="switchMode('friend',this)">vs Friend</button>
+          <button class="mt" onclick="switchMode('match',this)">Matchmaking</button>
+        </div>
+        <div class="mc active" id="mc-ai">
+          <div class="inp">
+            <label>Difficulty</label>
+            <select id="aiDiff"><option value="1">Beginner</option><option value="2" selected>Easy</option><option value="3">Medium</option><option value="4">Hard</option></select>
+            <label>Play As</label>
+            <select id="aiCol"><option value="w">White</option><option value="b">Black</option><option value="r">Random</option></select>
+          </div>
+          <button class="btn" style="width:100%" onclick="startAI()">Start vs AI</button>
+        </div>
+        <div class="mc" id="mc-friend">
+          <div class="inp">
+            <label>Time Control</label>
+            <select id="ftc"><option value="30">30s Ultra</option><option value="60">1min Bullet</option><option value="180">3min Blitz</option><option value="600" selected>10min Rapid</option><option value="0">No Limit</option></select>
+          </div>
+          <button class="btn" style="width:100%;margin-bottom:8px" onclick="createRoom()">Create Room</button>
+          <div class="inp"><label>Room Code</label><input id="joinCode" placeholder="Enter code"></div>
+          <button class="btn btn-o" style="width:100%" onclick="joinRoom()">Join Room</button>
+          <div id="roomDisplay" style="display:none;text-align:center;margin-top:12px">
+            <p style="font-size:10px;color:var(--muted);margin-bottom:4px">YOUR CODE</p>
+            <p style="font-size:32px;font-weight:900;color:var(--accent)" id="roomCode"></p>
+          </div>
+        </div>
+        <div class="mc" id="mc-match">
+          <div class="inp">
+            <label>Time Control</label>
+            <select id="mtc"><option value="30">30s Ultra</option><option value="60">1min Bullet</option><option value="180">3min Blitz</option><option value="600" selected>10min Rapid</option></select>
+          </div>
+          <button class="btn" style="width:100%;margin-bottom:8px" id="matchBtn" onclick="startMatch()">Find Opponent</button>
+          <div id="matchSt" style="display:none;text-align:center;font-size:12px;color:var(--muted)"><span class="dot"></span>Searching...</div>
+          <div id="activeRooms"></div>
+        </div>
+      </div>
+      <div class="panel"><h3>Move History</h3><div class="move-list" id="pMoves"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- TOURNAMENT PAGE -->
+<div class="page" id="page-tournament">
+  <p class="section-tag">Competitive</p>
+  <h2 style="font-size:24px;font-weight:900;margin-bottom:24px">Tournaments</h2>
+  <div class="cards-grid" style="margin-bottom:32px">
+    <div class="card"><div class="card-badge">Swiss</div><h3>Weekly Swiss Open</h3><div class="card-row"><span class="lbl">Entry</span><span class="val">Free</span></div><div class="card-row"><span class="lbl">Prize</span><span class="val">2,000 COINS</span></div><button class="btn" style="width:100%" onclick="toast('Joined Weekly Swiss Open!','ok')">Join</button></div>
+    <div class="card"><div class="card-badge" style="background:var(--accent2);color:#fff">Knockout</div><h3>King's Knockout</h3><div class="card-row"><span class="lbl">Entry</span><span class="val">200 COINS</span></div><div class="card-row"><span class="lbl">Prize</span><span class="val">5,000 COINS</span></div><button class="btn" style="width:100%" onclick="toast('Joined!','ok')">Join</button></div>
+    <div class="card"><div class="card-badge" style="background:#f0a500;color:#000">Seasonal</div><h3>Spring Open 2026</h3><div class="card-row"><span class="lbl">Entry</span><span class="val">500 COINS</span></div><div class="card-row"><span class="lbl">Prize</span><span class="val">20,000 COINS</span></div><button class="btn" style="width:100%" onclick="toast('Registered!','ok')">Register</button></div>
+  </div>
+</div>
+
+<!-- DEPOSIT PAGE -->
+<div class="page" id="page-deposit">
+  <p class="section-tag">Finance</p>
+  <h2 style="font-size:24px;font-weight:900;margin-bottom:24px">💰 Deposit</h2>
+  <div class="finance-form">
+    <h3>Submit Deposit Request</h3>
+    <div class="form-row"><label>Amount (USDT)</label><input type="number" id="dpAmt" placeholder="Min. 10 USDT" min="10"></div>
+    <div class="form-row"><label>Transaction ID / TxHash</label><input type="text" id="dpTx" placeholder="Paste your TxID here"></div>
+    <div class="form-row"><label>Note (Optional)</label><input type="text" id="dpNote" placeholder="e.g. TRC20"></div>
+    <div style="background:var(--surface2);border-radius:var(--radius);padding:12px;font-size:13px;color:var(--muted);margin-bottom:16px">📌 Send USDT to our wallet, then submit your TxID. Admin credits within 24h.</div>
+    <button class="btn" onclick="submitDeposit()">📤 Submit Request</button>
+  </div>
+  <div class="finance-form"><h3>My Deposit History</h3><div id="dpHistory"><p style="color:var(--muted)">No deposits yet</p></div></div>
+</div>
+
+<!-- WITHDRAWAL PAGE -->
+<div class="page" id="page-withdrawal">
+  <p class="section-tag">Finance</p>
+  <h2 style="font-size:24px;font-weight:900;margin-bottom:24px">💸 Withdrawal</h2>
+  <div class="finance-form">
+    <h3>Submit Withdrawal Request</h3>
+    <div class="balance-box"><span class="bal-label">Available Balance</span><span class="bal-value" id="wdBal">0 COINS</span></div>
+    <div class="form-row"><label>Amount (USDT)</label><input type="number" id="wdAmt" placeholder="Min. 10 USDT" min="10"></div>
+    <div class="form-row"><label>Wallet Address (TRC20/ERC20)</label><input type="text" id="wdWallet" placeholder="Your USDT wallet address"></div>
+    <div style="background:var(--surface2);border-radius:var(--radius);padding:12px;font-size:13px;color:var(--muted);margin-bottom:16px">📌 5% platform fee deducted. 100 COINS → 95 USDT. Processing: 48h.</div>
+    <button class="btn" onclick="submitWithdrawal()">📤 Submit Request</button>
+  </div>
+  <div class="finance-form"><h3>My Withdrawal History</h3><div id="wdHistory"><p style="color:var(--muted)">No withdrawals yet</p></div></div>
+</div>
+
+<!-- STATS PAGE -->
+<div class="page" id="page-stats">
+  <p class="section-tag">Your Performance</p>
+  <h2 style="font-size:24px;font-weight:900;margin-bottom:24px">Statistics</h2>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px">
+    <div class="card" style="text-align:center"><div style="font-size:32px;font-weight:900;color:var(--accent)" id="st-rating">1200</div><div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em">Rating</div></div>
+    <div class="card" style="text-align:center"><div style="font-size:32px;font-weight:900;color:var(--green)" id="st-wins">0</div><div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em">Wins</div></div>
+    <div class="card" style="text-align:center"><div style="font-size:32px;font-weight:900;color:var(--red)" id="st-losses">0</div><div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em">Losses</div></div>
+    <div class="card" style="text-align:center"><div style="font-size:32px;font-weight:900;color:var(--accent)" id="st-wr">—</div><div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em">Win Rate</div></div>
+  </div>
+  <div class="finance-form"><h3>Rating Tiers</h3><table class="hist-table" id="tierTable"></table></div>
+</div>
+
+<!-- PROFILE PAGE -->
+<div class="page" id="page-profile">
+  <p class="section-tag">Account</p>
+  <h2 style="font-size:24px;font-weight:900;margin-bottom:24px">My Profile</h2>
+  <div style="display:grid;grid-template-columns:300px 1fr;gap:24px;align-items:start">
+    <div>
+      <div class="profile-card">
+        <div class="profile-avatar">♟</div>
+        <div class="profile-name" id="prof-name">—</div>
+        <div class="profile-email" id="prof-email">—</div>
+        <div style="margin-bottom:16px"><span class="tier-badge" id="prof-tier">Bronze</span></div>
+        <div class="profile-stats">
+          <div class="pstat"><div class="pstat-val" id="prof-rating">1200</div><div class="pstat-lbl">Rating</div></div>
+          <div class="pstat"><div class="pstat-val" id="prof-wins">0</div><div class="pstat-lbl">Wins</div></div>
+          <div class="pstat"><div class="pstat-val" id="prof-coins">0</div><div class="pstat-lbl">Coins</div></div>
+        </div>
+        <button class="btn btn-red" style="width:100%" onclick="doLogout()">🚪 Logout</button>
+      </div>
+      <div class="finance-form">
+        <h3>Daily Bonus</h3>
+        <button class="btn" style="width:100%" id="profDailyBtn" onclick="claimDaily()">🎁 Claim Daily Bonus</button>
+      </div>
+    </div>
+    <div>
+      <div class="finance-form">
+        <h3>Account Settings</h3>
+        <div class="form-row"><label>Username</label><input id="prof-un" readonly></div>
+        <div class="form-row"><label>Email</label><input id="prof-em" readonly></div>
+        <div class="form-row"><label>Mobile (Optional)</label><input id="prof-phone" placeholder="+1 234 567 890"></div>
+        <button class="btn btn-o btn-sm" onclick="savePhone()">Save Changes</button>
+      </div>
+      <div class="finance-form">
+        <h3>Change Password</h3>
+        <div class="form-row"><label>New Password</label><input type="password" id="newPw" placeholder="New password (min 6 chars)"></div>
+        <div class="form-row"><label>Confirm Password</label><input type="password" id="confPw" placeholder="Confirm password"></div>
+        <button class="btn btn-o btn-sm" onclick="changePassword()">Update Password</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- THEME PAGE -->
+<div class="page" id="page-theme">
+  <p class="section-tag">Settings</p>
+  <h2 style="font-size:24px;font-weight:900;margin-bottom:8px">🎨 Board Theme</h2>
+  <p style="color:var(--muted);margin-bottom:28px">Choose your chess board colour</p>
+  <div class="theme-grid" id="themeGrid"></div>
+  <p style="margin-top:16px;color:var(--muted)">Active: <span id="activetheme" style="color:var(--accent);font-weight:700">Classic Blue</span></p>
+</div>
+
+</main>
+</div>
+
+<script>
+// ── CHESS ENGINE ──
+const G={wK:'♔',wQ:'♕',wR:'♖',wB:'♗',wN:'♘',wP:'♙',bK:'♚',bQ:'♛',bR:'♜',bB:'♝',bN:'♞',bP:'♟'};
+const V={K:20000,Q:900,R:500,B:330,N:320,P:100};
+const PP=[0,0,0,0,0,0,0,0,50,50,50,50,50,50,50,50,10,10,20,30,30,20,10,10,5,5,10,25,25,10,5,5,0,0,0,20,20,0,0,0,5,-5,-10,0,0,-10,-5,5,5,10,10,-20,-20,10,10,5,0,0,0,0,0,0,0,0];
+function R(i){return Math.floor(i/8)}function C(i){return i%8}function IB(r,c){return r>=0&&r<8&&c>=0&&c<8}function O(c){return c==='w'?'b':'w'}function I(r,c){return r*8+c}
+function mkB(){var b=Array(64).fill(null);var br=['R','N','B','Q','K','B','N','R'];for(var c=0;c<8;c++){b[c]={c:'b',n:br[c]};b[8+c]={c:'b',n:'P'};b[48+c]={c:'w',n:'P'};b[56+c]={c:'w',n:br[c]};}return b;}
+function pseudo(i,b,ep,cr){var p=b[i];if(!p)return[];var m=[],r=R(i),c=C(i),col=p.c,en=O(col);
+  function sl(dr,dc){var rr=r+dr,cc=c+dc;while(IB(rr,cc)){var t=b[I(rr,cc)];if(t){if(t.c===en)m.push({f:i,t:I(rr,cc)});break;}m.push({f:i,t:I(rr,cc)});rr+=dr;cc+=dc;}}
+  if(p.n==='P'){var d=col==='w'?-1:1,sr=col==='w'?6:1;if(IB(r+d,c)&&!b[I(r+d,c)]){m.push({f:i,t:I(r+d,c),pro:r+d===0||r+d===7});if(r===sr&&!b[I(r+d*2,c)])m.push({f:i,t:I(r+d*2,c),dbl:1});}[-1,1].forEach(function(dc){if(IB(r+d,c+dc)){var t=b[I(r+d,c+dc)];if(t&&t.c===en)m.push({f:i,t:I(r+d,c+dc),pro:r+d===0||r+d===7});if(ep===I(r+d,c+dc))m.push({f:i,t:ep,ep:1});}});}
+  else if(p.n==='N'){[[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]].forEach(function(x){if(IB(r+x[0],c+x[1])){var t=b[I(r+x[0],c+x[1])];if(!t||t.c===en)m.push({f:i,t:I(r+x[0],c+x[1])});}});}
+  else if(p.n==='B'){[[-1,-1],[-1,1],[1,-1],[1,1]].forEach(function(x){sl(x[0],x[1]);});}
+  else if(p.n==='R'){[[-1,0],[1,0],[0,-1],[0,1]].forEach(function(x){sl(x[0],x[1]);});}
+  else if(p.n==='Q'){[[-1,-1],[-1,1],[1,-1],[1,1],[-1,0],[1,0],[0,-1],[0,1]].forEach(function(x){sl(x[0],x[1]);});}
+  else if(p.n==='K'){[[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]].forEach(function(x){if(IB(r+x[0],c+x[1])){var t=b[I(r+x[0],c+x[1])];if(!t||t.c===en)m.push({f:i,t:I(r+x[0],c+x[1])});}});var br=col==='w'?7:0;if(r===br&&c===4){if(cr[col+'K']&&!b[I(br,5)]&&!b[I(br,6)])m.push({f:i,t:I(br,6),cas:'K'});if(cr[col+'Q']&&!b[I(br,3)]&&!b[I(br,2)]&&!b[I(br,1)])m.push({f:i,t:I(br,2),cas:'Q'});}}
+  return m;}
+function atk(sq,byC,b,ep,cr){for(var i=0;i<64;i++){var p=b[i];if(!p||p.c!==byC)continue;if(pseudo(i,b,ep,cr).some(function(m){return m.t===sq;}))return true;}return false;}
+function kng(col,b){for(var i=0;i<64;i++)if(b[i]&&b[i].c===col&&b[i].n==='K')return i;return -1;}
+function applyM(mv,b,ep,cr){var nb=b.slice(),p=nb[mv.f];nb[mv.t]=p;nb[mv.f]=null;var nc=Object.assign({},cr),nep=null;if(mv.ep)nb[I(R(mv.f),C(mv.t))]=null;if(mv.dbl)nep=I((R(mv.f)+R(mv.t))/2,C(mv.f));if(mv.pro)nb[mv.t]={c:p.c,n:'Q'};if(mv.cas){var br=R(mv.f);if(mv.cas==='K'){nb[I(br,5)]=nb[I(br,7)];nb[I(br,7)]=null;}else{nb[I(br,3)]=nb[I(br,0)];nb[I(br,0)]=null;}}if(p.n==='K'){nc[p.c+'K']=0;nc[p.c+'Q']=0;}if(p.n==='R'){if(mv.f===I(7,0))nc.wQ=0;if(mv.f===I(7,7))nc.wK=0;if(mv.f===I(0,0))nc.bQ=0;if(mv.f===I(0,7))nc.bK=0;}return{b:nb,ep:nep,cr:nc};}
+function legal(i,b,ep,cr){var p=b[i];if(!p)return[];return pseudo(i,b,ep,cr).filter(function(mv){if(mv.cas){var br=R(mv.f),d=mv.cas==='K'?1:-1;if(atk(mv.f,O(p.c),b,ep,cr))return false;if(atk(I(br,4+d),O(p.c),b,ep,cr))return false;}var r=applyM(mv,b,ep,cr);return!atk(kng(p.c,r.b),O(p.c),r.b,r.ep,r.cr);});}
+function allL(col,b,ep,cr){var a=[];for(var i=0;i<64;i++)if(b[i]&&b[i].c===col)a=a.concat(legal(i,b,ep,cr));return a;}
+function evl(b){var s=0;for(var i=0;i<64;i++){var p=b[i];if(!p)continue;var v=V[p.n];if(p.n==='P')v+=p.c==='w'?PP[i]:PP[63-i];s+=p.c==='w'?v:-v;}return s;}
+function mm(b,d,al,be,mx,ep,cr){var col=mx?'w':'b',mvs=allL(col,b,ep,cr);if(d===0||mvs.length===0){if(!mvs.length){var k=kng(col,b);if(atk(k,O(col),b,ep,cr))return mx?-99999:99999;return 0;}return evl(b);}if(mx){var best=-Infinity;for(var i=0;i<mvs.length;i++){var r=applyM(mvs[i],b,ep,cr);best=Math.max(best,mm(r.b,d-1,al,be,false,r.ep,r.cr));al=Math.max(al,best);if(be<=al)break;}return best;}else{var best=Infinity;for(var i=0;i<mvs.length;i++){var r=applyM(mvs[i],b,ep,cr);best=Math.min(best,mm(r.b,d-1,al,be,true,r.ep,r.cr));be=Math.min(be,best);if(be<=al)break;}return best;}}
+function bestAI(b,d,ep,cr){var mvs=allL('b',b,ep,cr);if(!mvs.length)return null;var best=Infinity,bm=null;for(var i=0;i<mvs.length;i++){var r=applyM(mvs[i],b,ep,cr);var s=mm(r.b,d-1,-Infinity,Infinity,true,r.ep,r.cr);if(s<best){best=s;bm=mvs[i];}}return bm;}
+
+// LIGHTBOX
+function openLightbox(src){
+  document.getElementById('lightboxImg').src=src;
+  document.getElementById('lightbox').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeLightbox(){
+  document.getElementById('lightbox').classList.remove('open');
+  document.body.style.overflow='';
+}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeLightbox();});
+
+// Board themes
+var THEMES=[
+  {name:'Classic Blue',dark:'#1a2c38',light:'#213743'},
+  {name:'Walnut Brown',dark:'#5c3a1e',light:'#c8a97e'},
+  {name:'Ocean Blue',dark:'#0d3b6e',light:'#4e9fd4'},
+  {name:'Forest Green',dark:'#1a5c2a',light:'#4caf72'},
+  {name:'Royal Purple',dark:'#3a0d6e',light:'#9b59b6'},
+  {name:'Crimson Red',dark:'#6e0d0d',light:'#c0392b'},
+  {name:'Gold Luxury',dark:'#5c4a00',light:'#c9a82a'},
+  {name:'Black & White',dark:'#111',light:'#fff'},
+  {name:'Teal Mint',dark:'#0d5c50',light:'#1abc9c'},
+  {name:'Burnt Orange',dark:'#6e2d00',light:'#e67e22'},
+  {name:'Indigo',dark:'#1a0d5c',light:'#5b6dd4'},
+  {name:'Olive Earth',dark:'#3a4a00',light:'#8aaa20'},
+];
+var activeTheme=0;
+function getDark(){return THEMES[activeTheme].dark;}
+function getLight(){return THEMES[activeTheme].light;}
+
+function renderBoard(elId,brd,sel,lm,lmv,flip,sqSize){
+  var el=document.getElementById(elId);if(!el)return;
+  el.innerHTML='';
+  for(var vi=0;vi<64;vi++){
+    var idx=flip?63-vi:vi;
+    var r=R(idx),c=C(idx);
+    var sq=document.createElement('div');
+    sq.className='sq';
+    sq.dataset.i=idx;
+    var isDark=(r+c)%2===0;
+    if(lmv&&(idx===lmv.f||idx===lmv.t))sq.style.background=isDark?'rgba(0,231,1,.25)':'rgba(0,231,1,.35)';
+    else if(idx===sel)sq.style.background='rgba(0,231,1,.4)';
+    else sq.style.background=isDark?getDark():getLight();
+    if(lm&&lm.includes(idx))sq.classList.add(brd[idx]?'lc':'lm');
+    if(brd[idx]){
+      var sp=document.createElement('img');
+      sp.className='piece';
+      var pKey=brd[idx].c+brd[idx].n.toLowerCase();
+      sp.src='https://images.chesscomfiles.com/chess-themes/pieces/neo/150/'+pKey+'.png';
+      sp.alt=pKey;
+      sp.style.cssText='width:88%;height:88%;object-fit:contain;pointer-events:none;user-select:none;display:block;margin:auto';
+      sq.appendChild(sp);
+    }
+    sq.addEventListener('click',function(e){
+      var i=parseInt(e.currentTarget.dataset.i);
+      if(elId==='pBoard')playClick(i);else homeClick(i);
+    });
+    el.appendChild(sq);
+  }
+}
+function setCoords(rId,fId,flip,sqSz){
+  var rc=document.getElementById(rId),fc=document.getElementById(fId);if(!rc||!fc)return;
+  rc.innerHTML='';fc.innerHTML='';
+  for(var r=0;r<8;r++){var s=document.createElement('span');s.textContent=flip?r+1:8-r;s.style.cssText='height:'+(sqSz||60)+'px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--muted);font-weight:700';rc.appendChild(s);}
+  for(var c=0;c<8;c++){var s=document.createElement('span');s.textContent=flip?'hgfedcba'[c]:'abcdefgh'[c];s.style.cssText='width:'+(sqSz||60)+'px;text-align:center;font-size:10px;color:var(--muted);font-weight:700;padding-top:3px';fc.appendChild(s);}
+}
+
+var hB=mkB(),hT='w',hSel=null,hLm=[],hLmv=null,hCr={wK:1,wQ:1,bK:1,bQ:1},hEp=null,hHist=[],hGO=false,hAI=true;
+function renderHome(){renderBoard('hBoard',hB,hSel,hLm,hLmv,false,60);setCoords('h-ranks','h-files',false,60);}
+function homeCheckEnd(){var mv=allL(hT,hB,hEp,hCr),k=kng(hT,hB),inC=atk(k,O(hT),hB,hEp,hCr);if(!mv.length){hGO=true;document.getElementById('hSt').textContent=(hT==='w'?'Black':'White')+' wins!';}else if(inC){document.getElementById('hSt').textContent=(hT==='w'?'White':'Black')+' in check!';}else{document.getElementById('hSt').textContent=hT==='w'?'White to move':'Black to move';}return!mv.length;}
+function homeClick(i){if(hGO)return;var p=hB[i];if(hSel===null){if(!p||p.c!==hT)return;hSel=i;hLm=legal(i,hB,hEp,hCr).map(function(m){return m.t;});renderHome();}else{if(i===hSel){hSel=null;hLm=[];renderHome();return;}if(p&&p.c===hT){hSel=i;hLm=legal(i,hB,hEp,hCr).map(function(m){return m.t;});renderHome();return;}var mvs=legal(hSel,hB,hEp,hCr),mv=mvs.find(function(m){return m.t===i;});if(mv){hHist.push({b:hB.slice(),t:hT,s:hSel,l:hLm.slice(),lv:hLmv,cr:Object.assign({},hCr),ep:hEp});var res=applyM(mv,hB,hEp,hCr);hB=res.b;hEp=res.ep;hCr=res.cr;hLmv=mv;hSel=null;hLm=[];hT=O(hT);renderHome();var ended=homeCheckEnd();if(!ended&&hT==='b'&&hAI)setTimeout(function(){var bm=bestAI(hB,2,hEp,hCr);if(bm){var res2=applyM(bm,hB,hEp,hCr);hHist.push({b:hB.slice(),t:hT,s:null,l:[],lv:hLmv,cr:Object.assign({},hCr),ep:hEp});hB=res2.b;hEp=res2.ep;hCr=res2.cr;hLmv=bm;hT=O(hT);renderHome();homeCheckEnd();}},400);}else{hSel=null;hLm=[];renderHome();}}}
+function resetHome(){hB=mkB();hT='w';hSel=null;hLm=[];hLmv=null;hCr={wK:1,wQ:1,bK:1,bQ:1};hEp=null;hHist=[];hGO=false;renderHome();document.getElementById('hSt').textContent='White to move';}
+function undoHome(){if(!hHist.length)return;var h=hHist.pop();hB=h.b;hT=h.t;hSel=h.s;hLm=h.l;hLmv=h.lv;hCr=h.cr;hEp=h.ep;hGO=false;renderHome();homeCheckEnd();}
+function toggleAI(){hAI=!hAI;document.getElementById('aiBtn').textContent='AI: '+(hAI?'ON':'OFF');if(hAI&&hT==='b'&&!hGO){var bm=bestAI(hB,2,hEp,hCr);if(bm){var res=applyM(bm,hB,hEp,hCr);hB=res.b;hEp=res.ep;hCr=res.cr;hLmv=bm;hT=O(hT);renderHome();homeCheckEnd();}}}
+
+var pB=mkB(),pT='w',pSel=null,pLm=[],pLmv=null,pCr={wK:1,wQ:1,bK:1,bQ:1},pEp=null,pHist=[],pMH=[],pGO=false,pMode='ai',pColor='w';
+function renderPlay(){renderBoard('pBoard',pB,pSel,pLm,pLmv,pColor==='b',55);setCoords('p-ranks','p-files',pColor==='b',55);}
+function playCheckEnd(){var mv=allL(pT,pB,pEp,pCr),k=kng(pT,pB),inC=atk(k,O(pT),pB,pEp,pCr);if(!mv.length){pGO=true;document.getElementById('pSt').textContent=(pT==='w'?'Black':'White')+' wins!';if(pMode==='ai'&&pT!==pColor)toast('You Win! +150 coins 🎉','ok');else if(pMode==='ai')toast('You Lose. Better luck next time.','info');return{status:'checkmate',winner:O(pT)};}if(inC)document.getElementById('pSt').textContent=(pT==='w'?'White':'Black')+' in check!';else document.getElementById('pSt').textContent=pT==='w'?'White to move':'Black to move';return null;}
+function playClick(i){if(pGO)return;if(pMode!=='ai'&&pT!==pColor)return;var p=pB[i];if(pSel===null){if(!p||p.c!==pT)return;pSel=i;pLm=legal(i,pB,pEp,pCr).map(function(m){return m.t;});renderPlay();}else{if(i===pSel){pSel=null;pLm=[];renderPlay();return;}if(p&&p.c===pT){pSel=i;pLm=legal(i,pB,pEp,pCr).map(function(m){return m.t;});renderPlay();return;}var mvs=legal(pSel,pB,pEp,pCr),mv=mvs.find(function(m){return m.t===i;});if(mv){pHist.push({b:pB.slice(),t:pT,s:pSel,l:pLm.slice(),lv:pLmv,cr:Object.assign({},pCr),ep:pEp});var res=applyM(mv,pB,pEp,pCr);pB=res.b;pEp=res.ep;pCr=res.cr;pLmv=mv;pSel=null;pLm=[];pT=O(pT);pMH.push(mv);updMoves();renderPlay();var ended=playCheckEnd();if(!ended&&pMode==='ai'&&pT!==pColor)setTimeout(function(){var bm=bestAI(pB,parseInt(document.getElementById('aiDiff').value)||2,pEp,pCr);if(bm){pHist.push({b:pB.slice(),t:pT,s:null,l:[],lv:pLmv,cr:Object.assign({},pCr),ep:pEp});var res2=applyM(bm,pB,pEp,pCr);pB=res2.b;pEp=res2.ep;pCr=res2.cr;pLmv=bm;pT=O(pT);pMH.push(bm);updMoves();renderPlay();playCheckEnd();}},500);}else{pSel=null;pLm=[];renderPlay();}}}
+function updMoves(){var box=document.getElementById('pMoves');if(!box)return;box.innerHTML='';pMH.forEach(function(m,i){var d=document.createElement('div');var sq=function(x){return'abcdefgh'[C(x)]+(8-R(x));};d.className=i%2===0?'mv-w':'mv-b';d.innerHTML=(i%2===0?'<span class="mv-n">'+(Math.floor(i/2)+1)+'.</span>':'')+sq(m.f)+sq(m.t)+(m.pro?'=Q':'');box.appendChild(d);});box.scrollTop=box.scrollHeight;}
+function resetPlay(){pB=mkB();pT='w';pSel=null;pLm=[];pLmv=null;pCr={wK:1,wQ:1,bK:1,bQ:1};pEp=null;pHist=[];pMH=[];pGO=false;updMoves();renderPlay();document.getElementById('pSt').textContent='Choose a mode →';}
+function undoPlay(){if(!pHist.length||pMode!=='ai')return;var h=pHist.pop();pB=h.b;pT=h.t;pSel=h.s;pLm=h.l;pLmv=h.lv;pCr=h.cr;pEp=h.ep;pGO=false;if(pMH.length)pMH.pop();updMoves();renderPlay();playCheckEnd();}
+function startAI(){var col=document.getElementById('aiCol').value;pColor=col==='r'?(Math.random()<.5?'w':'b'):col;pMode='ai';resetPlay();document.getElementById('meName').textContent='You ('+(pColor==='w'?'White':'Black')+')';document.getElementById('oppName').textContent='AI';document.getElementById('pSt').textContent=pColor==='w'?'Your move':'AI moves first...';if(pColor==='b'){var bm=bestAI(pB,2,pEp,pCr);if(bm){var res=applyM(bm,pB,pEp,pCr);pB=res.b;pEp=res.ep;pCr=res.cr;pLmv=bm;pT=O(pT);pMH.push(bm);updMoves();renderPlay();playCheckEnd();}}}
+function switchMode(m,btn){pMode=m;document.querySelectorAll('.mt').forEach(function(t){t.classList.remove('active');});btn.classList.add('active');document.querySelectorAll('.mc').forEach(function(c){c.classList.remove('active');});document.getElementById('mc-'+m).classList.add('active');}
+function offerDraw(){toast('Draw offered','info');}
+function resignGame(){if(pGO)return;pGO=true;toast('You resigned','info');document.getElementById('pSt').textContent='Resigned';}
+function createRoom(){toast('Room created! (Connect Firebase Realtime DB for multiplayer)','info');}
+function joinRoom(){toast('Join room (Connect Firebase Realtime DB for multiplayer)','info');}
+function startMatch(){toast('Finding opponent... (Connect Firebase Realtime DB)','info');}
+function requireLogin(){if(!window.currentUser){openAuth('signup');toast('Please sign up to play tournaments','info');}else{goPage('play');}}
+
+var NAMES_W=['KingMosin','DubaiKnight','GoldBishop','BlitzKing','QueenGambit','NightRider','PawnStorm','TacticalFox'];
+var NAMES_B=['SilverRook','CastleRush','EndgameWiz','PinAndFork','ZugzwangK','BishopPair','GrandPatzer','DesertKnight'];
+var MINI_THEMES=[
+  {dark:'#769656',light:'#eeeed2'},{dark:'#5c3a1e',light:'#c8a97e'},{dark:'#0d3b6e',light:'#4e9fd4'},{dark:'#1a5c2a',light:'#4caf72'},
+  {dark:'#3a0d6e',light:'#9b59b6'},{dark:'#6e0d0d',light:'#c0392b'},{dark:'#5c4a00',light:'#c9a82a'},{dark:'#111',light:'#fff'},
+  {dark:'#0d5c50',light:'#1abc9c'},{dark:'#6e2d00',light:'#e67e22'},{dark:'#1a0d5c',light:'#5b6dd4'},{dark:'#3a4a00',light:'#8aaa20'}
+];
+function fakeBoardPos(){var b=mkB(),t='w',ep=null,cr={wK:1,wQ:1,bK:1,bQ:1};for(var i=0;i<5+Math.floor(Math.random()*18);i++){var mv=allL(t,b,ep,cr);if(!mv.length)break;var m=mv[Math.floor(Math.random()*mv.length)],res=applyM(m,b,ep,cr);b=res.b;ep=res.ep;cr=res.cr;t=O(t);}return b;}
+function buildMiniBoard(container,themeIdx){
+  var pos=fakeBoardPos(),th=MINI_THEMES[themeIdx%12];
+  var wp=NAMES_W[Math.floor(Math.random()*NAMES_W.length)],bp=NAMES_B[Math.floor(Math.random()*NAMES_B.length)];
+  var wrap=document.createElement('div');wrap.className='mini-card';
+  var lbl=document.createElement('div');lbl.className='mini-label';lbl.style.color=th.light;lbl.textContent=wp+' vs '+bp;
+  var mb=document.createElement('div');mb.className='mini-board';
+  for(var i=0;i<64;i++){
+    var r=R(i),c=C(i),sq=document.createElement('div');sq.className='mini-sq';sq.style.background=(r+c)%2===0?th.dark:th.light;
+    if(pos[i]){var sp=document.createElement('img');sp.className='mini-piece';var pk=pos[i].c+pos[i].n.toLowerCase();sp.src='https://images.chesscomfiles.com/chess-themes/pieces/neo/150/'+pk+'.png';sp.alt=pk;sp.style.cssText='width:90%;height:90%;object-fit:contain;display:block;margin:auto';sq.appendChild(sp);}
+    mb.appendChild(sq);
+  }
+  var sub=document.createElement('div');sub.className='mini-sub';sub.textContent=Math.floor(1100+Math.random()*1400)+' · Live';
+  wrap.appendChild(lbl);wrap.appendChild(mb);wrap.appendChild(sub);container.appendChild(wrap);
+}
+function buildMiniBoards(){
+  ['rowGold','rowSilver','rowBronze'].forEach(function(id,ri){
+    var row=document.getElementById(id);if(!row)return;row.innerHTML='';
+    for(var i=0;i<4;i++)buildMiniBoard(row,ri*4+i);
+  });
+}
+
+var FAKE_LB=[
+  {u:'KingMosin',r:2450,w:312,c:98000},{u:'DubaiKnight',r:2380,w:287,c:76000},{u:'GoldBishop',r:2315,w:251,c:62000},
+  {u:'SilverRook99',r:2290,w:234,c:48500},{u:'PawnStorm',r:2241,w:198,c:37200},{u:'BlitzKing',r:2200,w:187,c:33400},
+  {u:'QueenGambit7',r:2188,w:175,c:29800},{u:'NightRider88',r:2155,w:162,c:26500},{u:'CastleRush',r:2130,w:154,c:24100},
+  {u:'OpeningMaestro',r:2105,w:143,c:21800},{u:'TacticalFox',r:2090,w:138,c:20200},{u:'EndgameWizard',r:2077,w:132,c:18700},
+  {u:'PinAndFork',r:2060,w:125,c:17400},{u:'SicilianDragon',r:2044,w:119,c:16100},{u:'FianchettoPro',r:2031,w:112,c:14900},
+  {u:'ZugzwangKing',r:2018,w:107,c:13800},{u:'BishopPair',r:2002,w:101,c:12700},{u:'RookLifter',r:1988,w:96,c:11600},
+  {u:'MateIn3',r:1975,w:91,c:10700},{u:'GrandPatzer',r:1960,w:87,c:9800},
+];
+var TIERS=[
+  {n:'Bronze',i:'🥉',min:0,max:799},{n:'Silver',i:'🥈',min:800,max:999},{n:'Gold',i:'🥇',min:1000,max:1199},
+  {n:'Platinum',i:'🎖️',min:1200,max:1399},{n:'Diamond',i:'💎',min:1400,max:1599},{n:'Crown',i:'🎖️',min:1600,max:1799},
+  {n:'Ace',i:'⚔️',min:1800,max:1999},{n:'Master',i:'🧠',min:2000,max:2199},{n:'Grandmaster',i:'♛',min:2200,max:2399},{n:'Legend',i:'👑',min:2400,max:9999}
+];
+function getTier(r){return TIERS.find(function(t){return r>=t.min&&r<=t.max;})||TIERS[0];}
+var lbY=0,lbRaf=null;
+function buildLB(players){
+  var vp=document.getElementById('lbViewport');if(!vp)return;
+  var ROW_H=44,icons=['♛','♜','♝','♞','♟'];
+  function makeRow(p,rank){
+    var row=document.createElement('div');row.className='lb-row';
+    row.style.top=(rank*ROW_H)+'px';
+    var t=getTier(p.r||p.rating||1200);
+    var isCU=window.currentUser&&p.uid===window.currentUser.uid;
+    if(isCU)row.style.background='rgba(0,231,1,.07)';
+    row.innerHTML='<div class="rank">'+(icons[rank]||'·')+' #'+(rank+1)+'</div>'
+      +'<div style="font-weight:700">'+(p.u||p.username||'?')+(isCU?' <small style="color:var(--muted)">(you)</small>':'')+'</div>'
+      +'<div><span class="tier-badge">'+t.i+' '+t.n+'</span></div>'
+      +'<div class="rating">'+(p.r||p.rating||1200)+'</div>'
+      +'<div>'+(p.w||p.wins||0)+'</div>'
+      +'<div class="coins" style="text-align:right">🪙 '+((p.c||p.coins||0)).toLocaleString()+'</div>';
+    return row;
+  }
+  vp.innerHTML='';
+  var doubled=players.concat(players);
+  doubled.forEach(function(p,i){vp.appendChild(makeRow(p,i%players.length));});
+  vp.style.height=(players.length*ROW_H)+'px';
+  if(lbRaf)cancelAnimationFrame(lbRaf);
+  lbY=0;
+  var total=players.length*ROW_H;
+  function tick(){
+    lbY+=0.4;if(lbY>=total)lbY=0;
+    var rows=vp.querySelectorAll('.lb-row');
+    rows.forEach(function(row,i){row.style.top=((i%players.length)*ROW_H-lbY+total)%total+'px';});
+    lbRaf=requestAnimationFrame(tick);
+  }
+  vp.onmouseenter=function(){cancelAnimationFrame(lbRaf);lbRaf=null;};
+  vp.onmouseleave=function(){if(!lbRaf)tick();};
+  tick();
+}
+function loadLB(){
+  db.collection('users').orderBy('rating','desc').limit(20).get().then(function(snap){
+    var players=FAKE_LB.slice();
+    snap.docs.forEach(function(d){var u=Object.assign({uid:d.id},d.data());u.u=u.username;u.r=u.rating;u.w=u.wins;u.c=u.coins;if(!players.find(function(p){return p.u===u.u;}))players.push(u);});
+    players.sort(function(a,b){return(b.r||b.rating||0)-(a.r||a.rating||0);});
+    buildLB(players);buildTicker(players);
+  }).catch(function(){buildLB(FAKE_LB);buildTicker(FAKE_LB);});
+}
+
+function buildTicker(players){
+  var medals=['🥇','🥈','🥉'];
+  var items=players.map(function(p,i){return'<div class="tick-item"><span>'+(medals[i]||'♟')+'</span><span style="font-weight:800;margin:0 4px">'+(p.u||p.username)+'</span><span style="color:var(--muted)">⭐ '+(p.r||p.rating||1200)+'</span><span style="color:var(--accent);margin-left:8px">🪙 '+((p.c||p.coins||0)).toLocaleString()+'</span></div>';}).join('');
+  document.getElementById('tickerTrack').innerHTML=items+items;
+}
+
+var FAQS=[
+  ['What is ChessWin7?','A skill-based online chess platform where players compete and earn real USDT rewards.'],
+  ['Is ChessWin7 based on luck?','No. Results depend entirely on player skill, strategy, and chess knowledge.'],
+  ['What is the coin value?','1 USDT = 1 COIN on our platform.'],
+  ['Does ChessWin7 provide bonuses?','YES! 🏆 Welcome Bonus • Refill Bonus • Loss Bonus Available for All Tiers 🏆'],
+  ['What is the minimum deposit?','10 COINS (10 USDT).'],
+  ['How are winnings calculated?','A 5% platform fee is deducted. Example: 10 USDT pool → winner gets 9.50 USDT.'],
+  ['How do I withdraw?','Go to the Withdrawal page, enter amount and your USDT wallet address (TRC20/ERC20). Admin processes within 48 hours.'],
+  ['What time controls are available?','UltraBullet (30s), Bullet (1-2 min), Blitz (3-5 min), Rapid (10-60 min), Classical (60+ min).'],
+  ['How does rating work?','Win = +10 rating. Loss = −8 rating. Tiers from Bronze (0) to Legend (2400+).'],
+  ['Can my account be suspended?','Yes, for cheating, bot usage, or fraudulent activity.'],
+  ['Can I sign in with Google?','Yes! Click "Continue with Google" on the login screen.'],
+];
+function buildFAQ(){
+  var list=document.getElementById('faqList');if(!list)return;
+  list.innerHTML=FAQS.map(function(qa,i){
+    return'<div class="faq-item" id="faq-'+i+'"><div class="faq-q" onclick="toggleFaq('+i+')"><span>'+qa[0]+'</span><span class="faq-icon">+</span></div><div class="faq-a">'+qa[1]+'</div></div>';
+  }).join('');
+}
+function toggleFaq(i){var el=document.getElementById('faq-'+i);if(el)el.classList.toggle('open');}
+
+var LEGAL={
+  terms:{t:'Terms & Conditions',b:'<h4>Skill-Based Platform</h4><p>ChessWin7 is a skill-based gaming platform. All results depend entirely on player skill, strategy, and performance.</p><h4>Deposits & Transfers</h4><p>Users are responsible for ensuring deposits are completed correctly.</p><h4>Tournament & Match Fees</h4><p>ChessWin7 charges a 5% platform fee from the total prize pool.</p><h4>Fair Play</h4><p>Cheating, hacking, bots, collusion, or fraudulent activity may result in suspension or permanent ban.</p>'},
+  faq:{t:'FAQ',b:'<p>See the FAQ section on the home page.</p>'},
+  about:{t:'About Us',b:'<p>ChessWin7 is a skill-based online chess platform. <strong style="color:var(--accent)">Play Smart. Play Fair. Win with Skill.</strong></p>'}
+};
+function showLegal(key){var d=LEGAL[key];if(!d)return;document.getElementById('legal-title').textContent=d.t;document.getElementById('legalBody').innerHTML=d.b;document.getElementById('legalModal').classList.add('open');}
+
+function buildThemePicker(){
+  var grid=document.getElementById('themeGrid');if(!grid)return;
+  grid.innerHTML=THEMES.map(function(th,i){
+    var squares='';
+    for(var r=0;r<2;r++){for(var c=0;c<4;c++){var bg=((r+c)%2===0)?th.dark:th.light;squares+='<div class="theme-sq" style="background:'+bg+'"></div>';}}
+    return'<div class="theme-card'+(i===activeTheme?' active':'')+'" onclick="applyTheme('+i+')" id="tc-'+i+'"><div class="theme-preview">'+squares+'</div><div class="theme-name">'+th.name+'</div></div>';
+  }).join('');
+}
+function applyTheme(i){
+  activeTheme=i;
+  document.querySelectorAll('.theme-card').forEach(function(c){c.classList.remove('active');});
+  var tc=document.getElementById('tc-'+i);if(tc)tc.classList.add('active');
+  document.getElementById('activetheme').textContent=THEMES[i].name;
+  renderHome();renderPlay();
+  toast('Theme: '+THEMES[i].name,'ok');
+}
+
+function buildTierTable(){
+  var t=document.getElementById('tierTable');if(!t)return;
+  t.innerHTML='<thead><tr><th>Tier</th><th>Rating Range</th><th>Status</th></tr></thead>';
+  var tb=document.createElement('tbody');
+  var ur=window.currentUserData?window.currentUserData.rating:1200;
+  TIERS.forEach(function(tier){
+    var tr=document.createElement('tr');
+    var isCur=ur>=tier.min&&ur<=tier.max;
+    if(isCur)tr.style.background='rgba(0,231,1,.06)';
+    tr.innerHTML='<td>'+tier.i+' '+tier.n+'</td><td>'+tier.min+(tier.max===9999?'+':'–'+tier.max)+'</td><td>'+(isCur?'<span style="color:var(--accent);font-weight:700">● Current</span>':'')+'</td>';
+    tb.appendChild(tr);
+  });
+  t.appendChild(tb);
+}
+
+function openAuth(mode){
+  var m=mode||'login';
+  var modal=document.getElementById('authModal');
+  document.getElementById('auth-title').textContent=m==='signup'?'Create Account':'Welcome Back';
+  var f=document.getElementById('auth-form');
+  f.innerHTML=(m==='signup'?'<input id="a-un" placeholder="Username" style="margin-bottom:10px">':'')+
+    '<input id="a-em" placeholder="Email" type="email" style="margin-bottom:10px">'+
+    '<input id="a-pw" placeholder="Password" type="password" style="margin-bottom:16px" onkeydown="if(event.key===\'Enter\')doAuth()">'+
+    '<div style="display:flex;gap:8px;margin-bottom:14px">'+
+      '<button class="btn" style="flex:1" onclick="doAuth()">'+(m==='signup'?'Create Account':'Sign In')+'</button>'+
+      '<button class="btn btn-o" style="flex:1" onclick="document.getElementById(\'authModal\').classList.remove(\'open\')">Cancel</button>'+
+    '</div>'+
+    '<div class="divider"><span>OR</span></div>'+
+    '<button class="google-btn" onclick="doGoogle()">'+
+      '<svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.35-8.16 2.35-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>'+
+      'Continue with Google'+
+    '</button>'+
+    '<div class="switch-link">'+(m==='signup'?'Already have an account? <a onclick="openAuth(\'login\')">Sign In</a>':'No account? <a onclick="openAuth(\'signup\')">Create one</a>')+'</div>';
+  modal.classList.add('open');
+  modal.dataset.mode=m;
+}
+function doAuth(){
+  var modal=document.getElementById('authModal');
+  var m=modal.dataset.mode||'login';
+  var em=(document.getElementById('a-em')||{value:''}).value.trim();
+  var pw=(document.getElementById('a-pw')||{value:''}).value;
+  var un=(document.getElementById('a-un')||{value:''}).value.trim();
+  if(!em||!pw){toast('Please fill all fields','err');return;}
+  var btn=document.querySelector('#auth-form .btn');
+  if(btn){btn.disabled=true;btn.textContent='Please wait...';}
+  if(m==='signup'){
+    if(!un){toast('Enter a username','err');if(btn){btn.disabled=false;btn.textContent='Create Account';}return;}
+    auth.createUserWithEmailAndPassword(em,pw).then(function(cr){
+      return db.collection('users').doc(cr.user.uid).set({username:un,email:em,coins:1000,rating:1200,wins:0,losses:0,phone:'',createdAt:firebase.firestore.FieldValue.serverTimestamp(),lastDaily:null});
+    }).then(function(){toast('Welcome '+un+'! 🎁 1000 coins added','ok');modal.classList.remove('open');})
+    .catch(function(e){toast(friendlyErr(e.code,e.message),'err');if(btn){btn.disabled=false;btn.textContent='Create Account';}});
+  }else{
+    auth.signInWithEmailAndPassword(em,pw).then(function(){toast('Welcome back!','ok');modal.classList.remove('open');})
+    .catch(function(e){toast(friendlyErr(e.code,e.message),'err');if(btn){btn.disabled=false;btn.textContent='Sign In';}});
+  }
+}
+function doGoogle(){
+  var provider=new firebase.auth.GoogleAuthProvider();
+  provider.setCustomParameters({prompt:'select_account'});
+  auth.signInWithPopup(provider).then(function(cr){
+    var u=cr.user;
+    return db.collection('users').doc(u.uid).get().then(function(snap){
+      if(!snap.exists){return db.collection('users').doc(u.uid).set({username:u.displayName||u.email.split('@')[0],email:u.email,coins:1000,rating:1200,wins:0,losses:0,phone:'',createdAt:firebase.firestore.FieldValue.serverTimestamp(),lastDaily:null}).then(function(){toast('Welcome '+(u.displayName||'Player')+'! 🎁 1000 coins','ok');});}
+      else{toast('Welcome back, '+snap.data().username+'!','ok');}
+    });
+  }).then(function(){document.getElementById('authModal').classList.remove('open');})
+  .catch(function(e){if(e.code!=='auth/popup-closed-by-user')toast(e.message,'err');});
+}
+function friendlyErr(code,msg){
+  if(code==='auth/user-not-found'||code==='auth/invalid-credential')return'Incorrect email or password';
+  if(code==='auth/wrong-password')return'Incorrect password';
+  if(code==='auth/email-already-in-use')return'Email already registered';
+  if(code==='auth/weak-password')return'Password too weak';
+  return msg;
+}
+function doLogout(){auth.signOut().then(function(){toast('Logged out','info');goPage('home');});}
+
+window.currentUser=null;
+window.currentUserData=null;
+auth.onAuthStateChanged(function(user){
+  window.currentUser=user;
+  var hRight=document.getElementById('headerRight');
+  var gNav=document.getElementById('guestNav');
+  var sidebar=document.getElementById('sidebar');
+  if(user){
+    db.collection('users').doc(user.uid).get().then(function(snap){
+      var data=snap.exists?snap.data():{username:user.displayName||'Player',coins:1000,rating:1200,wins:0,losses:0};
+      window.currentUserData=data;
+      if(document.getElementById('sb-name'))document.getElementById('sb-name').textContent=data.username||'—';
+      var t=getTier(data.rating||1200);
+      if(document.getElementById('sb-tier'))document.getElementById('sb-tier').textContent=t.i+' '+t.n;
+      if(sidebar)sidebar.classList.add('show');
+      if(gNav)gNav.style.display='none';
+      if(hRight)hRight.innerHTML=
+        '<div style="display:flex;align-items:center;gap:8px">'
+        +'<button class="btn btn-sm" style="background:#00e701;color:#000;font-weight:800" onclick="goPage(\'deposit\')">💰 Deposit</button>'
+        +'<button class="btn btn-sm btn-o" style="font-weight:800" onclick="goPage(\'withdrawal\')">💸 Withdraw</button>'
+        +'<div class="profile-btn" onclick="toggleDrop()" id="pBtn">👤<div class="profile-drop" id="pDrop"><div class="drop-item" onclick="goPage(\'profile\')">👤 Profile</div><div class="drop-item" onclick="goPage(\'stats\')">📊 Stats</div><div class="drop-item" onclick="goPage(\'promotions\')">🎁 Promotions</div><div class="drop-item" onclick="doLogout()">🚪 Logout</div></div></div>'
+        +'</div>';
+      updateProfilePage(data);updateStatsPage(data);checkDailyBtn(data);loadLB();updateMobDrawer(user,data);
+    });
+  }else{
+    window.currentUserData=null;
+    if(sidebar)sidebar.classList.remove('show');
+    if(gNav)gNav.style.display='flex';
+    updateMobDrawer(null,null);
+    if(hRight)hRight.innerHTML='<div style="display:flex;gap:8px"><button class="btn btn-o btn-sm" onclick="openAuth(\'login\')">Login</button><button class="btn btn-sm" onclick="openAuth(\'signup\')">Sign Up</button></div>';
+    loadLB();
+  }
+});
+function closeSidebar(){
+  var sb=document.getElementById('sidebar');
+  if(sb)sb.classList.remove('show');
+}
+function toggleDrop(){var d=document.getElementById('pDrop');if(d)d.classList.toggle('open');}
+document.addEventListener('click',function(e){if(!e.target.closest('#pBtn'))document.getElementById('pDrop')&&document.getElementById('pDrop').classList.remove('open');});
+
+function updateProfilePage(data){
+  if(!data)return;
+  var t=getTier(data.rating||1200);
+  var pn=document.getElementById('prof-name');if(pn)pn.textContent=data.username||'';
+  var pu=document.getElementById('prof-un');if(pu)pu.value=data.username||'';
+  var em=document.getElementById('prof-email');if(em)em.textContent=window.currentUser?window.currentUser.email:'';
+  var pe=document.getElementById('prof-em');if(pe)pe.value=window.currentUser?window.currentUser.email:'';
+  var pp=document.getElementById('prof-phone');if(pp)pp.value=data.phone||'';
+  var pt=document.getElementById('prof-tier');if(pt)pt.textContent=t.i+' '+t.n;
+  var pr=document.getElementById('prof-rating');if(pr)pr.textContent=data.rating||1200;
+  var pw=document.getElementById('prof-wins');if(pw)pw.textContent=data.wins||0;
+  var pc=document.getElementById('prof-coins');if(pc)pc.textContent=(data.coins||0).toLocaleString();
+  var wb=document.getElementById('wdBal');if(wb)wb.textContent=(data.coins||0).toLocaleString()+' COINS';
+}
+function updateStatsPage(data){
+  if(!data)return;
+  var r=data.rating||1200,w=data.wins||0,l=data.losses||0;
+  var sr=document.getElementById('st-rating');if(sr)sr.textContent=r;
+  var sw=document.getElementById('st-wins');if(sw)sw.textContent=w;
+  var sl=document.getElementById('st-losses');if(sl)sl.textContent=l;
+  var swr=document.getElementById('st-wr');if(swr)swr.textContent=w+l>0?Math.round(w/(w+l)*100)+'%':'—';
+  buildTierTable();
+}
+function savePhone(){
+  if(!window.currentUser){toast('Please login','err');return;}
+  var ph=document.getElementById('prof-phone');if(!ph)return;
+  db.collection('users').doc(window.currentUser.uid).update({phone:ph.value}).then(function(){toast('Saved!','ok');});
+}
+function changePassword(){
+  if(!window.currentUser){toast('Please login','err');return;}
+  var np=document.getElementById('newPw'),cp=document.getElementById('confPw');
+  if(!np||!cp||!np.value){toast('Enter new password','err');return;}
+  if(np.value!==cp.value){toast('Passwords do not match','err');return;}
+  if(np.value.length<6){toast('Min 6 characters','err');return;}
+  window.currentUser.updatePassword(np.value).then(function(){np.value='';cp.value='';toast('Password updated!','ok');}).catch(function(e){toast(e.message,'err');});
+}
+
+function checkDailyBtn(data){
+  if(!data)return;
+  var last=data.lastDaily&&data.lastDaily.toDate?data.lastDaily.toDate().toDateString():null;
+  var claimed=last===new Date().toDateString();
+  ['dailyBtn','profDailyBtn'].forEach(function(id){
+    var btn=document.getElementById(id);if(!btn)return;
+    btn.textContent=claimed?'✓ Already Claimed Today':'🎁 Claim Daily Bonus';
+    btn.disabled=claimed;
+  });
+}
+function claimDaily(){
+  if(!window.currentUser){openAuth('login');return;}
+  var data=window.currentUserData||{};
+  var last=data.lastDaily&&data.lastDaily.toDate?data.lastDaily.toDate().toDateString():null;
+  if(last===new Date().toDateString()){toast('Already claimed today!','err');return;}
+  var bonus=50+Math.floor(Math.random()*150);
+  db.collection('users').doc(window.currentUser.uid).update({coins:firebase.firestore.FieldValue.increment(bonus),lastDaily:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){
+    toast('🎁 +'+bonus+' coins claimed!','ok');
+    window.currentUserData.coins=(window.currentUserData.coins||0)+bonus;
+    window.currentUserData.lastDaily={toDate:function(){return new Date();}};
+    checkDailyBtn(window.currentUserData);updateProfilePage(window.currentUserData);
+  });
+}
+
+function submitDeposit(){
+  if(!window.currentUser){openAuth('login');return;}
+  var amt=parseFloat(document.getElementById('dpAmt').value);
+  var tx=document.getElementById('dpTx').value.trim();
+  var note=document.getElementById('dpNote').value.trim();
+  if(!amt||amt<10){toast('Minimum 10 USDT','err');return;}
+  if(!tx){toast('Enter your TxID','err');return;}
+  db.collection('deposits').add({userId:window.currentUser.uid,username:window.currentUserData?window.currentUserData.username:'',email:window.currentUser.email,amount:amt,txid:tx,note:note,status:'pending',createdAt:firebase.firestore.FieldValue.serverTimestamp()})
+  .then(function(){toast('✓ Deposit request submitted!','ok');document.getElementById('dpAmt').value='';document.getElementById('dpTx').value='';document.getElementById('dpNote').value='';loadDepositHistory();})
+  .catch(function(e){toast(e.message,'err');});
+}
+function submitWithdrawal(){
+  if(!window.currentUser){openAuth('login');return;}
+  var amt=parseFloat(document.getElementById('wdAmt').value);
+  var wallet=document.getElementById('wdWallet').value.trim();
+  var bal=window.currentUserData?window.currentUserData.coins||0:0;
+  if(!amt||amt<10){toast('Minimum 10 USDT','err');return;}
+  if(!wallet){toast('Enter wallet address','err');return;}
+  if(bal<amt){toast('Insufficient balance!','err');return;}
+  db.collection('withdrawals').add({userId:window.currentUser.uid,username:window.currentUserData?window.currentUserData.username:'',email:window.currentUser.email,amount:amt,wallet:wallet,status:'pending',createdAt:firebase.firestore.FieldValue.serverTimestamp()})
+  .then(function(){toast('✓ Withdrawal request submitted!','ok');document.getElementById('wdAmt').value='';document.getElementById('wdWallet').value='';loadWithdrawalHistory();})
+  .catch(function(e){toast(e.message,'err');});
+}
+function loadDepositHistory(){
+  if(!window.currentUser)return;
+  db.collection('deposits').where('userId','==',window.currentUser.uid).get().then(function(snap){
+    var el=document.getElementById('dpHistory');if(!el)return;
+    if(snap.empty){el.innerHTML='<p style="color:var(--muted)">No deposits yet</p>';return;}
+    el.innerHTML='<table class="hist-table"><thead><tr><th>Date</th><th>Amount</th><th>Status</th></tr></thead><tbody>'+snap.docs.map(function(d){var r=d.data();return'<tr><td>'+(r.createdAt?r.createdAt.toDate().toLocaleDateString():'—')+'</td><td style="color:var(--green);font-weight:700">'+r.amount+' USDT</td><td><span class="badge-'+r.status+'">'+r.status+'</span></td></tr>';}).join('')+'</tbody></table>';
+  });
+}
+function loadWithdrawalHistory(){
+  if(!window.currentUser)return;
+  db.collection('withdrawals').where('userId','==',window.currentUser.uid).get().then(function(snap){
+    var el=document.getElementById('wdHistory');if(!el)return;
+    if(snap.empty){el.innerHTML='<p style="color:var(--muted)">No withdrawals yet</p>';return;}
+    el.innerHTML='<table class="hist-table"><thead><tr><th>Date</th><th>Amount</th><th>Status</th></tr></thead><tbody>'+snap.docs.map(function(d){var r=d.data();return'<tr><td>'+(r.createdAt?r.createdAt.toDate().toLocaleDateString():'—')+'</td><td style="color:var(--red);font-weight:700">'+r.amount+' USDT</td><td><span class="badge-'+r.status+'">'+r.status+'</span></td></tr>';}).join('')+'</tbody></table>';
+  });
+}
+
+function goPage(id,el){
+  if((id==='play'||id==='deposit'||id==='withdrawal')&&!window.currentUser){
+    openAuth('login');toast('Please login first','err');return;
+  }
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  var pg=document.getElementById('page-'+id);if(pg)pg.classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+  document.querySelectorAll('.sb-link').forEach(function(l){l.classList.remove('active');});
+  if(el)el.classList.add('active');
+  if(id==='play')renderPlay();
+  if(id==='stats'&&window.currentUserData)updateStatsPage(window.currentUserData);
+  if(id==='profile'&&window.currentUserData){updateProfilePage(window.currentUserData);loadDepositHistory();loadWithdrawalHistory();}
+  if(id==='theme')buildThemePicker();
+}
+function scrollToId(id){
+  if(!document.getElementById('page-home').classList.contains('active'))goPage('home');
+  setTimeout(function(){var el=document.getElementById(id);if(el)el.scrollIntoView({behavior:'smooth'});},100);
+}
+
+function toast(msg,type){
+  var t=document.getElementById('toast');
+  t.className='toast '+(type==='ok'?'ok':type==='err'?'err':'info');
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(t._t);t._t=setTimeout(function(){t.classList.remove('show');},3500);
+}
+
+// ── TOURNAMENT SIDEBAR DROPDOWN ──
+function toggleTournDrop(e,el){
+  e.stopPropagation();
+  var drop=document.getElementById('sbTournDrop');
+  if(!drop)return;
+  var isOpen=drop.style.display==='block';
+  drop.style.display=isOpen?'none':'block';
+  el.classList.toggle('active',!isOpen);
+}
+function goTourney(type){
+  if(!window.currentUser){openAuth('login');toast('Please login first','err');return;}
+  goPage('tournament');
+  var titles={
+    '1v1':'⚔️ 1 vs 1','swiss':'🔄 Swiss Tournament','knockout':'🥊 Knockout (Elimination)',
+    'double':'🏅 Double Elimination','rapid':'⏱ Rapid Tournament','blitz':'⚡ Blitz Tournament',
+    'bullet':'🔫 Bullet Tournament','ultra':'💨 Ultra Bullet Tournament',
+    'spring':'🌸 Spring Open','summer':'☀️ Summer Open','autumn':'🍂 Autumn Open','winter':'❄️ Winter Open'
+  };
+  toast('Opening: '+(titles[type]||type),'info');
+}
+
+// ── LANGUAGE SYSTEM ──
+var LANGS=[
+  {code:'en',label:'EN',name:'English',flag:'🇬🇧'},
+  {code:'es',label:'ES',name:'Español',flag:'🇪🇸'},
+  {code:'ru',label:'RU',name:'Русский',flag:'🇷🇺'},
+  {code:'ja',label:'JA',name:'日本語',flag:'🇯🇵'},
+  {code:'zh',label:'ZH',name:'中文',flag:'🇨🇳'},
+  {code:'ko',label:'KO',name:'한국어',flag:'🇰🇷'},
+  {code:'ur',label:'UR',name:'اردو',flag:'🇵🇰'},
+  {code:'id',label:'ID',name:'Bahasa Indonesia',flag:'🇮🇩'},
+  {code:'ha',label:'HA',name:'Hausa',flag:'🇳🇬'},
+  {code:'de',label:'DE',name:'Deutsch',flag:'🇩🇪'},
+];
+var activeLang='en';
+var TRANSLATIONS={
+  en:{home:'Home',play:'Play',arena:'Arena',promotions:'Promotions',deposit:'Deposit',withdraw:'Withdraw',support:'Support',login:'Login',signup:'Sign Up',tournaments:'Tournaments','1v1':'1 vs 1',finance:'Finance',account:'Account',stats:'Stats',profile:'Profile',theme:'Board Theme',more:'More',language:'Language',playNow:'▶ Play Now',viewRankings:'View Rankings',tagline:'Play Chess. Earn Real Rewards.',subtitle:'Challenge real players worldwide, climb the leaderboard, and win USDT with every victory. 1 COIN = 1 USDT.'},
+  es:{home:'Inicio',play:'Jugar',arena:'Arena',promotions:'Promociones',deposit:'Depósito',withdraw:'Retirar',support:'Soporte',login:'Iniciar Sesión',signup:'Registrarse',tournaments:'Torneos','1v1':'1 vs 1',finance:'Finanzas',account:'Cuenta',stats:'Estadísticas',profile:'Perfil',theme:'Tablero',more:'Más',language:'Idioma',playNow:'▶ Jugar Ahora',viewRankings:'Ver Rankings',tagline:'Juega Ajedrez. Gana Recompensas Reales.',subtitle:'Desafía jugadores reales en todo el mundo y gana USDT. 1 MONEDA = 1 USDT.'},
+  ru:{home:'Главная',play:'Играть',arena:'Арена',promotions:'Акции',deposit:'Депозит',withdraw:'Вывод',support:'Поддержка',login:'Войти',signup:'Регистрация',tournaments:'Турниры','1v1':'1 против 1',finance:'Финансы',account:'Аккаунт',stats:'Статистика',profile:'Профиль',theme:'Тема доски',more:'Ещё',language:'Язык',playNow:'▶ Играть',viewRankings:'Рейтинг',tagline:'Играй в шахматы. Зарабатывай.',subtitle:'Играй с игроками по всему миру и побеждай. 1 МОНЕТА = 1 USDT.'},
+  ja:{home:'ホーム',play:'プレイ',arena:'アリーナ',promotions:'プロモ',deposit:'入金',withdraw:'出金',support:'サポート',login:'ログイン',signup:'登録',tournaments:'トーナメント','1v1':'1対1',finance:'財務',account:'アカウント',stats:'統計',profile:'プロフィール',theme:'テーマ',more:'その他',language:'言語',playNow:'▶ プレイ',viewRankings:'ランキング',tagline:'チェスで遊んで。報酬を稼いで。',subtitle:'世界中のプレイヤーと対戦してUSDTを獲得。1コイン = 1 USDT。'},
+  zh:{home:'首页',play:'游戏',arena:'竞技场',promotions:'促销',deposit:'存款',withdraw:'提款',support:'支持',login:'登录',signup:'注册',tournaments:'锦标赛','1v1':'1对1',finance:'财务',account:'账户',stats:'统计',profile:'个人资料',theme:'棋盘',more:'更多',language:'语言',playNow:'▶ 立即游戏',viewRankings:'查看排名',tagline:'下棋。赚取真实奖励。',subtitle:'挑战全球真实玩家，赢取USDT。1金币 = 1 USDT。'},
+  ko:{home:'홈',play:'플레이',arena:'아레나',promotions:'프로모션',deposit:'입금',withdraw:'출금',support:'지원',login:'로그인',signup:'가입',tournaments:'토너먼트','1v1':'1대1',finance:'재무',account:'계정',stats:'통계',profile:'프로필',theme:'테마',more:'더보기',language:'언어',playNow:'▶ 플레이',viewRankings:'순위보기',tagline:'체스를 두세요. 진짜 보상을 받으세요.',subtitle:'전 세계 플레이어와 경쟁하여 USDT를 획득하세요.'},
+  ur:{home:'ہوم',play:'کھیلیں',arena:'ایرنا',promotions:'پروموشن',deposit:'جمع',withdraw:'نکالیں',support:'سپورٹ',login:'لاگ ان',signup:'سائن اپ',tournaments:'ٹورنامنٹ','1v1':'1 بمقابلہ 1',finance:'مالیات',account:'اکاؤنٹ',stats:'اعداد',profile:'پروفائل',theme:'تھیم',more:'مزید',language:'زبان',playNow:'▶ کھیلیں',viewRankings:'درجہ بندی',tagline:'شطرنج کھیلیں۔ انعام کمائیں۔',subtitle:'دنیا بھر کے کھلاڑیوں سے مقابلہ کریں اور USDT جیتیں۔'},
+  id:{home:'Beranda',play:'Mainkan',arena:'Arena',promotions:'Promo',deposit:'Setor',withdraw:'Tarik',support:'Dukungan',login:'Masuk',signup:'Daftar',tournaments:'Turnamen','1v1':'1 vs 1',finance:'Keuangan',account:'Akun',stats:'Statistik',profile:'Profil',theme:'Tema',more:'Lainnya',language:'Bahasa',playNow:'▶ Main Sekarang',viewRankings:'Lihat Peringkat',tagline:'Main Catur. Dapatkan Hadiah Nyata.',subtitle:'Tantang pemain nyata di seluruh dunia dan menangkan USDT.'},
+  ha:{home:'Gida',play:'Wasa',arena:'Arena',promotions:'Tallafi',deposit:'Ajiya',withdraw:'Cire',support:'Taimako',login:'Shiga',signup:'Yi rajista',tournaments:'Gasar','1v1':'1 da 1',finance:'Kudi',account:'Asusun',stats:'Alkaluma',profile:'Bayani',theme:'Jigon',more:'Ƙari',language:'Harshe',playNow:'▶ Fara Wasa',viewRankings:'Dubi Matsayi',tagline:'Wasa Chess. Samu Lada.',subtitle:'Yi gasa da yan wasa na duniya ka lashe USDT.'},
+  de:{home:'Startseite',play:'Spielen',arena:'Arena',promotions:'Aktionen',deposit:'Einzahlung',withdraw:'Auszahlung',support:'Support',login:'Anmelden',signup:'Registrieren',tournaments:'Turniere','1v1':'1 gegen 1',finance:'Finanzen',account:'Konto',stats:'Statistiken',profile:'Profil',theme:'Design',more:'Mehr',language:'Sprache',playNow:'▶ Jetzt spielen',viewRankings:'Rangliste',tagline:'Schach spielen. Echte Belohnungen verdienen.',subtitle:'Fordere Spieler weltweit heraus und gewinne USDT. 1 Coin = 1 USDT.'},
+};
+function buildLangDrop(){
+  var drop=document.getElementById('langDrop');if(!drop)return;
+  drop.innerHTML=LANGS.map(function(l){
+    return'<div class="lang-item'+(l.code===activeLang?' active':'')+'" onclick="setLang(\''+l.code+'\')">'+l.flag+' '+l.name+'</div>';
+  }).join('');
+}
+function toggleLang(e){
+  e.stopPropagation();
+  var drop=document.getElementById('langDrop');
+  if(drop)drop.classList.toggle('open');
+}
+
+// ── SIDEBAR LANGUAGE LIST (full names) ──
+function buildSbLangGrid(){
+  var grid=document.getElementById('sbLangGrid');if(!grid)return;
+  grid.innerHTML=LANGS.map(function(l){
+    return'<div class="sb-lang-item'+(l.code===activeLang?' active':'')+'" onclick="setLang(\''+l.code+'\')"><span class="flag">'+l.flag+'</span><span>'+l.name+'</span></div>';
+  }).join('');
+}
+// ── HOME PAGE LANGUAGE GRID (full names) ──
+function buildHomeLangGrid(){
+  var grid=document.getElementById('homeLangGrid');if(!grid)return;
+  grid.innerHTML=LANGS.map(function(l){
+    return'<div class="home-lang-btn'+(l.code===activeLang?' active':'')+'" onclick="setLang(\''+l.code+'\')"><span class="flag">'+l.flag+'</span><span class="lname">'+l.name+'</span></div>';
+  }).join('');
+}
+function setLang(code){
+  activeLang=code;
+  var lang=LANGS.find(function(l){return l.code===code;})||LANGS[0];
+  var t=TRANSLATIONS[code]||TRANSLATIONS['en'];
+  // RTL for Urdu
+  document.body.dir=(code==='ur')?'rtl':'ltr';
+  // Update lang label in header
+  var lbl=document.getElementById('langLabel');if(lbl)lbl.textContent=lang.label;
+  var glbl=document.getElementById('guestLangLabel');if(glbl)glbl.textContent=lang.label;
+  var drop=document.getElementById('langDrop');if(drop)drop.classList.remove('open');
+  buildLangDrop();
+  // ── Guest nav ──
+  var gNav=document.getElementById('guestNav');
+  if(gNav){
+    var btns=gNav.querySelectorAll('a');
+    if(btns[0])btns[0].textContent=t.home||'Home';
+    if(btns[1])btns[1].textContent=t.play||'Play';
+    if(btns[2])btns[2].textContent=t.arena||'Arena';
+    if(btns[3])btns[3].textContent='🎁 '+(t.promotions||'Promotions');
+  }
+  // ── Desktop sidebar links ──
+  var sbLinks=document.querySelectorAll('#sidebar .sb-link');
+  var sbMap=['home','play','1v1','','promotions','','deposit','withdraw','','stats','profile','theme'];
+  sbLinks.forEach(function(el,i){
+    var key=sbMap[i];
+    if(!key||!t[key])return;
+    var icon=el.querySelector('.sb-icon');
+    if(icon){el.innerHTML='';el.appendChild(icon);el.appendChild(document.createTextNode(t[key]));}
+  });
+  // Sidebar section labels
+  var sbSections=document.querySelectorAll('#sidebar .sb-section');
+  var secMap={0:t.finance||'Finance',1:t.account||'Account',2:t.more||'More',3:t.language||'Language',4:t.support||'Support'};
+  var secIdx=0;
+  sbSections.forEach(function(el){
+    var mapped=secMap[secIdx];
+    if(mapped)el.textContent=mapped;
+    secIdx++;
+  });
+  // ── Mobile drawer links ──
+  var mobLinks=document.querySelectorAll('#mobAuthLinks .sb-link');
+  var mobMap=['home','play','1v1',''];
+  mobLinks.forEach(function(el,i){
+    var key=mobMap[i];
+    if(!key||!t[key])return;
+    var icon=el.querySelector('.sb-icon');
+    if(icon){el.innerHTML='';el.appendChild(icon);el.appendChild(document.createTextNode(t[key]));}
+  });
+  // ── Hero text ──
+  var heroH1=document.querySelector('.hero h1');
+  if(heroH1&&t.tagline){
+    var parts=t.tagline.split('.');
+    heroH1.innerHTML=parts.map(function(p,i){return i===1?'<span>'+p.trim()+'</span>':p.trim();}).join('.<br>');
+  }
+  var heroP=document.querySelector('.hero p');
+  if(heroP&&t.subtitle)heroP.textContent=t.subtitle;
+  var heroBtn1=document.querySelector('.hero-btns .btn:first-child');
+  if(heroBtn1&&t.playNow)heroBtn1.textContent=t.playNow;
+  var heroBtn2=document.querySelector('.hero-btns .btn:last-child');
+  if(heroBtn2&&t.viewRankings)heroBtn2.textContent=t.viewRankings;
+  // ── Rebuild all lang grids ──
+  buildSbLangGrid();
+  buildHomeLangGrid();
+  buildMobLangGrid();
+  toast(lang.flag+' '+lang.name,'info');
+}
+function toggleGuestLang(e){
+  e.stopPropagation();
+  var drop=document.getElementById('guestLangDrop');
+  if(!drop)return;
+  // also build it
+  drop.innerHTML=LANGS.map(function(l){return'<div class="lang-item'+(l.code===activeLang?' active':'')+'" onclick="setLang(\''+l.code+'\')">'+l.flag+' '+l.name+'</div>';}).join('');
+  drop.classList.toggle('open');
+}
+document.addEventListener('click',function(e){
+  if(!e.target.closest('.lang-wrap')){var d=document.getElementById('langDrop');if(d)d.classList.remove('open');var g=document.getElementById('guestLangDrop');if(g)g.classList.remove('open');}
+});
+
+// ── LIVE SUPPORT ──
+var supportReplies=[
+  'Thanks for reaching out! Our team will assist you shortly. 🙏',
+  'Could you please provide more details about your issue?',
+  'I understand. Let me check that for you.',
+  'For deposit issues, please share your TxID and we will verify within 24h.',
+  'For withdrawal queries, processing takes up to 48 hours.',
+  'Is there anything else I can help you with?',
+  'Our team is available 24/7. Please be patient! ✅',
+];
+var supportReplyIdx=0;
+function openSupport(){
+  document.getElementById('supportModal').classList.add('open');
+}
+function sendSupport(){
+  var input=document.getElementById('supportInput');
+  var msgs=document.getElementById('supportMsgs');
+  if(!input||!msgs||!input.value.trim())return;
+  var userMsg=document.createElement('div');
+  userMsg.className='sup-msg user';
+  userMsg.textContent=input.value.trim();
+  msgs.appendChild(userMsg);
+  input.value='';
+  msgs.scrollTop=msgs.scrollHeight;
+  setTimeout(function(){
+    var agentMsg=document.createElement('div');
+    agentMsg.className='sup-msg agent';
+    agentMsg.textContent=supportReplies[supportReplyIdx%supportReplies.length];
+    supportReplyIdx++;
+    msgs.appendChild(agentMsg);
+    msgs.scrollTop=msgs.scrollHeight;
+  },1000);
+}
+
+// ── MOBILE DRAWER ──
+function toggleMobDrawer(){
+  var drawer=document.getElementById('mobDrawer');
+  var overlay=document.getElementById('mobOverlay');
+  var ham=document.getElementById('hamburger');
+  if(!drawer)return;
+  var isOpen=drawer.classList.contains('open');
+  drawer.classList.toggle('open',!isOpen);
+  overlay.classList.toggle('open',!isOpen);
+  ham.classList.toggle('open',!isOpen);
+}
+function closeMobDrawer(){
+  var drawer=document.getElementById('mobDrawer');
+  var overlay=document.getElementById('mobOverlay');
+  var ham=document.getElementById('hamburger');
+  if(drawer)drawer.classList.remove('open');
+  if(overlay)overlay.classList.remove('open');
+  if(ham)ham.classList.remove('open');
+}
+function toggleMobTourn(e){
+  e.stopPropagation();
+  var drop=document.getElementById('mobTournDrop');
+  if(drop)drop.style.display=drop.style.display==='block'?'none':'block';
+}
+function updateMobDrawer(user,data){
+  var gLinks=document.getElementById('mobGuestLinks');
+  var aLinks=document.getElementById('mobAuthLinks');
+  var mobUser=document.getElementById('mob-user');
+  var mobName=document.getElementById('mob-name');
+  var mobTier=document.getElementById('mob-tier');
+  if(user&&data){
+    if(gLinks)gLinks.style.display='none';
+    if(aLinks)aLinks.style.display='block';
+    if(mobUser)mobUser.style.display='flex';
+    if(mobName)mobName.textContent=data.username||'—';
+    var t=getTier(data.rating||1200);
+    if(mobTier)mobTier.textContent=t.i+' '+t.n;
+    buildMobLangGrid();
+  }else{
+    if(gLinks)gLinks.style.display='block';
+    if(aLinks)aLinks.style.display='none';
+    if(mobUser)mobUser.style.display='none';
+  }
+}
+function buildMobLangGrid(){
+  var grid=document.getElementById('mobLangGrid');if(!grid)return;
+  grid.innerHTML=LANGS.map(function(l){
+    return'<div class="sb-lang-item'+(l.code===activeLang?' active':'')+'" onclick="setLang(\''+l.code+'\');"><span class="flag">'+l.flag+'</span><span>'+l.name+'</span></div>';
+  }).join('');
+}
+
+var ro=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting)e.target.classList.add('in');});},{threshold:.1});
+document.querySelectorAll('.reveal').forEach(function(el){ro.observe(el);});
+
+renderHome();
+renderPlay();
+buildMiniBoards();
+buildFAQ();
+buildThemePicker();
+buildLB(FAKE_LB);
+buildSbLangGrid();
+buildHomeLangGrid();
+buildTicker(FAKE_LB);
+setTimeout(loadLB,1500);
+</script>
+
+<!-- SUPPORT MODAL -->
+<div class="modal" id="supportModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal-box">
+    <div class="support-header">
+      <span class="support-dot"></span>
+      <div>
+        <div style="font-weight:800;font-size:15px">Live Support</div>
+        <div style="font-size:11px;opacity:.8">Online • Typically replies in minutes</div>
+      </div>
+      <button onclick="document.getElementById('supportModal').classList.remove('open')" style="margin-left:auto;background:rgba(255,255,255,.2);border:none;color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center">✕</button>
+    </div>
+    <div class="support-body">
+      <div class="support-msgs" id="supportMsgs">
+        <div class="sup-msg agent">👋 Hello! Welcome to ChessWin7 Support. How can I help you today?</div>
+      </div>
+      <div class="support-input">
+        <input id="supportInput" placeholder="Type your message..." onkeydown="if(event.key==='Enter')sendSupport()">
+        <button class="btn btn-sm" onclick="sendSupport()">Send</button>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
