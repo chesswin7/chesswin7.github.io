@@ -357,7 +357,7 @@ header{padding:0 10px}
 </div>
 
 <!-- LIGHTBOX -->
-<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+<div class="lightbox" id="lightbox">
   <span class="lightbox-close">✕</span>
   <img id="lightboxImg" src="" alt="">
 </div>
@@ -645,25 +645,25 @@ header{padding:0 10px}
   <div class="promo-page">
     <div class="promo-grid">
       <div class="promo-item wide promo-banner">
-        <img src="https://raw.githubusercontent.com/chesswin7/chesswin7.github.io/cc731950cbb0c83f808961c418edfc764cd047a6/promotions/LB.png" alt="Leaderboard Promotion" style="aspect-ratio:1167/933;object-fit:cover" loading="lazy">
+        <img src="https://raw.githubusercontent.com/chesswin7/chesswin7.github.io/cc731950cbb0c83f808961c418edfc764cd047a6/promotions/LB.png" alt="Leaderboard Promotion" style="aspect-ratio:1167/933;object-fit:cover">
       </div>
       <div class="promo-item square" onclick="openLightbox(this.querySelector('img').src)">
-        <img src="https://raw.githubusercontent.com/chesswin7/chesswin7.github.io/cc731950cbb0c83f808961c418edfc764cd047a6/promotions/1P.png" alt="1% Promotion" loading="lazy">
+        <img src="https://raw.githubusercontent.com/chesswin7/chesswin7.github.io/cc731950cbb0c83f808961c418edfc764cd047a6/promotions/1P.png" alt="1% Promotion">
       </div>
       <div class="promo-item square" onclick="openLightbox(this.querySelector('img').src)">
-        <img src="https://raw.githubusercontent.com/chesswin7/chesswin7.github.io/cc731950cbb0c83f808961c418edfc764cd047a6/promotions/15P.png" alt="15% Promotion" loading="lazy">
+        <img src="https://raw.githubusercontent.com/chesswin7/chesswin7.github.io/cc731950cbb0c83f808961c418edfc764cd047a6/promotions/15P.png" alt="15% Promotion">
       </div>
       <div class="promo-item square" onclick="openLightbox(this.querySelector('img').src)">
-        <img src="https://raw.githubusercontent.com/chesswin7/chesswin7.github.io/cc731950cbb0c83f808961c418edfc764cd047a6/promotions/2P.png" alt="2% Promotion" loading="lazy">
+        <img src="https://raw.githubusercontent.com/chesswin7/chesswin7.github.io/cc731950cbb0c83f808961c418edfc764cd047a6/promotions/2P.png" alt="2% Promotion">
       </div>
       <div class="promo-item square" onclick="openLightbox(this.querySelector('img').src)">
-        <img src="https://raw.githubusercontent.com/chesswin7/chesswin7.github.io/cc731950cbb0c83f808961c418edfc764cd047a6/promotions/25P.png" alt="25% Promotion" loading="lazy">
+        <img src="https://raw.githubusercontent.com/chesswin7/chesswin7.github.io/cc731950cbb0c83f808961c418edfc764cd047a6/promotions/25P.png" alt="25% Promotion">
       </div>
       <div class="promo-item square" onclick="openLightbox(this.querySelector('img').src)">
-        <img src="https://raw.githubusercontent.com/chesswin7/chesswin7.github.io/cc731950cbb0c83f808961c418edfc764cd047a6/promotions/3P.png" alt="3% Promotion" loading="lazy">
+        <img src="https://raw.githubusercontent.com/chesswin7/chesswin7.github.io/cc731950cbb0c83f808961c418edfc764cd047a6/promotions/3P.png" alt="3% Promotion">
       </div>
       <div class="promo-item square" onclick="openLightbox(this.querySelector('img').src)">
-        <img src="https://raw.githubusercontent.com/chesswin7/chesswin7.github.io/cc731950cbb0c83f808961c418edfc764cd047a6/promotions/5P.png" alt="5% Promotion" loading="lazy">
+        <img src="https://raw.githubusercontent.com/chesswin7/chesswin7.github.io/cc731950cbb0c83f808961c418edfc764cd047a6/promotions/5P.png" alt="5% Promotion">
       </div>
     </div>
   </div>
@@ -915,7 +915,10 @@ function bestAI(b,d,ep,cr){
 // Lightbox
 function openLightbox(src){document.getElementById('lightboxImg').src=src;document.getElementById('lightbox').classList.add('open');document.body.style.overflow='hidden';}
 function closeLightbox(){document.getElementById('lightbox').classList.remove('open');document.body.style.overflow='';}
-document.getElementById('lightbox').addEventListener('click',function(e){if(e.target===this||e.target.classList.contains('lightbox-close'))closeLightbox();});
+document.getElementById('lightbox').addEventListener('click',function(e){
+  // Close if clicking the backdrop or the X button, but NOT the image itself
+  if(e.target===this||e.target.classList.contains('lightbox-close'))closeLightbox();
+});
 document.addEventListener('keydown',function(e){if(e.key==='Escape')closeLightbox();});
 
 // Board themes
@@ -1208,62 +1211,201 @@ function buildTierTable(){
 }
 
 // Auth
+// ── AUTH — email verification + Google ──
+// Pending signup data while waiting for email verification
+var _pendingSignup=null;
+
 function openAuth(mode){
   var m=mode||'login';
   var modal=document.getElementById('authModal');
-  document.getElementById('auth-title').textContent=m==='signup'?'Create Account':'Welcome Back';
+  document.getElementById('auth-title').textContent=m==='signup'?'Create Account':m==='verify'?'Verify Your Email':'Welcome Back';
   var f=document.getElementById('auth-form');
-  f.innerHTML=(m==='signup'?'<input id="a-un" placeholder="Username" style="margin-bottom:10px">':'')+
-    '<input id="a-em" placeholder="Email" type="email" style="margin-bottom:10px">'+
-    '<input id="a-pw" placeholder="Password" type="password" style="margin-bottom:16px" onkeydown="if(event.key===\'Enter\')doAuth()">'+
-    '<div style="display:flex;gap:8px;margin-bottom:14px">'+
-      '<button class="btn" style="flex:1" onclick="doAuth()">'+(m==='signup'?'Create Account':'Sign In')+'</button>'+
-      '<button class="btn btn-o" style="flex:1" onclick="document.getElementById(\'authModal\').classList.remove(\'open\')">Cancel</button>'+
-    '</div>'+
-    '<div class="divider"><span>OR</span></div>'+
-    '<button class="google-btn" onclick="doGoogle()">'+
-      '<svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.35-8.16 2.35-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>'+
-      'Continue with Google'+
-    '</button>'+
-    '<div class="switch-link">'+(m==='signup'?'Already have an account? <a onclick="openAuth(\'login\')">Sign In</a>':'No account? <a onclick="openAuth(\'signup\')">Create one</a>')+'</div>';
+  if(m==='signup'){
+    f.innerHTML=
+      '<input id="a-un" placeholder="Username" style="margin-bottom:10px">'+
+      '<input id="a-em" placeholder="Email" type="email" style="margin-bottom:10px">'+
+      '<input id="a-pw" placeholder="Password (min 6 chars)" type="password" style="margin-bottom:10px">'+
+      '<input id="a-pw2" placeholder="Confirm Password" type="password" style="margin-bottom:16px" onkeydown="if(event.key===\'Enter\')doSignup()">'+
+      '<button class="btn" style="width:100%;margin-bottom:10px" onclick="doSignup()">Create Account</button>'+
+      '<div class="divider"><span>OR</span></div>'+
+      '<button class="google-btn" onclick="doGoogle()">'+
+        '<svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.35-8.16 2.35-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>'+
+        'Continue with Google'+
+      '</button>'+
+      '<div class="switch-link">Already have an account? <a onclick="openAuth(\'login\')">Sign In</a></div>';
+  } else if(m==='verify'){
+    var email=_pendingSignup?_pendingSignup.email:'your email';
+    f.innerHTML=
+      '<div style="text-align:center;padding:8px 0 20px">'+
+        '<div style="font-size:48px;margin-bottom:12px">📧</div>'+
+        '<p style="font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:8px">A verification link has been sent to:</p>'+
+        '<p style="font-size:15px;font-weight:800;color:var(--accent);margin-bottom:16px;word-break:break-all">'+email+'</p>'+
+        '<p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:20px">Click the link in your email, then come back and click <strong style="color:var(--text)">I\'ve Verified</strong> below.</p>'+
+      '</div>'+
+      '<button class="btn" style="width:100%;margin-bottom:8px" onclick="checkEmailVerified()">✅ I\'ve Verified — Continue</button>'+
+      '<button class="btn btn-o" style="width:100%;margin-bottom:8px" onclick="resendVerification()">📨 Resend Email</button>'+
+      '<button class="btn btn-o" style="width:100%;font-size:12px;opacity:.7" onclick="cancelSignup()">Cancel & Start Over</button>';
+  } else {
+    // login
+    f.innerHTML=
+      '<input id="a-em" placeholder="Email" type="email" style="margin-bottom:10px">'+
+      '<input id="a-pw" placeholder="Password" type="password" style="margin-bottom:16px" onkeydown="if(event.key===\'Enter\')doLogin()">'+
+      '<button class="btn" style="width:100%;margin-bottom:10px" onclick="doLogin()">Sign In</button>'+
+      '<div class="divider"><span>OR</span></div>'+
+      '<button class="google-btn" onclick="doGoogle()">'+
+        '<svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.35-8.16 2.35-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>'+
+        'Continue with Google'+
+      '</button>'+
+      '<div class="switch-link">No account? <a onclick="openAuth(\'signup\')">Create one</a></div>';
+  }
   modal.classList.add('open');modal.dataset.mode=m;
 }
-function doAuth(){
-  var modal=document.getElementById('authModal'),m=modal.dataset.mode||'login';
+
+function doSignup(){
+  var un=(document.getElementById('a-un')||{value:''}).value.trim();
   var em=(document.getElementById('a-em')||{value:''}).value.trim();
   var pw=(document.getElementById('a-pw')||{value:''}).value;
-  var un=(document.getElementById('a-un')||{value:''}).value.trim();
-  if(!em||!pw){toast('Please fill all fields','err');return;}
-  var btn=document.querySelector('#auth-form .btn');if(btn){btn.disabled=true;btn.textContent='Please wait...';}
-  if(m==='signup'){
-    if(!un){toast('Enter a username','err');if(btn){btn.disabled=false;btn.textContent='Create Account';}return;}
-    un=un.replace(/[<>"'&]/g,''); // sanitize username
-    if(!un){toast('Username contains invalid characters','err');if(btn){btn.disabled=false;btn.textContent='Create Account';}return;}
-    auth.createUserWithEmailAndPassword(em,pw).then(function(cr){
-      return db.collection('users').doc(cr.user.uid).set({username:un,email:em,coins:1000,rating:1200,wins:0,losses:0,phone:'',createdAt:firebase.firestore.FieldValue.serverTimestamp(),lastDaily:null});
-    }).then(function(){toast('Welcome '+un+'! 🎁 1000 coins added','ok');modal.classList.remove('open');})
-    .catch(function(e){toast(friendlyErr(e.code,e.message),'err');if(btn){btn.disabled=false;btn.textContent='Create Account';}});
-  }else{
-    auth.signInWithEmailAndPassword(em,pw).then(function(){toast('Welcome back!','ok');modal.classList.remove('open');})
-    .catch(function(e){toast(friendlyErr(e.code,e.message),'err');if(btn){btn.disabled=false;btn.textContent='Sign In';}});
-  }
+  var pw2=(document.getElementById('a-pw2')||{value:''}).value;
+  if(!un||!em||!pw){toast('Please fill all fields','err');return;}
+  un=un.replace(/[<>"'&]/g,'');
+  if(!un){toast('Username contains invalid characters','err');return;}
+  if(pw.length<6){toast('Password must be at least 6 characters','err');return;}
+  if(pw!==pw2){toast('Passwords do not match','err');return;}
+  var btn=document.querySelector('#auth-form .btn');if(btn){btn.disabled=true;btn.textContent='Creating account...';}
+  // Create account, send verification email, sign out until verified
+  auth.createUserWithEmailAndPassword(em,pw).then(function(cr){
+    _pendingSignup={uid:cr.user.uid,username:un,email:em,password:pw};
+    // Save user data immediately so it exists when they verify
+    return db.collection('users').doc(cr.user.uid).set({
+      username:un,email:em,coins:0,rating:0,wins:0,losses:0,phone:'',
+      createdAt:firebase.firestore.FieldValue.serverTimestamp(),lastDaily:null,
+      emailVerified:false
+    }).then(function(){
+      return cr.user.sendEmailVerification();
+    }).then(function(){
+      // Sign them out — they must verify first
+      return auth.signOut();
+    });
+  }).then(function(){
+    openAuth('verify');
+  }).catch(function(e){
+    toast(friendlyErr(e.code,e.message),'err');
+    if(btn){btn.disabled=false;btn.textContent='Create Account';}
+  });
 }
+
+function checkEmailVerified(){
+  var btn=document.querySelector('#auth-form .btn');if(btn){btn.disabled=true;btn.textContent='Checking...';}
+  if(!_pendingSignup){openAuth('login');return;}
+  // Sign in temporarily to check verification status
+  auth.signInWithEmailAndPassword(_pendingSignup.email,_pendingSignup.password).then(function(cr){
+    return cr.user.reload().then(function(){
+      if(cr.user.emailVerified){
+        // Mark verified in Firestore
+        return db.collection('users').doc(cr.user.uid).update({emailVerified:true}).then(function(){
+          toast('🎉 Email verified! Welcome '+_pendingSignup.username+'! 🎁 1000 coins added','ok');
+          _pendingSignup=null;
+          document.getElementById('authModal').classList.remove('open');
+          // User stays logged in — onAuthStateChanged handles the rest
+        });
+      } else {
+        // Not yet verified — sign back out
+        return auth.signOut().then(function(){
+          if(btn){btn.disabled=false;btn.textContent='✅ I\'ve Verified — Continue';}
+          toast('Email not verified yet. Please check your inbox and click the link.','err');
+        });
+      }
+    });
+  }).catch(function(e){
+    if(btn){btn.disabled=false;btn.textContent='✅ I\'ve Verified — Continue';}
+    toast(friendlyErr(e.code,e.message),'err');
+  });
+}
+
+function resendVerification(){
+  if(!_pendingSignup){toast('Start over to get a new link','err');return;}
+  var btn=document.querySelectorAll('#auth-form .btn')[1];if(btn){btn.disabled=true;btn.textContent='Sending...';}
+  auth.signInWithEmailAndPassword(_pendingSignup.email,_pendingSignup.password).then(function(cr){
+    return cr.user.sendEmailVerification().then(function(){
+      return auth.signOut();
+    });
+  }).then(function(){
+    if(btn){btn.disabled=false;btn.textContent='📨 Resend Email';}
+    toast('Verification email resent! Check your inbox.','ok');
+  }).catch(function(e){
+    if(btn){btn.disabled=false;btn.textContent='📨 Resend Email';}
+    toast(e.message,'err');
+  });
+}
+
+function cancelSignup(){
+  _pendingSignup=null;
+  // Delete the unverified account if it exists
+  if(auth.currentUser)auth.currentUser.delete().catch(function(){});
+  openAuth('signup');
+}
+
+function doLogin(){
+  var em=(document.getElementById('a-em')||{value:''}).value.trim();
+  var pw=(document.getElementById('a-pw')||{value:''}).value;
+  if(!em||!pw){toast('Please fill all fields','err');return;}
+  var btn=document.querySelector('#auth-form .btn');if(btn){btn.disabled=true;btn.textContent='Signing in...';}
+  auth.signInWithEmailAndPassword(em,pw).then(function(cr){
+    // Check email verified (skip for Google users)
+    var isEmail=cr.user.providerData.some(function(p){return p.providerId==='password';});
+    if(isEmail&&!cr.user.emailVerified){
+      _pendingSignup={uid:cr.user.uid,username:'',email:em,password:pw};
+      return auth.signOut().then(function(){openAuth('verify');});
+    }
+    toast('Welcome back!','ok');
+    document.getElementById('authModal').classList.remove('open');
+  }).catch(function(e){
+    toast(friendlyErr(e.code,e.message),'err');
+    if(btn){btn.disabled=false;btn.textContent='Sign In';}
+  });
+}
+
+// Legacy wrapper so any remaining doAuth() calls still work
+function doAuth(){
+  var modal=document.getElementById('authModal');
+  if(modal.dataset.mode==='signup')doSignup();else doLogin();
+}
+
 function doGoogle(){
-  var provider=new firebase.auth.GoogleAuthProvider();provider.setCustomParameters({prompt:'select_account'});
+  var provider=new firebase.auth.GoogleAuthProvider();
+  provider.setCustomParameters({prompt:'select_account'});
   auth.signInWithPopup(provider).then(function(cr){
     var u=cr.user;
     return db.collection('users').doc(u.uid).get().then(function(snap){
-      if(!snap.exists){return db.collection('users').doc(u.uid).set({username:u.displayName||u.email.split('@')[0],email:u.email,coins:1000,rating:1200,wins:0,losses:0,phone:'',createdAt:firebase.firestore.FieldValue.serverTimestamp(),lastDaily:null}).then(function(){toast('Welcome '+(u.displayName||'Player')+'! 🎁 1000 coins','ok');});}
-      else{toast('Welcome back, '+safeText(snap.data().username)+'!','ok');}
+      if(!snap.exists){
+        // New Google user — create profile automatically
+        var uname=u.displayName||u.email.split('@')[0];
+        uname=uname.replace(/[<>"'&]/g,'').trim()||'Player';
+        return db.collection('users').doc(u.uid).set({
+          username:uname,email:u.email,coins:0,rating:0,wins:0,losses:0,
+          phone:'',createdAt:firebase.firestore.FieldValue.serverTimestamp(),
+          lastDaily:null,emailVerified:true
+        }).then(function(){
+          toast('Welcome '+uname+'! 🎁 1000 coins added 🎉','ok');
+        });
+      } else {
+        toast('Welcome back, '+safeText(snap.data().username)+'! 👋','ok');
+      }
     });
-  }).then(function(){document.getElementById('authModal').classList.remove('open');})
-  .catch(function(e){if(e.code!=='auth/popup-closed-by-user')toast(e.message,'err');});
+  }).then(function(){
+    document.getElementById('authModal').classList.remove('open');
+    // onAuthStateChanged fires automatically and handles sidebar/header update
+  }).catch(function(e){
+    if(e.code!=='auth/popup-closed-by-user')toast(e.message,'err');
+  });
 }
+
 function friendlyErr(code,msg){
-  if(code==='auth/user-not-found'||code==='auth/invalid-credential')return'Incorrect email or password';
-  if(code==='auth/wrong-password')return'Incorrect password';
-  if(code==='auth/email-already-in-use')return'Email already registered';
-  if(code==='auth/weak-password')return'Password too weak (min 6 chars)';
+  if(code==='auth/user-not-found'||code==='auth/invalid-credential'||code==='auth/wrong-password')return'Incorrect email or password';
+  if(code==='auth/email-already-in-use')return'Email already registered. Try signing in.';
+  if(code==='auth/weak-password')return'Password too weak (minimum 6 characters)';
+  if(code==='auth/invalid-email')return'Please enter a valid email address';
+  if(code==='auth/too-many-requests')return'Too many attempts. Please wait a moment.';
   return msg;
 }
 function doLogout(){auth.signOut().then(function(){toast('Logged out','info');goPage('home');});}
@@ -1274,7 +1416,7 @@ auth.onAuthStateChanged(function(user){
   var hRight=document.getElementById('headerRight'),gNav=document.getElementById('guestNav'),sidebar=document.getElementById('sidebar');
   if(user){
     db.collection('users').doc(user.uid).get().then(function(snap){
-      var data=snap.exists?snap.data():{username:user.displayName||'Player',coins:1000,rating:1200,wins:0,losses:0};
+      var data=snap.exists?snap.data():{username:user.displayName||'Player',coins:0,rating:0,wins:0,losses:0};
       window.currentUserData=data;
       var sbn=document.getElementById('sb-name');if(sbn)sbn.textContent=safeText(data.username||'—');
       var t=getTier(data.rating||1200);
