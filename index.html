@@ -893,6 +893,19 @@ header{padding:0 10px}
 function safeText(s){return String(s||'');}
 function makeSafeEl(tag,cls,text){var el=document.createElement(tag);if(cls)el.className=cls;if(text!==undefined)el.textContent=safeText(text);return el;}
 
+// ── RESEND / CLOUDFLARE WORKER CONFIG ──
+// After deploying your Worker, paste the URL here:
+var WORKER_URL='https://chesswin7-email.jmchelp1.workers.dev';
+
+// Send email via Cloudflare Worker (safe — API key never exposed to browser)
+function sendEmail(payload){
+  return fetch(WORKER_URL,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(payload)
+  }).then(function(r){return r.json();}).catch(function(e){console.warn('Email send failed:',e);return{error:e.message};});
+}
+
 // ── CHESS ENGINE ──
 var V={K:20000,Q:900,R:500,B:330,N:320,P:100};
 var PP=[0,0,0,0,0,0,0,0,50,50,50,50,50,50,50,50,10,10,20,30,30,20,10,10,5,5,10,25,25,10,5,5,0,0,0,20,20,0,0,0,5,-5,-10,0,0,-10,-5,5,5,10,10,-20,-20,10,10,5,0,0,0,0,0,0,0,0];
@@ -1383,22 +1396,21 @@ function openAuth(mode){
   } else if(m==='verify'){
     var emailShow=_pendingSignup?_pendingSignup.email:'your email';
     f.innerHTML=
-      '<div style="text-align:center;padding:4px 0 18px">'+
+      '<div style="text-align:center;padding:4px 0 16px">'+
         '<div style="font-size:52px;margin-bottom:10px">📧</div>'+
-        '<p style="font-size:13px;color:var(--muted);margin-bottom:6px">Verification link sent to:</p>'+
-        '<p style="font-size:14px;font-weight:800;color:var(--accent);margin-bottom:12px;word-break:break-all">'+emailShow+'</p>'+
-        '<div style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:12px 14px;margin-bottom:16px;text-align:left">'+
-          '<p style="font-size:12px;color:var(--muted);line-height:1.7">'+
-            '1. Open the email from <strong style="color:var(--text)">noreply@chess-6db15.firebaseapp.com</strong><br>'+
-            '2. Click the <strong style="color:var(--accent)">Verify your email</strong> link<br>'+
-            '3. Come back here and tap <strong style="color:var(--text)">I\'ve Verified</strong>'+
-          '</p>'+
-        '</div>'+
-        '<p style="font-size:11px;color:var(--muted)">Check your spam/junk folder if not found.</p>'+
+        '<p style="font-size:13px;color:var(--muted);margin-bottom:6px">6-digit code sent to:</p>'+
+        '<p style="font-size:14px;font-weight:800;color:var(--accent);margin-bottom:16px;word-break:break-all">'+emailShow+'</p>'+
       '</div>'+
-      '<button class="btn" style="width:100%;margin-bottom:8px" onclick="checkEmailVerified()">✅ I\'ve Verified — Continue</button>'+
-      '<button class="btn btn-o" style="width:100%;margin-bottom:8px" onclick="resendVerification()">📨 Resend Verification Email</button>'+
+      '<input id="otp-input" placeholder="Enter 6-digit code" type="text" maxlength="6" '+
+        'style="width:100%;padding:14px;background:var(--surface2);border:2px solid var(--border2);border-radius:8px;color:var(--text);'+
+        'font-size:28px;font-weight:900;letter-spacing:12px;text-align:center;font-family:monospace;outline:none;margin-bottom:6px;box-sizing:border-box" '+
+        'oninput="this.value=this.value.replace(/[^0-9]/g,\'\').substring(0,6)" '+
+        'onkeydown="if(event.key===\'Enter\')checkOTP()">'+
+      '<p style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:14px">⏱ Expires in 10 minutes · Check spam folder if not found</p>'+
+      '<button class="btn" style="width:100%;margin-bottom:8px;font-size:15px;padding:13px" onclick="checkOTP()">✅ Verify Code</button>'+
+      '<button class="btn btn-o" style="width:100%;margin-bottom:8px" onclick="resendOTP()">📨 Resend Code</button>'+
       '<button class="btn btn-o" style="width:100%;font-size:12px;color:var(--muted)" onclick="cancelSignup()">Cancel & Start Over</button>';
+    setTimeout(function(){var inp=document.getElementById('otp-input');if(inp)inp.focus();},100);
 
   } else {
     // LOGIN — accepts username OR email
@@ -1431,75 +1443,87 @@ function doSignup(){
   var btn=document.querySelector('#auth-form .btn');
   if(btn){btn.disabled=true;btn.textContent='Creating account...';}
   var savedUser=null;
+  // Generate 6-digit OTP
+  var _otp=String(Math.floor(100000+Math.random()*900000));
   auth.createUserWithEmailAndPassword(em,pw).then(function(cr){
     savedUser=cr.user;
-    _pendingSignup={uid:cr.user.uid,username:un,email:em,password:pw};
-    // Write user doc while authenticated (user is logged in at this point)
+    _pendingSignup={uid:cr.user.uid,username:un,email:em,password:pw,otp:_otp,otpExpiry:Date.now()+10*60*1000};
+    // Write user doc while authenticated
     return db.collection('users').doc(cr.user.uid).set({
       username:un,email:em,coins:0,rating:0,wins:0,losses:0,phone:'',
       createdAt:firebase.firestore.FieldValue.serverTimestamp(),
       lastDaily:null,emailVerified:false
     });
   }).then(function(){
-    // Send verification email while still logged in
-    return savedUser.sendEmailVerification();
-  }).then(function(){
-    // Now sign out — they must verify before using the app
+    // Sign out immediately — they must verify OTP first
     return auth.signOut();
   }).then(function(){
+    // Send OTP via Resend through Cloudflare Worker
+    return sendEmail({action:'send-otp',email:em,username:un,otp:_otp});
+  }).then(function(result){
+    if(result.error){
+      // Fallback: if Worker not configured yet, use Firebase email
+      console.warn('Resend not available, falling back to Firebase email');
+      return auth.signInWithEmailAndPassword(em,pw).then(function(cr2){
+        return cr2.user.sendEmailVerification().then(function(){return auth.signOut();});
+      });
+    }
     openAuth('verify');
   }).catch(function(e){
-    // If Firestore write failed but account was created, still show verify screen
-    if(savedUser&&e.code&&e.code.indexOf('firestore')!==-1){
-      savedUser.sendEmailVerification().then(function(){return auth.signOut();}).then(function(){openAuth('verify');});
-    } else {
-      toast(friendlyErr(e.code,e.message),'err');
-      if(btn){btn.disabled=false;btn.textContent='Create Account';}
-    }
+    toast(friendlyErr(e.code,e.message),'err');
+    if(btn){btn.disabled=false;btn.textContent='Create Account';}
   });
 }
 
-function checkEmailVerified(){
+function checkEmailVerified(){checkOTP();}
+
+function checkOTP(){
   var btns=document.querySelectorAll('#auth-form .btn');
-  var btn=btns[0];if(btn){btn.disabled=true;btn.textContent='Checking...';}
+  var btn=btns[0];if(btn){btn.disabled=true;btn.textContent='Verifying...';}
   if(!_pendingSignup){openAuth('login');return;}
+  var otpInput=document.getElementById('otp-input');
+  var entered=otpInput?otpInput.value.trim():'';
+  if(!entered||entered.length!==6){
+    if(btn){btn.disabled=false;btn.textContent='✅ Verify Code';}
+    toast('Please enter the 6-digit code from your email','err');return;
+  }
+  if(Date.now()>(_pendingSignup.otpExpiry||0)){
+    if(btn){btn.disabled=false;btn.textContent='✅ Verify Code';}
+    toast('Code expired. Click Resend to get a new one.','err');return;
+  }
+  if(entered!==String(_pendingSignup.otp)){
+    if(btn){btn.disabled=false;btn.textContent='✅ Verify Code';}
+    toast('Incorrect code. Please try again.','err');return;
+  }
+  // ✅ OTP correct — sign user in and mark verified
   auth.signInWithEmailAndPassword(_pendingSignup.email,_pendingSignup.password).then(function(cr){
-    return cr.user.reload().then(function(){
-      if(cr.user.emailVerified){
-        // Triple-check: re-read from Firebase to confirm verified (cannot be faked)
-        return cr.user.getIdToken(true).then(function(){
-          return db.collection('users').doc(cr.user.uid).set({emailVerified:true},{merge:true}).catch(function(){})
-        .then(function(){
-          toast('🎉 Welcome '+(_pendingSignup.username||'')+'! Account verified ✅','ok');
-            _pendingSignup=null;
-            document.getElementById('authModal').classList.remove('open');
-          });
-        });
-      } else {
-        return auth.signOut().then(function(){
-          if(btn){btn.disabled=false;btn.textContent='✅ I\'ve Verified — Continue';}
-          toast('Not verified yet. Click the link in your email first.','err');
-        });
-      }
-    });
+    return db.collection('users').doc(cr.user.uid).set({emailVerified:true},{merge:true}).catch(function(){});
+  }).then(function(){
+    toast('🎉 Welcome '+(_pendingSignup.username||'')+'! Account verified ✅','ok');
+    _pendingSignup=null;
+    document.getElementById('authModal').classList.remove('open');
   }).catch(function(e){
-    if(btn){btn.disabled=false;btn.textContent='✅ I\'ve Verified — Continue';}
+    if(btn){btn.disabled=false;btn.textContent='✅ Verify Code';}
     toast(friendlyErr(e.code,e.message),'err');
   });
 }
+function resendVerification(){resendOTP();}
 
-function resendVerification(){
+function resendOTP(){
   if(!_pendingSignup){toast('Please start over','err');return;}
   var btns=document.querySelectorAll('#auth-form .btn');
   var btn=btns[1];if(btn){btn.disabled=true;btn.textContent='Sending...';}
-  auth.signInWithEmailAndPassword(_pendingSignup.email,_pendingSignup.password).then(function(cr){
-    return cr.user.sendEmailVerification().then(function(){return auth.signOut();});
-  }).then(function(){
-    if(btn){btn.disabled=false;btn.textContent='📨 Resend Verification Email';}
-    toast('Verification email resent! Check your inbox.','ok');
-  }).catch(function(e){
-    if(btn){btn.disabled=false;btn.textContent='📨 Resend Verification Email';}
-    toast(e.message,'err');
+  // Generate new OTP
+  var newOtp=String(Math.floor(100000+Math.random()*900000));
+  _pendingSignup.otp=newOtp;
+  _pendingSignup.otpExpiry=Date.now()+10*60*1000;
+  sendEmail({action:'send-otp',email:_pendingSignup.email,username:_pendingSignup.username,otp:newOtp}).then(function(result){
+    if(btn){btn.disabled=false;btn.textContent='📨 Resend Code';}
+    if(result.error){toast('Could not send email. Try again.','err');}
+    else{toast('New code sent! Check your inbox.','ok');}
+  }).catch(function(){
+    if(btn){btn.disabled=false;btn.textContent='📨 Resend Code';}
+    toast('Could not send email. Check your connection.','err');
   });
 }
 
@@ -1903,7 +1927,7 @@ function submitDeposit(){
   if(!amt||amt<10||amt>100000){toast('Invalid amount','err');return;}
   if(!tx){toast('Enter your TxID','err');return;}
   db.collection('deposits').add({userId:window.currentUser.uid,username:safeText(window.currentUserData?window.currentUserData.username:''),email:safeText(window.currentUser.email),amount:amt,txid:tx,note:note,status:'pending',createdAt:firebase.firestore.FieldValue.serverTimestamp()})
-  .then(function(){toast('✓ Deposit request submitted!','ok');document.getElementById('dpAmt').value='';document.getElementById('dpTx').value='';document.getElementById('dpNote').value='';loadDepositHistory();})
+  .then(function(){toast('✓ Deposit request submitted!','ok');document.getElementById('dpAmt').value='';document.getElementById('dpTx').value='';document.getElementById('dpNote').value='';loadDepositHistory();sendEmail({action:'notify-deposit',username:safeText(window.currentUserData?window.currentUserData.username:''),userEmail:safeText(window.currentUser.email),amount:amt,txid:tx});;})
   .catch(function(e){toast(e.message,'err');});
 }
 function submitWithdrawal(){
@@ -1924,7 +1948,7 @@ function submitWithdrawal(){
     if(!wallet){toast('Enter wallet address','err');return;}
     if(bal<amt){toast('Insufficient balance! You have '+bal+' COINS','err');return;}
     return db.collection('withdrawals').add({userId:window.currentUser.uid,username:safeText(window.currentUserData?window.currentUserData.username:''),email:safeText(window.currentUser.email),amount:amt,wallet:wallet,status:'pending',createdAt:firebase.firestore.FieldValue.serverTimestamp()});
-  }).then(function(ref){if(!ref)return;toast('✓ Withdrawal request submitted!','ok');document.getElementById('wdAmt').value='';document.getElementById('wdWallet').value='';loadWithdrawalHistory();})
+  }).then(function(ref){if(!ref)return;toast('✓ Withdrawal request submitted!','ok');document.getElementById('wdAmt').value='';document.getElementById('wdWallet').value='';loadWithdrawalHistory();sendEmail({action:'notify-withdrawal',username:safeText(window.currentUserData?window.currentUserData.username:''),userEmail:safeText(window.currentUser.email),amount:amt,wallet:wallet});})
   .catch(function(e){toast(e.message,'err');});
 }
 function loadDepositHistory(){
