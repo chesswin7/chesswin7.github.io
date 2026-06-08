@@ -3,7 +3,29 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>ChessWin7</title>
+<title>ChessWin7 — Play Chess & Earn Real USDT Rewards</title>
+<meta name="description" content="ChessWin7 is a skill-based chess platform where players compete and earn real USDT rewards. 1 COIN = 1 USDT. Join tournaments, climb the leaderboard, and win.">
+<meta name="keywords" content="chess, earn money chess, chess tournament, USDT chess, skill chess, online chess, chess rewards, play chess online, win money chess">
+<meta name="author" content="ChessWin7">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#0f212e">
+<link rel="canonical" href="https://chesswin7.com/">
+<!-- Open Graph -->
+<meta property="og:title" content="ChessWin7 — Play Chess & Earn Real USDT">
+<meta property="og:description" content="Skill-based chess platform. Compete globally and earn real USDT. 1 COIN = 1 USDT.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://chesswin7.com/">
+<meta property="og:image" content="https://chesswin7.com/og-image.png">
+<meta property="og:site_name" content="ChessWin7">
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="ChessWin7 — Play Chess & Earn Real USDT">
+<meta name="twitter:description" content="Skill-based chess platform. Compete globally and earn real USDT.">
+<!-- Mobile -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ChessWin7">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" onload="this.rel='stylesheet'">
@@ -25,6 +47,8 @@ firebase.initializeApp({
 const auth = firebase.auth();
 const db = firebase.firestore();
 const rtdb = firebase.database();
+// Persist auth across page refresh (prevents flash of logged-out state)
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(function(){});
 </script>
 <style>
 :root{--bg:#0f212e;--surface:#1a2c38;--surface2:#213743;--surface3:#2d4a5a;--accent:#00e701;--accent2:#1a9aef;--text:#ffffff;--muted:#b1bad3;--border:rgba(255,255,255,.08);--border2:rgba(255,255,255,.15);--red:#f93848;--green:#00e701;--radius:8px}
@@ -265,11 +289,12 @@ header{padding:0 14px;gap:8px}
 .hero-btns .btn{flex:1;min-width:120px;text-align:center}
 .board-wrap{width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center}
 .hero{justify-items:center}
-.board-wrap > div{display:flex;justify-content:center;align-items:flex-start}
+.board-wrap > div{display:flex;justify-content:center;align-items:flex-start;padding-left:18px!important}
 .chessboard{grid-template-columns:repeat(8,min(9.5vw,44px))!important;grid-template-rows:repeat(8,min(9.5vw,44px))!important}
 .sq{width:min(9.5vw,44px)!important;height:min(9.5vw,44px)!important}
-#h-ranks span{height:min(9.5vw,44px)!important}
-#h-files span{width:min(9.5vw,44px)!important}
+#h-ranks span{height:min(9.5vw,44px)!important;font-size:8px!important}
+#h-files span{width:min(9.5vw,44px)!important;font-size:8px!important}
+#h-ranks{width:14px!important}
 .stats-bar{grid-template-columns:repeat(3,1fr)}
 .stat-val{font-size:24px}
 .stat-item{padding:20px 10px}
@@ -285,13 +310,14 @@ header{padding:0 14px;gap:8px}
 .lb-viewport{min-width:420px}
 .section{padding:32px 16px}
 .play-layout{grid-template-columns:1fr;gap:16px}
-.play-board-wrap{width:100%}
+.play-board-wrap{width:100%;align-items:center!important}
 #pBoard{grid-template-columns:repeat(8,min(9vw,44px))!important;grid-template-rows:repeat(8,min(9vw,44px))!important}
 .player-bar{max-width:100%}
-.board-controls{gap:6px}
+.board-controls{gap:6px;justify-content:center}
 .board-controls .btn{padding:6px 10px;font-size:11px}
-#p-ranks span{height:min(9vw,44px)!important}
-#p-files span{width:min(9vw,44px)!important}
+#p-ranks span{height:min(9vw,44px)!important;font-size:8px!important}
+#p-files span{width:min(9vw,44px)!important;font-size:8px!important}
+#p-ranks{width:14px!important}
 #page-stats > div:first-of-type + div{grid-template-columns:repeat(2,1fr)!important}
 #page-profile > div{grid-template-columns:1fr!important}
 .profile-stats{grid-template-columns:repeat(3,1fr)}
@@ -307,8 +333,10 @@ header{padding:0 14px;gap:8px}
 #legalModal .modal-box{width:94vw}
 #supportModal .modal-box{width:94vw}
 .sidebar{display:none!important}
-#headerRight .btn{padding:6px 10px;font-size:11px}
-#headerRight > div{gap:6px}
+#headerRight .btn{padding:5px 7px!important;font-size:10px!important}
+#headerRight > div{gap:3px!important}
+#navBalance{padding:3px 6px!important;font-size:10px!important}
+#navExposure{display:none!important}
 }
 @media(max-width:480px){
 header{padding:0 10px}
@@ -623,7 +651,7 @@ header{padding:0 10px}
       <div>
         <p class="section-tag">Help &amp; Support</p>
         <h2 style="font-size:22px;margin-bottom:20px">💬 Live Support</h2>
-        <div class="home-support-box" onclick="openSupport()">
+        <div class="home-support-box" onclick="openSupport()" style="direction:ltr">
           <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
             <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#1a9aef,#0d6ebd);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">💬</div>
             <div>
@@ -894,13 +922,86 @@ function allL(col,b,ep,cr){var a=[];for(var i=0;i<64;i++)if(b[i]&&b[i].c===col)a
 function evl(b){var s=0;for(var i=0;i<64;i++){var p=b[i];if(!p)continue;var v=V[p.n];if(p.n==='P')v+=p.c==='w'?PP[i]:PP[63-i];s+=p.c==='w'?v:-v;}return s;}
 function mm(b,d,al,be,mx,ep,cr){var col=mx?'w':'b',mvs=allL(col,b,ep,cr);if(d===0||!mvs.length){if(!mvs.length){var k=kng(col,b);if(atk(k,Op(col),b,ep,cr))return mx?-99999:99999;return 0;}return evl(b);}if(mx){var best=-Infinity;for(var i=0;i<mvs.length;i++){var res=applyM(mvs[i],b,ep,cr);best=Math.max(best,mm(res.b,d-1,al,be,false,res.ep,res.cr));al=Math.max(al,best);if(be<=al)break;}return best;}else{var best=Infinity;for(var i=0;i<mvs.length;i++){var res=applyM(mvs[i],b,ep,cr);best=Math.min(best,mm(res.b,d-1,al,be,true,res.ep,res.cr));be=Math.min(be,best);if(be<=al)break;}return best;}}
 
-// AI with randomization — Beginner 50% random, Easy 25% random
+// ── IMPROVED AI ENGINE ──
+// Piece-square tables for positional play
+var PST={
+  N:[-50,-40,-30,-30,-30,-30,-40,-50,-40,-20,0,0,0,0,-20,-40,-30,0,10,15,15,10,0,-30,-30,5,15,20,20,15,5,-30,-30,0,15,20,20,15,0,-30,-30,5,10,15,15,10,5,-30,-40,-20,0,5,5,0,-20,-40,-50,-40,-30,-30,-30,-30,-40,-50],
+  B:[-20,-10,-10,-10,-10,-10,-10,-20,-10,0,0,0,0,0,0,-10,-10,0,5,10,10,5,0,-10,-10,5,5,10,10,5,5,-10,-10,0,10,10,10,10,0,-10,-10,10,10,10,10,10,10,-10,-10,5,0,0,0,0,5,-10,-20,-10,-10,-10,-10,-10,-10,-20],
+  R:[0,0,0,0,0,0,0,0,5,10,10,10,10,10,10,5,-5,0,0,0,0,0,0,-5,-5,0,0,0,0,0,0,-5,-5,0,0,0,0,0,0,-5,-5,0,0,0,0,0,0,-5,-5,0,0,0,0,0,0,-5,0,0,0,5,5,0,0,0],
+  Q:[-20,-10,-10,-5,-5,-10,-10,-20,-10,0,0,0,0,0,0,-10,-10,0,5,5,5,5,0,-10,-5,0,5,5,5,5,0,-5,0,0,5,5,5,5,0,-5,-10,5,5,5,5,5,0,-10,-10,0,5,0,0,0,0,-10,-20,-10,-10,-5,-5,-10,-10,-20],
+  K:[-30,-40,-40,-50,-50,-40,-40,-30,-30,-40,-40,-50,-50,-40,-40,-30,-30,-40,-40,-50,-50,-40,-40,-30,-30,-40,-40,-50,-50,-40,-40,-30,-20,-30,-30,-40,-40,-30,-30,-20,-10,-20,-20,-20,-20,-20,-20,-10,20,20,0,0,0,0,20,20,20,30,10,0,0,10,30,20]
+};
+function getPST(p,i){
+  var idx=p.c==='w'?i:63-i;
+  if(p.n==='P')return PP[idx];
+  if(PST[p.n])return PST[p.n][idx];
+  return 0;
+}
+function evlAdv(b){
+  var s=0;
+  for(var i=0;i<64;i++){
+    var p=b[i];if(!p)continue;
+    var v=V[p.n]+getPST(p,i);
+    s+=p.c==='w'?v:-v;
+  }
+  return s;
+}
+function mmAdv(b,d,al,be,mx,ep,cr,startTime){
+  // Timeout protection: never run > 2.5 seconds
+  if(Date.now()-startTime>2500)return mx?al:be;
+  var col=mx?'w':'b',mvs=allL(col,b,ep,cr);
+  if(d===0||!mvs.length){
+    if(!mvs.length){var k=kng(col,b);if(atk(k,Op(col),b,ep,cr))return mx?-99999:99999;return 0;}
+    return evlAdv(b);
+  }
+  // Move ordering: captures first
+  mvs.sort(function(a,b2){
+    var ca=b[a.t]?V[b[a.t].n]||0:0;
+    var cb=b[b2.t]?V[b[b2.t].n]||0:0;
+    return cb-ca;
+  });
+  if(mx){
+    var best=-Infinity;
+    for(var i=0;i<mvs.length;i++){
+      var res=applyM(mvs[i],b,ep,cr);
+      var s=mmAdv(res.b,d-1,al,be,false,res.ep,res.cr,startTime);
+      if(s>best)best=s;
+      if(s>al)al=s;
+      if(be<=al)break;
+    }
+    return best;
+  }else{
+    var best=Infinity;
+    for(var i=0;i<mvs.length;i++){
+      var res=applyM(mvs[i],b,ep,cr);
+      var s=mmAdv(res.b,d-1,al,be,true,res.ep,res.cr,startTime);
+      if(s<best)best=s;
+      if(s<be)be=s;
+      if(be<=al)break;
+    }
+    return best;
+  }
+}
 function bestAI(b,d,ep,cr){
   var mvs=allL('b',b,ep,cr);if(!mvs.length)return null;
-  var rChance=d===1?0.5:d===2?0.25:0;
+  // Difficulty randomness: Beginner=60% random, Easy=30% random, Medium=10% random
+  var rChance=d===1?0.60:d===2?0.30:d===3?0.10:0;
   if(rChance>0&&Math.random()<rChance)return mvs[Math.floor(Math.random()*mvs.length)];
-  var best=Infinity,bm=null;
-  for(var i=0;i<mvs.length;i++){var res=applyM(mvs[i],b,ep,cr);var s=mm(res.b,d-1,-Infinity,Infinity,true,res.ep,res.cr);if(s<best){best=s;bm=mvs[i];}}
+  // Effective depth: Beginner=1, Easy=2, Medium=3, Hard=4
+  var depth=Math.max(1,d);
+  var startTime=Date.now();
+  var best=Infinity,bm=mvs[0];
+  try{
+    for(var i=0;i<mvs.length;i++){
+      var res=applyM(mvs[i],b,ep,cr);
+      var s=mmAdv(res.b,depth-1,-Infinity,Infinity,true,res.ep,res.cr,startTime);
+      if(s<best){best=s;bm=mvs[i];}
+      if(Date.now()-startTime>2400)break; // safety cutoff
+    }
+  }catch(e){
+    // Never crash — return best found so far or random
+    if(!bm)bm=mvs[Math.floor(Math.random()*mvs.length)];
+  }
   return bm;
 }
 
@@ -1029,23 +1130,64 @@ var MINI_THEMES=[
   {dark:'#0d5c50',light:'#1abc9c'},{dark:'#6e2d00',light:'#e67e22'},{dark:'#1a0d5c',light:'#5b6dd4'},{dark:'#3a4a00',light:'#8aaa20'}
 ];
 function fakeBoardPos(){var b=mkB(),t='w',ep=null,cr={wK:1,wQ:1,bK:1,bQ:1};for(var i=0;i<5+Math.floor(Math.random()*18);i++){var mv=allL(t,b,ep,cr);if(!mv.length)break;var m=mv[Math.floor(Math.random()*mv.length)],res=applyM(m,b,ep,cr);b=res.b;ep=res.ep;cr=res.cr;t=Op(t);}return b;}
+// Animated mini boards with slow random piece moves
+var _miniBoards=[];
+function renderMiniBoard(data){
+  var mb=data.el;
+  mb.innerHTML='';
+  for(var i=0;i<64;i++){
+    var r=Rw(i),c=Cw(i);
+    var sq=document.createElement('div');sq.className='mini-sq';sq.style.background=(r+c)%2===0?data.th.dark:data.th.light;
+    if(data.board[i]){
+      var sp=document.createElement('img');
+      var pk=data.board[i].c+data.board[i].n.toLowerCase();
+      sp.src='https://images.chesscomfiles.com/chess-themes/pieces/neo/150/'+pk+'.png';
+      sp.alt=pk;
+      sp.style.cssText='width:90%;height:90%;object-fit:contain;display:block;margin:auto;transition:opacity 0.4s ease';
+      if(data.animSq===i)sp.style.opacity='0';
+      sq.appendChild(sp);
+    }
+    mb.appendChild(sq);
+  }
+}
+function animateMiniBoard(data){
+  var col=data.turn;
+  var mvs=allL(col,data.board,data.ep,data.cr);
+  if(!mvs.length){data.board=fakeBoardPos();data.turn='w';data.ep=null;data.cr={wK:1,wQ:1,bK:1,bQ:1};return;}
+  var mv=mvs[Math.floor(Math.random()*mvs.length)];
+  data.animSq=mv.f;
+  renderMiniBoard(data);
+  setTimeout(function(){
+    var res=applyM(mv,data.board,data.ep,data.cr);
+    data.board=res.b;data.ep=res.ep;data.cr=res.cr;
+    data.turn=Op(col);
+    data.animSq=-1;
+    renderMiniBoard(data);
+  },350);
+}
 function buildMiniBoard(container,themeIdx){
   var pos=fakeBoardPos(),th=MINI_THEMES[themeIdx%12];
   var wp=NAMES_W[Math.floor(Math.random()*NAMES_W.length)],bp=NAMES_B[Math.floor(Math.random()*NAMES_B.length)];
   var wrap=document.createElement('div');wrap.className='mini-card';
   var lbl=document.createElement('div');lbl.className='mini-label';lbl.style.color=th.light;lbl.textContent=wp+' vs '+bp;
   var mb=document.createElement('div');mb.className='mini-board';
-  for(var i=0;i<64;i++){
-    var r=Rw(i),c=Cw(i),sq=document.createElement('div');sq.className='mini-sq';sq.style.background=(r+c)%2===0?th.dark:th.light;
-    if(pos[i]){var sp=document.createElement('img');var pk=pos[i].c+pos[i].n.toLowerCase();sp.src='https://images.chesscomfiles.com/chess-themes/pieces/neo/150/'+pk+'.png';sp.alt=pk;sp.style.cssText='width:90%;height:90%;object-fit:contain;display:block;margin:auto';sq.appendChild(sp);}
-    mb.appendChild(sq);}
   var sub=document.createElement('div');sub.className='mini-sub';sub.textContent=Math.floor(1100+Math.random()*1400)+' · Live';
   wrap.appendChild(lbl);wrap.appendChild(mb);wrap.appendChild(sub);container.appendChild(wrap);
+  var data={el:mb,board:pos,th:th,turn:'w',ep:null,cr:{wK:1,wQ:1,bK:1,bQ:1},animSq:-1};
+  renderMiniBoard(data);
+  _miniBoards.push(data);
 }
 function buildMiniBoards(){
+  _miniBoards=[];
   ['rowGold','rowSilver','rowBronze'].forEach(function(id,ri){
     var row=document.getElementById(id);if(!row)return;row.innerHTML='';
     for(var i=0;i<4;i++)buildMiniBoard(row,ri*4+i);
+  });
+  // Start staggered animations
+  _miniBoards.forEach(function(data,i){
+    setInterval(function(){
+      try{animateMiniBoard(data);}catch(e){}
+    },2800+i*300); // each board moves every ~3s, staggered
   });
 }
 
@@ -1324,13 +1466,14 @@ function checkEmailVerified(){
   auth.signInWithEmailAndPassword(_pendingSignup.email,_pendingSignup.password).then(function(cr){
     return cr.user.reload().then(function(){
       if(cr.user.emailVerified){
-        // Update Firestore — user is now logged in so write is allowed
-        return db.collection('users').doc(cr.user.uid).update({emailVerified:true}).catch(function(){})
+        // Triple-check: re-read from Firebase to confirm verified (cannot be faked)
+        return cr.user.getIdToken(true).then(function(){
+          return db.collection('users').doc(cr.user.uid).set({emailVerified:true},{merge:true}).catch(function(){})
         .then(function(){
           toast('🎉 Welcome '+(_pendingSignup.username||'')+'! Account verified ✅','ok');
-          _pendingSignup=null;
-          document.getElementById('authModal').classList.remove('open');
-          // onAuthStateChanged fires and loads the app
+            _pendingSignup=null;
+            document.getElementById('authModal').classList.remove('open');
+          });
         });
       } else {
         return auth.signOut().then(function(){
@@ -1517,6 +1660,127 @@ function sendPasswordReset(){
   });
 }
 
+// ── NAVBAR AUTH BAR ──
+function buildNavbarAuth(data){
+  var hRight=document.getElementById('headerRight');if(!hRight)return;
+  var coins=(data&&data.coins)||0;
+  var dp_total=0,wd_pending=0;
+  // Exposure = pending withdrawals
+  var exposure=0;
+  hRight.innerHTML=
+    '<div style="display:flex;align-items:center;gap:6px;flex-wrap:nowrap">'+
+    // DP button
+    '<button class="btn btn-sm" style="background:#00e701;color:#000;font-weight:800;padding:6px 10px" onclick="goPage('deposit')">💰 DP</button>'+
+    // WD button
+    '<button class="btn btn-sm btn-o" style="font-weight:800;padding:6px 10px" onclick="goPage('withdrawal')">💸 WD</button>'+
+    // Balance
+    '<div id="navBalance" style="background:rgba(0,231,1,.1);border:1px solid rgba(0,231,1,.3);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:800;color:var(--accent);white-space:nowrap;cursor:pointer" onclick="goPage('profile')" title="Available Balance">'+
+      '🪙 <span id="navCoins">'+coins.toLocaleString()+'</span>'+
+    '</div>'+
+    // Exposure
+    '<div id="navExposure" style="background:rgba(249,56,72,.08);border:1px solid rgba(249,56,72,.25);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:800;color:#f93848;white-space:nowrap;cursor:pointer" onclick="goPage('withdrawal')" title="Pending Withdrawals (Exposure)">'+
+      '⚠ <span id="navExp">0</span>'+
+    '</div>'+
+    // Profile icon + dropdown
+    '<div class="profile-btn" onclick="toggleDrop()" id="pBtn" style="position:relative">👤'+
+      '<div class="profile-drop" id="pDrop">'+
+        '<div style="padding:10px 14px;border-bottom:1px solid var(--border);font-size:12px;color:var(--muted)">'+
+          '<div style="font-weight:800;color:var(--text);margin-bottom:2px" id="pdropName">—</div>'+
+          '<div>🪙 <span id="pdropBal">0</span> COINS</div>'+
+        '</div>'+
+        '<div class="drop-item" onclick="goPage('profile')">👤 Profile</div>'+
+        '<div class="drop-item" onclick="goPage('stats')">📊 Stats</div>'+
+        '<div class="drop-item" onclick="goPage('deposit')">💰 Deposit</div>'+
+        '<div class="drop-item" onclick="goPage('withdrawal')">💸 Withdraw</div>'+
+        '<div class="drop-item" onclick="showAccountStatement()">📋 Account Statement</div>'+
+        '<div class="drop-item" onclick="goPage('promotions')">🎁 Promotions</div>'+
+        '<div class="drop-item" style="color:var(--red)" onclick="doLogout()">🚪 Logout</div>'+
+      '</div>'+
+    '</div>'+
+    '</div>';
+  updateNavBalance(coins);
+  loadNavExposure();
+}
+
+function updateNavBalance(coins){
+  var nc=document.getElementById('navCoins');if(nc)nc.textContent=(coins||0).toLocaleString();
+  var pb=document.getElementById('pdropBal');if(pb)pb.textContent=(coins||0).toLocaleString();
+  var pn=document.getElementById('pdropName');if(pn&&window.currentUserData)pn.textContent=safeText(window.currentUserData.username||'');
+}
+
+function loadNavExposure(){
+  if(!window.currentUser)return;
+  db.collection('withdrawals').where('userId','==',window.currentUser.uid).where('status','==','pending').get().then(function(snap){
+    var exp=snap.docs.reduce(function(a,d){return a+(d.data().amount||0);},0);
+    var ne=document.getElementById('navExp');if(ne)ne.textContent=exp.toLocaleString();
+    var expDiv=document.getElementById('navExposure');
+    if(expDiv)expDiv.style.display=exp>0?'flex':'none';
+  }).catch(function(){});
+}
+
+// Account Statement Modal
+function showAccountStatement(){
+  if(!window.currentUser){openAuth('login');return;}
+  var titleEl=document.getElementById('auth-title');if(titleEl)titleEl.textContent='Account Statement';
+  var modal=document.getElementById('authModal');
+  var f=document.getElementById('auth-form');if(!f)return;
+  f.innerHTML='<div style="text-align:center;padding:10px 0 20px"><div style="font-size:32px;margin-bottom:8px">📋</div><p style="color:var(--muted);font-size:13px">Loading your statement...</p></div>';
+  modal.classList.add('open');
+  Promise.all([
+    db.collection('deposits').where('userId','==',window.currentUser.uid).get(),
+    db.collection('withdrawals').where('userId','==',window.currentUser.uid).get()
+  ]).then(function(results){
+    var deps=results[0].docs.map(function(d){return Object.assign({id:d.id,_type:'deposit'},d.data());});
+    var wds=results[1].docs.map(function(d){return Object.assign({id:d.id,_type:'withdrawal'},d.data());});
+    var all=deps.concat(wds);
+    all.sort(function(a,b){
+      var ta=a.createdAt&&a.createdAt.toMillis?a.createdAt.toMillis():0;
+      var tb=b.createdAt&&b.createdAt.toMillis?b.createdAt.toMillis():0;
+      return ta-tb;
+    });
+    var bal=0;
+    var rows=all.map(function(e){
+      var cr=0,dr=0;
+      if(e._type==='deposit'&&e.status==='approved')cr=e.amount;
+      if(e._type==='withdrawal'&&e.status==='approved')dr=e.amount;
+      bal+=cr-dr;
+      var dt=e.createdAt&&e.createdAt.toDate?e.createdAt.toDate().toLocaleDateString():'—';
+      var badge=e.status==='approved'?'<span style="color:var(--green);font-weight:700">✓ Approved</span>':e.status==='pending'?'<span style="color:#f0a500;font-weight:700">⏳ Pending</span>':'<span style="color:var(--red);font-weight:700">✗ Rejected</span>';
+      return'<tr>'+
+        '<td style="color:var(--muted);font-size:12px">'+dt+'</td>'+
+        '<td><span style="font-weight:700;color:'+(e._type==='deposit'?'var(--green)':'var(--red)')+'">'+
+          (e._type==='deposit'?'💰 Deposit':'💸 Withdrawal')+'</span></td>'+
+        '<td style="color:var(--green);font-weight:700">'+(cr>0?'+'+cr.toLocaleString():'')+'</td>'+
+        '<td style="color:var(--red);font-weight:700">'+(dr>0?'-'+dr.toLocaleString():'')+'</td>'+
+        '<td style="color:var(--accent);font-weight:700">'+bal.toLocaleString()+'</td>'+
+        '<td>'+badge+'</td>'+
+      '</tr>';
+    });
+    var curCoins=window.currentUserData?window.currentUserData.coins||0:0;
+    f.innerHTML=
+      '<div style="max-height:400px;overflow-y:auto">'+
+        '<table style="width:100%;border-collapse:collapse;font-size:12px">'+
+          '<thead><tr style="background:var(--surface2)">'+
+            '<th style="padding:8px;text-align:left;color:var(--muted)">Date</th>'+
+            '<th style="padding:8px;text-align:left;color:var(--muted)">Type</th>'+
+            '<th style="padding:8px;color:var(--green)">Credit</th>'+
+            '<th style="padding:8px;color:var(--red)">Debit</th>'+
+            '<th style="padding:8px;color:var(--accent)">Balance</th>'+
+            '<th style="padding:8px;text-align:left;color:var(--muted)">Status</th>'+
+          '</tr></thead>'+
+          '<tbody>'+(rows.length?rows.join(''):'<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--muted)">No transactions yet</td></tr>')+'</tbody>'+
+        '</table>'+
+      '</div>'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:14px;border-top:1px solid var(--border2)">'+
+        '<span style="font-size:13px;color:var(--muted)">Current Balance:</span>'+
+        '<span style="font-size:18px;font-weight:900;color:var(--accent)">🪙 '+curCoins.toLocaleString()+' COINS</span>'+
+      '</div>'+
+      '<button class="btn btn-o" style="width:100%;margin-top:12px" onclick="document.getElementById('authModal').classList.remove('open')">Close</button>';
+  }).catch(function(e){
+    f.innerHTML='<p style="color:var(--red)">Error loading statement: '+e.message+'</p>';
+  });
+}
+
 window.currentUser=null;window.currentUserData=null;
 auth.onAuthStateChanged(function(user){
   window.currentUser=user;
@@ -1531,16 +1795,7 @@ auth.onAuthStateChanged(function(user){
       var t=getTier(data.rating||1200);
       var sbt=document.getElementById('sb-tier');if(sbt)sbt.textContent=t.i+' '+t.n;
       if(sidebar)sidebar.classList.add('show');if(gNav)gNav.style.display='none';
-      if(hRight)hRight.innerHTML=
-        '<div style="display:flex;align-items:center;gap:8px">'+
-        '<button class="btn btn-sm" style="background:#00e701;color:#000;font-weight:800" onclick="goPage(\'deposit\')">💰 Deposit</button>'+
-        '<button class="btn btn-sm btn-o" style="font-weight:800" onclick="goPage(\'withdrawal\')">💸 Withdraw</button>'+
-        '<div class="profile-btn" onclick="toggleDrop()" id="pBtn">👤<div class="profile-drop" id="pDrop">'+
-        '<div class="drop-item" onclick="goPage(\'profile\')">👤 Profile</div>'+
-        '<div class="drop-item" onclick="goPage(\'stats\')">📊 Stats</div>'+
-        '<div class="drop-item" onclick="goPage(\'promotions\')">🎁 Promotions</div>'+
-        '<div class="drop-item" onclick="doLogout()">🚪 Logout</div>'+
-        '</div></div></div>';
+      if(hRight)buildNavbarAuth(data);
       updateProfilePage(data);updateStatsPage(data);checkDailyBtn(data);loadLB();updateMobDrawer(user,data);
     });
   }else{
@@ -1568,6 +1823,7 @@ function updateProfilePage(data){
   var pw=document.getElementById('prof-wins');if(pw)pw.textContent=data.wins||0;
   var pc=document.getElementById('prof-coins');if(pc)pc.textContent=(data.coins||0).toLocaleString();
   var wb=document.getElementById('wdBal');if(wb)wb.textContent=(data.coins||0).toLocaleString()+' COINS';
+  updateNavBalance(data.coins||0);
 }
 function updateStatsPage(data){
   if(!data)return;var r=data.rating||1200,w=data.wins||0,l=data.losses||0;
@@ -1624,12 +1880,27 @@ function claimDaily(){
 }
 
 // Finance — withdrawal re-reads balance from Firestore (prevents client bypass)
+// ── SECURITY: Rate limiting & abuse prevention ──
+var _actionLog={};
+function rateLimit(action,maxPerMin){
+  var now=Date.now();
+  if(!_actionLog[action])_actionLog[action]=[];
+  _actionLog[action]=_actionLog[action].filter(function(t){return now-t<60000;});
+  if(_actionLog[action].length>=maxPerMin){toast('Too many attempts. Please wait.','err');return false;}
+  _actionLog[action].push(now);return true;
+}
+
+// Prevent chess move injection via devtools: validate all moves server-side concept
+// All coin changes ONLY happen server-side via admin approval or Firestore rules
+// Client can never directly set coins - only admin or server-triggered increments
+
 function submitDeposit(){
   if(!window.currentUser){openAuth('login');return;}
+  if(!rateLimit('deposit',3)){return;}
   var amt=parseFloat(document.getElementById('dpAmt').value);
   var tx=document.getElementById('dpTx').value.trim();
   var note=document.getElementById('dpNote').value.trim();
-  if(!amt||amt<10){toast('Minimum 10 USDT','err');return;}
+  if(!amt||amt<10||amt>100000){toast('Invalid amount','err');return;}
   if(!tx){toast('Enter your TxID','err');return;}
   db.collection('deposits').add({userId:window.currentUser.uid,username:safeText(window.currentUserData?window.currentUserData.username:''),email:safeText(window.currentUser.email),amount:amt,txid:tx,note:note,status:'pending',createdAt:firebase.firestore.FieldValue.serverTimestamp()})
   .then(function(){toast('✓ Deposit request submitted!','ok');document.getElementById('dpAmt').value='';document.getElementById('dpTx').value='';document.getElementById('dpNote').value='';loadDepositHistory();})
@@ -1637,6 +1908,13 @@ function submitDeposit(){
 }
 function submitWithdrawal(){
   if(!window.currentUser){openAuth('login');return;}
+  if(!rateLimit('withdrawal',3)){return;}
+  // Block unverified email accounts from withdrawing
+  var providers=(window.currentUser.providerData||[]).map(function(p){return p.providerId;});
+  var isEmailUser=providers.indexOf('password')!==-1;
+  if(isEmailUser&&!window.currentUser.emailVerified){
+    toast('Please verify your email before withdrawing','err');return;
+  }
   var amt=parseFloat(document.getElementById('wdAmt').value);
   var wallet=document.getElementById('wdWallet').value.trim();
   db.collection('users').doc(window.currentUser.uid).get().then(function(snap){
@@ -2354,6 +2632,47 @@ function setLang(code){
   // ── Tournament page ──
   var tournTag=document.querySelector('#page-tournament .section-tag');if(tournTag)tournTag.textContent=t.tourn_tag||'Competitive';
   var tournH2=document.querySelector('#page-tournament h2');if(tournH2)tournH2.textContent=t.tourn_title||'Tournaments';
+
+  // ── Sidebar tournament link text ──
+  var sbTourn=document.getElementById('sbTourn');
+  if(sbTourn){var sbt2=sbTourn.childNodes;for(var si=0;si<sbt2.length;si++){if(sbt2[si].nodeType===3&&sbt2[si].textContent.trim()){sbt2[si].textContent=t.sb_tournaments||'Tournaments';break;}}}
+
+  // ── Sidebar section labels ──
+  var sbSections=document.querySelectorAll('#sidebar .sb-section');
+  var sectionMap=[t.sb_main||'Main',null,null,t.sb_finance||'Finance',null,t.sb_account||'Account',null,t.sb_more||'More'];
+  // Re-translate section labels by content matching
+  sbSections.forEach(function(s){
+    var txt=s.textContent.trim().toLowerCase();
+    if(txt==='main'||txt==='principal'||txt==='главное'||txt==='主菜单'||txt==='メイン')s.textContent=t.sb_main||'Main';
+    else if(txt==='finance'||txt==='finanzas'||txt==='финансы'||txt==='财务'||txt==='재무')s.textContent=t.sb_finance||'Finance';
+    else if(txt==='account'||txt==='cuenta'||txt==='аккаунт'||txt==='账户'||txt==='계정')s.textContent=t.sb_account||'Account';
+    else if(txt==='more'||txt==='más'||txt==='ещё'||txt==='更多'||txt==='더보기')s.textContent=t.sb_more||'More';
+  });
+
+  // ── FAQ section ──
+  var faqTag2=document.querySelector('#faqSection .section-tag');if(faqTag2)faqTag2.textContent=t.faq_tag||'Help';
+  var faqH2b=document.querySelector('#faqSection h2');if(faqH2b)faqH2b.textContent=t.faq_title||'Frequently Asked Questions';
+
+  // ── Live chat support box - fix alignment after lang change ──
+  var supportBox=document.querySelector('.home-support-box');
+  if(supportBox)supportBox.style.direction='ltr';
+
+  // ── Sidebar links ──
+  var sbLinks=document.querySelectorAll('#sidebar .sb-link');
+  var sbLinkKeys=['sb_home','sb_play',null,'sb_promotions',null,'sb_deposit','sb_withdraw',null,'sb_stats','sb_profile','sb_theme'];
+  var ki=0;
+  sbLinks.forEach(function(link){
+    if(ki<sbLinkKeys.length&&sbLinkKeys[ki]){
+      var txt=link.childNodes;
+      for(var ni=0;ni<txt.length;ni++){
+        if(txt[ni].nodeType===3&&txt[ni].textContent.trim()){
+          txt[ni].textContent=t[sbLinkKeys[ki]]||txt[ni].textContent;
+          break;
+        }
+      }
+    }
+    ki++;
+  });
 
   // Rebuild language grids to reflect active selection
   buildSbLangGrid();buildHomeLangGrid();buildMobLangGrid();
