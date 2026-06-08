@@ -237,11 +237,12 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-
         </div>
         <div class="sbar">
           <input id="uSearch" placeholder="Search username, email..." oninput="renderUsers()">
+          <select id="uStatus" onchange="renderUsers()"><option value="">All Status</option><option value="active">Active</option><option value="inactive">Inactive</option></select>
           <select id="uTier" onchange="renderUsers()"><option value="">All Tiers</option><option>Bronze</option><option>Silver</option><option>Gold</option><option>Platinum</option><option>Diamond</option><option>Crown</option><option>Ace</option><option>Master</option><option>Grandmaster</option><option>Legend</option></select>
           <select id="uSort" onchange="renderUsers()"><option value="rating">Rating ↓</option><option value="coins">Coins ↓</option><option value="wins">Wins ↓</option><option value="joined">Newest</option></select>
         </div>
         <div class="tbl-wrap"><div class="tbl-scroll"><table class="tbl">
-          <thead><tr><th>#</th><th>Username</th><th>Email</th><th>Tier</th><th>Rating</th><th>W/L</th><th>Coins</th><th>Joined</th><th>Verified</th><th>Actions</th></tr></thead>
+          <thead><tr><th>#</th><th>Username</th><th>Email</th><th>Tier</th><th>Rating</th><th>W/L</th><th>Coins</th><th>Joined</th><th>Verified</th><th>Status</th><th>Actions</th></tr></thead>
           <tbody id="userTbl"><tr><td colspan="10" class="loading">Loading users from Firebase...</td></tr></tbody>
         </table></div><div class="tbl-footer"><span id="uFooter">Loading...</span></div></div>
       </div>
@@ -576,7 +577,9 @@ function renderUsers(){
   const q=(document.getElementById('uSearch').value||'').toLowerCase();
   const tr=document.getElementById('uTier').value;
   const so=document.getElementById('uSort').value;
+  const st=(document.getElementById('uStatus')?document.getElementById('uStatus').value:'');
   if(q)us=us.filter(u=>((u.username||'')+(u.email||'')).toLowerCase().includes(q));
+  if(st)us=us.filter(u=>st==='inactive'?u.status==='inactive':u.status!=='inactive');
   if(tr)us=us.filter(u=>gT(u.rating||0).n===tr);
   us.sort((a,b)=>so==='coins'?(b.coins||0)-(a.coins||0):so==='wins'?(b.wins||0)-(a.wins||0):so==='joined'?((b.createdAt&&b.createdAt.toMillis?b.createdAt.toMillis():0)-(a.createdAt&&a.createdAt.toMillis?a.createdAt.toMillis():0)):(b.rating||0)-(a.rating||0));
   document.getElementById('user-count-lbl').textContent=us.length+' players found';
@@ -592,10 +595,23 @@ function renderUsers(){
       <td><span style="color:var(--green);font-weight:700">${u.wins||0}W</span> <span style="color:var(--muted)">/</span> <span style="color:var(--red);font-weight:700">${u.losses||0}L</span></td>
       <td style="color:var(--accent);font-weight:700">🪙 ${(u.coins||0).toLocaleString()}</td>
       <td style="color:var(--muted);font-size:12px">${fD(u.createdAt)}</td>
-      <td><span class="badge ${u.emailVerified?'b-approved':'b-pending'}">${u.emailVerified?'Verified':'Pending'}</span></td>
-      <td><button class="abtn view" onclick="openProfile('${u.id}')">View</button></td>
+      <td><span class="badge ${u.emailVerified?'b-approved':'b-pending'}">${u.emailVerified?'✓ Verified':'⚠ Pending'}</span></td>
+      <td><span class="badge ${u.status==='inactive'?'b-inactive':'b-active'}">${u.status==='inactive'?'Inactive':'Active'}</span></td>
+      <td>
+        <button class="abtn view" onclick="openProfile('${u.id}')">View</button>
+        <button class="abtn ${u.status==='inactive'?'approve':'reject'}" onclick="toggleUserStatus('${u.id}','${u.status==='inactive'?'active':'inactive'}')">${u.status==='inactive'?'Activate':'Deactivate'}</button>
+      </td>
     </tr>`;
-  }).join(''):'<tr><td colspan="10" class="loading">No users found</td></tr>';
+  }).join(''):'<tr><td colspan="11" class="loading">No users found</td></tr>';
+}
+
+function toggleUserStatus(uid, newStatus){
+  db.collection('users').doc(uid).set({status:newStatus},{merge:true}).then(()=>{
+    const u=ALL_USERS.find(x=>x.id===uid);
+    if(u)u.status=newStatus;
+    renderUsers();
+    toast(newStatus==='active'?'User activated':'User deactivated', newStatus==='active'?'ok':'er');
+  }).catch(e=>toast('Error: '+e.message,'er'));
 }
 
 function exportUsers(){
@@ -648,13 +664,21 @@ function openProfile(uid){
 
 function buildStmt(uid){
   const evts=[];
-  // Add deposits
-  ALL_DEPOSITS.filter(d=>d.userId===uid).forEach(d=>{
-    evts.push({date:d.createdAt,type:'Deposit',desc:'USDT Deposit'+(d.note?' ('+d.note+')':''),cr:d.status==='approved'?d.amount:0,dr:0,status:d.status});
+  // Add approved deposits as credits
+  ALL_DEPOSITS.filter(d=>d.userId===uid&&d.status==='approved').forEach(d=>{
+    evts.push({date:d.createdAt,type:'Deposit',typeClass:'b-approved',desc:'USDT Deposit'+(d.note?' ('+d.note+')':''),cr:d.amount,dr:0});
   });
-  // Add withdrawals
-  ALL_WITHDRAWALS.filter(w=>w.userId===uid).forEach(w=>{
-    evts.push({date:w.createdAt,type:'Withdrawal',desc:'Withdrawal to '+(w.wallet?w.wallet.substring(0,12)+'...':'wallet'),cr:0,dr:w.status==='approved'?w.amount:0,status:w.status});
+  // Add pending/rejected deposits (no balance change, shown for reference)
+  ALL_DEPOSITS.filter(d=>d.userId===uid&&d.status!=='approved').forEach(d=>{
+    evts.push({date:d.createdAt,type:d.status==='pending'?'Dep Pending':'Dep Rejected',typeClass:d.status==='pending'?'b-pending':'b-rejected',desc:'USDT Deposit ('+d.status+')',cr:0,dr:0});
+  });
+  // Add approved withdrawals as debits
+  ALL_WITHDRAWALS.filter(w=>w.userId===uid&&w.status==='approved').forEach(w=>{
+    evts.push({date:w.createdAt,type:'Withdrawal',typeClass:'b-rejected',desc:'Withdraw → '+(w.wallet?w.wallet.substring(0,14)+'...':'wallet'),cr:0,dr:w.amount});
+  });
+  // Add pending/rejected withdrawals (no balance change)
+  ALL_WITHDRAWALS.filter(w=>w.userId===uid&&w.status!=='approved').forEach(w=>{
+    evts.push({date:w.createdAt,type:w.status==='pending'?'WD Pending':'WD Rejected',typeClass:w.status==='pending'?'b-pending':'b-rejected',desc:'Withdrawal ('+w.status+')',cr:0,dr:0});
   });
   // Sort by date ascending
   evts.sort((a,b)=>{
@@ -662,18 +686,27 @@ function buildStmt(uid){
     const tb=b.date&&b.date.toMillis?b.date.toMillis():0;
     return ta-tb;
   });
+  const u=ALL_USERS.find(x=>x.id===uid);
   let bal=0;
-  document.getElementById('um-stmt-body').innerHTML=evts.length?evts.map(e=>{
+  const rows=evts.map(e=>{
     bal+=e.cr-e.dr;
     return`<tr>
       <td style="color:var(--muted)">${fD(e.date)}</td>
-      <td><span class="badge b-${e.cr>0?'approved':'rejected'}">${e.type}</span></td>
-      <td style="color:var(--muted)">${e.desc}</td>
-      <td class="cr">${e.cr>0?'+'+e.cr:''}</td>
-      <td class="dr">${e.dr>0?'-'+e.dr:''}</td>
-      <td style="color:var(--accent);font-weight:700">${bal}</td>
+      <td><span class="badge ${e.typeClass}">${e.type}</span></td>
+      <td style="color:var(--muted);font-size:12px">${e.desc}</td>
+      <td class="cr">${e.cr>0?'+'+e.cr.toLocaleString():''}</td>
+      <td class="dr">${e.dr>0?'-'+e.dr.toLocaleString():''}</td>
+      <td style="color:var(--accent);font-weight:700">${bal.toLocaleString()}</td>
     </tr>`;
-  }).join(''):'<tr><td colspan="6" class="loading">No transactions yet</td></tr>';
+  });
+  // Add current balance summary row
+  if(rows.length>0){
+    rows.push(`<tr style="background:rgba(0,231,1,.04);border-top:2px solid var(--accent)">
+      <td colspan="5" style="font-weight:800;color:var(--accent);text-align:right;padding-right:12px">Current Balance (from Firebase):</td>
+      <td style="color:var(--accent);font-weight:800;font-size:15px">${(u?u.coins||0:0).toLocaleString()} COINS</td>
+    </tr>`);
+  }
+  document.getElementById('um-stmt-body').innerHTML=rows.length?rows.join(''):'<tr><td colspan="6" class="loading">No transactions yet</td></tr>';
 }
 
 function buildDepsTab(uid){
@@ -711,7 +744,7 @@ function mTab(id,btn){
 function toggleActStatus(){
   const u=ALL_USERS.find(x=>x.id===activeUID);if(!u)return;
   const a=document.getElementById('um-tog').checked;
-  db.collection('users').doc(activeUID).update({emailVerified:a}).then(()=>{
+  db.collection('users').doc(activeUID).set({emailVerified:a},{merge:true}).then(()=>{
     u.emailVerified=a;
     document.getElementById('um-tog-lbl').textContent=a?'Verified':'Unverified';
     toast(a?'User marked verified':'User marked unverified','ok');
@@ -723,7 +756,7 @@ function adjCoins(dir){
   const amt=parseFloat(document.getElementById('coinAdj').value)||0;
   if(!amt||amt<=0){toast('Enter a valid amount','er');return;}
   const newCoins=Math.max(0,(u.coins||0)+(dir>0?amt:-amt));
-  db.collection('users').doc(activeUID).update({coins:newCoins}).then(()=>{
+  db.collection('users').doc(activeUID).set({coins:newCoins},{merge:true}).then(()=>{
     u.coins=newCoins;
     document.getElementById('um-bal').textContent=newCoins.toLocaleString()+' COINS';
     document.getElementById('coinAdj').value='';
@@ -736,7 +769,7 @@ function adjRating(){
   const u=ALL_USERS.find(x=>x.id===activeUID);if(!u)return;
   const r=parseInt(document.getElementById('ratingAdj').value);
   if(isNaN(r)||r<0||r>4000){toast('Enter a valid rating (0–4000)','er');return;}
-  db.collection('users').doc(activeUID).update({rating:r}).then(()=>{
+  db.collection('users').doc(activeUID).set({rating:r},{merge:true}).then(()=>{
     u.rating=r;
     document.getElementById('um-rating').textContent=r;
     document.getElementById('ratingAdj').value='';
@@ -747,13 +780,24 @@ function adjRating(){
 
 function resetUser(){
   const u=ALL_USERS.find(x=>x.id===activeUID);if(!u)return;
-  if(!confirm('Reset '+u.username+'? This sets coins=0, wins=0, losses=0, rating=0'))return;
-  db.collection('users').doc(activeUID).update({coins:0,wins:0,losses:0,rating:0}).then(()=>{
-    u.coins=0;u.wins=0;u.losses=0;u.rating=0;
-    openProfile(activeUID);
-    toast('User account reset','ok');
+  if(!confirm('Reset '+u.username+'?\nThis will set: Coins=0, Wins=0, Losses=0, Rating=0'))return;
+  // Use set with merge:true so admin can always write
+  db.collection('users').doc(activeUID).set({
+    coins:0, wins:0, losses:0, rating:0
+  },{merge:true}).then(()=>{
+    // Update local cache immediately
+    u.coins=0; u.wins=0; u.losses=0; u.rating=0;
+    // Refresh profile modal with new data
+    document.getElementById('um-rating').textContent=0;
+    document.getElementById('um-wins').textContent=0;
+    document.getElementById('um-losses').textContent=0;
+    document.getElementById('um-wr').textContent='—';
+    document.getElementById('um-bal').textContent='0 COINS';
+    buildStmt(activeUID);
     renderUsers();
-  }).catch(e=>toast(e.message,'er'));
+    updateDashCards();
+    toast('✓ User account reset to zero','ok');
+  }).catch(e=>{toast('Error: '+e.message,'er');console.error(e);});
 }
 
 // ── DEPOSITS ──
@@ -786,16 +830,16 @@ function approveDP(id){
   const d=ALL_DEPOSITS.find(x=>x.id===id);
   if(!d||d.status!=='pending'){toast('Already processed','info');return;}
   if(!confirm('Approve deposit of '+d.amount+' USDT for '+d.username+'?'))return;
-  // Update deposit status + credit user coins in Firestore
-  const batch=db.batch();
-  batch.update(db.collection('deposits').doc(id),{status:'approved',updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
-  if(d.userId){
-    batch.update(db.collection('users').doc(d.userId),{coins:firebase.firestore.FieldValue.increment(d.amount)});
-  }
-  batch.commit().then(()=>{
-    toast('✓ Approved! +'+d.amount+' USDT coins credited to '+d.username,'ok');
-    // Data will refresh via onSnapshot listener
-  }).catch(e=>toast('Error: '+e.message,'er'));
+  // Step 1: update deposit status
+  db.collection('deposits').doc(id).set({status:'approved',updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true})
+  .then(()=>{
+    // Step 2: credit coins — use set+merge so admin can always write
+    if(d.userId){
+      return db.collection('users').doc(d.userId).set({coins:firebase.firestore.FieldValue.increment(d.amount)},{merge:true});
+    }
+  }).then(()=>{
+    toast('✓ Approved! +'+d.amount+' coins credited to '+d.username,'ok');
+  }).catch(e=>{toast('Error: '+e.message,'er');console.error(e);});
 }
 
 function rejectReq(id,type){
@@ -803,9 +847,9 @@ function rejectReq(id,type){
   const r=col.find(x=>x.id===id);
   if(!r||r.status!=='pending'){toast('Already processed','info');return;}
   if(!confirm('Reject this '+type+' request?'))return;
-  db.collection(type==='deposit'?'deposits':'withdrawals').doc(id).update({
+  db.collection(type==='deposit'?'deposits':'withdrawals').doc(id).set({
     status:'rejected',updatedAt:firebase.firestore.FieldValue.serverTimestamp()
-  }).then(()=>toast('Request rejected','er'))
+  },{merge:true}).then(()=>toast('Request rejected','er'))
   .catch(e=>toast('Error: '+e.message,'er'));
 }
 
@@ -842,13 +886,16 @@ function approveWD(id){
   const u=ALL_USERS.find(x=>x.id===w.userId);
   if(u&&(u.coins||0)<w.amount){toast('Insufficient coins! User has '+(u.coins||0)+' COINS','er');return;}
   if(!confirm('Approve withdrawal of '+w.amount+' USDT for '+w.username+'?\nWallet: '+w.wallet))return;
-  const batch=db.batch();
-  batch.update(db.collection('withdrawals').doc(id),{status:'approved',updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
-  if(w.userId){
-    batch.update(db.collection('users').doc(w.userId),{coins:firebase.firestore.FieldValue.increment(-(w.amount))});
-  }
-  batch.commit().then(()=>toast('✓ Withdrawal approved! -'+w.amount+' USDT deducted from '+w.username,'ok'))
-  .catch(e=>toast('Error: '+e.message,'er'));
+  // Step 1: update withdrawal status
+  db.collection('withdrawals').doc(id).set({status:'approved',updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true})
+  .then(()=>{
+    // Step 2: deduct coins — use set+merge so admin can always write
+    if(w.userId){
+      return db.collection('users').doc(w.userId).set({coins:firebase.firestore.FieldValue.increment(-(w.amount))},{merge:true});
+    }
+  }).then(()=>{
+    toast('✓ Withdrawal approved! -'+w.amount+' USDT deducted from '+w.username,'ok');
+  }).catch(e=>{toast('Error: '+e.message,'er');console.error(e);});
 }
 
 // ── VIEW REQUEST MODAL ──
