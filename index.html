@@ -471,7 +471,7 @@ header{padding:0 10px}
     <a class="btn btn-o btn-sm" onclick="goPage('home')">Home</a>
     <a class="btn btn-o btn-sm" onclick="goPage('play')">Play</a>
     <a class="btn btn-o btn-sm" onclick="scrollToId('arena')">Arena</a>
-    <a class="btn btn-sm" style="background:linear-gradient(135deg,#f0a500,#FFD700);color:#000;font-weight:800" onclick="goPage('promotions')">🎁 Promotions</a>
+    <a class="btn btn-sm" style="background:linear-gradient(135deg,#f0a500,#FFD700);color:#000;font-weight:800" onclick="goPage(\'promotions\')">🎁 Promotions</a>
   </nav>
   <div id="headerRight">
     <div style="display:flex;gap:8px">
@@ -1670,15 +1670,15 @@ function buildNavbarAuth(data){
   hRight.innerHTML=
     '<div style="display:flex;align-items:center;gap:6px;flex-wrap:nowrap">'+
     // DP button
-    '<button class="btn btn-sm" style="background:#00e701;color:#000;font-weight:800;padding:6px 10px" onclick="goPage('deposit')">💰 DP</button>'+
+    '<button class="btn btn-sm" style="background:#00e701;color:#000;font-weight:800;padding:6px 10px" onclick="goPage(\'deposit\')">💰 DP</button>'+
     // WD button
-    '<button class="btn btn-sm btn-o" style="font-weight:800;padding:6px 10px" onclick="goPage('withdrawal')">💸 WD</button>'+
+    '<button class="btn btn-sm btn-o" style="font-weight:800;padding:6px 10px" onclick="goPage(\'withdrawal\')">💸 WD</button>'+
     // Balance
-    '<div id="navBalance" style="background:rgba(0,231,1,.1);border:1px solid rgba(0,231,1,.3);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:800;color:var(--accent);white-space:nowrap;cursor:pointer" onclick="goPage('profile')" title="Available Balance">'+
+    '<div id="navBalance" style="background:rgba(0,231,1,.1);border:1px solid rgba(0,231,1,.3);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:800;color:var(--accent);white-space:nowrap;cursor:pointer" onclick="goPage(\'profile\')" title="Available Balance">'+
       '🪙 <span id="navCoins">'+coins.toLocaleString()+'</span>'+
     '</div>'+
     // Exposure
-    '<div id="navExposure" style="background:rgba(249,56,72,.08);border:1px solid rgba(249,56,72,.25);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:800;color:#f93848;white-space:nowrap;cursor:pointer" onclick="goPage('withdrawal')" title="Pending Withdrawals (Exposure)">'+
+    '<div id="navExposure" style="background:rgba(249,56,72,.08);border:1px solid rgba(249,56,72,.25);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:800;color:#f93848;white-space:nowrap;cursor:pointer" onclick="goPage(\'withdrawal\')" title="Pending Withdrawals (Exposure)">'+
       '⚠ <span id="navExp">0</span>'+
     '</div>'+
     // Profile icon + dropdown
@@ -1688,12 +1688,12 @@ function buildNavbarAuth(data){
           '<div style="font-weight:800;color:var(--text);margin-bottom:2px" id="pdropName">—</div>'+
           '<div>🪙 <span id="pdropBal">0</span> COINS</div>'+
         '</div>'+
-        '<div class="drop-item" onclick="goPage('profile')">👤 Profile</div>'+
-        '<div class="drop-item" onclick="goPage('stats')">📊 Stats</div>'+
-        '<div class="drop-item" onclick="goPage('deposit')">💰 Deposit</div>'+
-        '<div class="drop-item" onclick="goPage('withdrawal')">💸 Withdraw</div>'+
+        '<div class="drop-item" onclick="goPage(\'profile\')">👤 Profile</div>'+
+        '<div class="drop-item" onclick="goPage(\'stats\')">📊 Stats</div>'+
+        '<div class="drop-item" onclick="goPage(\'deposit\')">💰 Deposit</div>'+
+        '<div class="drop-item" onclick="goPage(\'withdrawal\')">💸 Withdraw</div>'+
         '<div class="drop-item" onclick="showAccountStatement()">📋 Account Statement</div>'+
-        '<div class="drop-item" onclick="goPage('promotions')">🎁 Promotions</div>'+
+        '<div class="drop-item" onclick="goPage(\'promotions\')">🎁 Promotions</div>'+
         '<div class="drop-item" style="color:var(--red)" onclick="doLogout()">🚪 Logout</div>'+
       '</div>'+
     '</div>'+
@@ -1775,7 +1775,7 @@ function showAccountStatement(){
         '<span style="font-size:13px;color:var(--muted)">Current Balance:</span>'+
         '<span style="font-size:18px;font-weight:900;color:var(--accent)">🪙 '+curCoins.toLocaleString()+' COINS</span>'+
       '</div>'+
-      '<button class="btn btn-o" style="width:100%;margin-top:12px" onclick="document.getElementById('authModal').classList.remove('open')">Close</button>';
+      '<button class="btn btn-o" style="width:100%;margin-top:12px" onclick="document.getElementById(\'authModal\').classList.remove(\'open\')">Close</button>';
   }).catch(function(e){
     f.innerHTML='<p style="color:var(--red)">Error loading statement: '+e.message+'</p>';
   });
