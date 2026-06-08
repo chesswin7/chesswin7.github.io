@@ -398,9 +398,16 @@ header{padding:0 10px}
       <div class="sb-sub" onclick="goTourney('swiss');closeMobDrawer()">🔄 Swiss Tournament</div>
       <div class="sb-sub" onclick="goTourney('knockout');closeMobDrawer()">🥊 Knockout</div>
       <div class="sb-sub" onclick="goTourney('double');closeMobDrawer()">🏅 Double Elimination</div>
+      <div style="padding:5px 16px;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);border-top:1px solid var(--border);margin-top:2px">Arena</div>
       <div class="sb-sub" onclick="goTourney('rapid');closeMobDrawer()">⏱ Rapid Tournament</div>
       <div class="sb-sub" onclick="goTourney('blitz');closeMobDrawer()">⚡ Blitz Tournament</div>
       <div class="sb-sub" onclick="goTourney('bullet');closeMobDrawer()">🔫 Bullet Tournament</div>
+      <div class="sb-sub" onclick="goTourney('ultra');closeMobDrawer()">💨 Ultra Bullet Tournament</div>
+      <div style="padding:5px 16px;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--accent2);border-top:1px solid var(--border);margin-top:2px">Seasonal</div>
+      <div class="sb-sub" onclick="goTourney('spring');closeMobDrawer()">🌸 Spring Open</div>
+      <div class="sb-sub" onclick="goTourney('summer');closeMobDrawer()">☀️ Summer Open</div>
+      <div class="sb-sub" onclick="goTourney('autumn');closeMobDrawer()">🍂 Autumn Open</div>
+      <div class="sb-sub" onclick="goTourney('winter');closeMobDrawer()">❄️ Winter Open</div>
     </div>
     <div class="sb-link" onclick="goPage('promotions');closeMobDrawer()"><span class="sb-icon">🎁</span>Promotions</div>
     <div class="sb-section">Finance</div>
@@ -470,10 +477,12 @@ header{padding:0 10px}
     <div class="sb-sub" onclick="goTourney('swiss')">🔄 Swiss Tournament</div>
     <div class="sb-sub" onclick="goTourney('knockout')">🥊 Knockout (Elimination)</div>
     <div class="sb-sub" onclick="goTourney('double')">🏅 Double Elimination</div>
+    <div style="padding:5px 16px;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);border-top:1px solid var(--border);margin-top:2px">Arena</div>
     <div class="sb-sub" onclick="goTourney('rapid')">⏱ Rapid Tournament</div>
     <div class="sb-sub" onclick="goTourney('blitz')">⚡ Blitz Tournament</div>
     <div class="sb-sub" onclick="goTourney('bullet')">🔫 Bullet Tournament</div>
     <div class="sb-sub" onclick="goTourney('ultra')">💨 Ultra Bullet Tournament</div>
+    <div style="padding:5px 16px;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--accent2);border-top:1px solid var(--border);margin-top:2px">Seasonal</div>
     <div class="sb-sub" onclick="goTourney('spring')">🌸 Spring Open</div>
     <div class="sb-sub" onclick="goTourney('summer')">☀️ Summer Open</div>
     <div class="sb-sub" onclick="goTourney('autumn')">🍂 Autumn Open</div>
@@ -845,28 +854,11 @@ header{padding:0 10px}
 </main>
 </div>
 
-<!-- SUPPORT MODAL — DO NOT EDIT: user will replace with live chat snippet -->
-<div class="modal" id="supportModal" onclick="if(event.target===this)this.classList.remove('open')">
-  <div class="modal-box">
-    <div class="support-header">
-      <span class="support-dot"></span>
-      <div>
-        <div style="font-weight:800;font-size:15px">Live Support</div>
-        <div style="font-size:11px;opacity:.8">Online • Typically replies in minutes</div>
-      </div>
-      <button onclick="document.getElementById('supportModal').classList.remove('open')" style="margin-left:auto;background:rgba(255,255,255,.2);border:none;color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center">✕</button>
-    </div>
-    <div class="support-body">
-      <div class="support-msgs" id="supportMsgs">
-        <div class="sup-msg agent">👋 Hello! Welcome to ChessWin7 Support. How can I help you today?</div>
-      </div>
-      <div class="support-input">
-        <input id="supportInput" placeholder="Type your message..." onkeydown="if(event.key==='Enter')sendSupport()">
-        <button class="btn btn-sm" onclick="sendSupport()">Send</button>
-      </div>
-    </div>
-  </div>
-</div>
+<!-- CRISP LIVE CHAT -->
+<script type="text/javascript">window.$crisp=[];window.CRISP_WEBSITE_ID="9996f609-6558-45c0-9897-c0af3e17540b";(function(){d=document;s=d.createElement("script");s.src="https://client.crisp.chat/l.js";s.async=1;d.getElementsByTagName("head")[0].appendChild(s);})();</script>
+<!-- Dummy element so supportModal ID still exists (prevents JS errors) -->
+<div id="supportModal" style="display:none"></div>
+
 
 <script>
 // Safe DOM helpers — prevents XSS
@@ -1266,7 +1258,8 @@ function openAuth(mode){
     // LOGIN — accepts username OR email
     f.innerHTML=
       '<input id="a-em" placeholder="Email or Username" autocomplete="username" style="margin-bottom:10px">'+
-      '<input id="a-pw" placeholder="Password" type="password" autocomplete="current-password" style="margin-bottom:16px">'+
+      '<input id="a-pw" placeholder="Password" type="password" autocomplete="current-password" style="margin-bottom:6px">'+
+      '<div style="text-align:right;margin-bottom:14px"><a onclick="openForgotPassword()" style="font-size:12px;color:var(--accent2);cursor:pointer;font-weight:600">Forgot Password?</a></div>'+
       '<button class="btn" style="width:100%;margin-bottom:10px" onclick="doLogin()">Sign In</button>'+
       '<div class="divider"><span>OR</span></div>'+
       '<button class="google-btn" onclick="doGoogle()">'+GSVG+' Continue with Google</button>'+
@@ -1473,6 +1466,45 @@ function friendlyErr(code,msg){
   return msg||'Something went wrong';
 }
 function doLogout(){auth.signOut().then(function(){_pendingSignup=null;toast('Logged out','info');goPage('home');});}
+
+function openForgotPassword(){
+  var titleEl=document.getElementById('auth-title');
+  if(titleEl)titleEl.textContent='Reset Password';
+  var f=document.getElementById('auth-form');if(!f)return;
+  f.innerHTML=
+    '<div style="text-align:center;margin-bottom:16px">'+
+      '<div style="font-size:40px;margin-bottom:8px">🔑</div>'+
+      '<p style="font-size:13px;color:var(--muted);line-height:1.6">Enter your email address and we\'ll send you a link to reset your password.</p>'+
+    '</div>'+
+    '<input id="fp-em" placeholder="Email address" type="email" style="margin-bottom:14px">'+
+    '<button class="btn" style="width:100%;margin-bottom:8px" onclick="sendPasswordReset()">📧 Send Reset Link</button>'+
+    '<button class="btn btn-o" style="width:100%" onclick="openAuth(\'login\')">← Back to Sign In</button>';
+  document.getElementById('fp-em').addEventListener('keydown',function(e){if(e.key==='Enter')sendPasswordReset();});
+}
+
+function sendPasswordReset(){
+  var em=(document.getElementById('fp-em')||{value:''}).value.trim();
+  if(!em){toast('Please enter your email address','err');return;}
+  var btn=document.querySelector('#auth-form .btn');
+  if(btn){btn.disabled=true;btn.textContent='Sending...';}
+  auth.sendPasswordResetEmail(em).then(function(){
+    var f=document.getElementById('auth-form');if(!f)return;
+    f.innerHTML=
+      '<div style="text-align:center;padding:12px 0">'+
+        '<div style="font-size:52px;margin-bottom:12px">✅</div>'+
+        '<p style="font-size:15px;font-weight:800;margin-bottom:8px">Reset link sent!</p>'+
+        '<p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:8px">Check your email at:</p>'+
+        '<p style="font-size:14px;font-weight:800;color:var(--accent);margin-bottom:16px;word-break:break-all">'+em+'</p>'+
+        '<p style="font-size:12px;color:var(--muted)">Click the link in the email to set a new password. Check your spam folder if not found.</p>'+
+      '</div>'+
+      '<button class="btn btn-o" style="width:100%;margin-top:16px" onclick="openAuth(\'login\')">← Back to Sign In</button>';
+  }).catch(function(e){
+    if(btn){btn.disabled=false;btn.textContent='📧 Send Reset Link';}
+    if(e.code==='auth/user-not-found')toast('No account found with this email','err');
+    else if(e.code==='auth/invalid-email')toast('Please enter a valid email address','err');
+    else toast(e.message,'err');
+  });
+}
 
 window.currentUser=null;window.currentUserData=null;
 auth.onAuthStateChanged(function(user){
@@ -1684,18 +1716,427 @@ var LANGS=[
   {code:'ha',label:'HA',name:'Hausa',flag:'🇳🇬'},{code:'de',label:'DE',name:'Deutsch',flag:'🇩🇪'},
 ];
 var activeLang='en';
+
 var TRANSLATIONS={
-  en:{tagline:'Play Chess. Earn Real Rewards.',subtitle:'Challenge real players worldwide, climb the leaderboard, and win USDT with every victory. 1 COIN = 1 USDT.',playNow:'▶ Play Now',viewRankings:'View Rankings'},
-  es:{tagline:'Juega Ajedrez. Gana Recompensas Reales.',subtitle:'Desafía jugadores reales en todo el mundo y gana USDT. 1 MONEDA = 1 USDT.',playNow:'▶ Jugar Ahora',viewRankings:'Ver Rankings'},
-  ru:{tagline:'Играй в шахматы. Зарабатывай.',subtitle:'Играй с игроками по всему миру и побеждай. 1 МОНЕТА = 1 USDT.',playNow:'▶ Играть',viewRankings:'Рейтинг'},
-  ja:{tagline:'チェスで遊んで。報酬を稼いで。',subtitle:'世界中のプレイヤーと対戦してUSDTを獲得。1コイン = 1 USDT。',playNow:'▶ プレイ',viewRankings:'ランキング'},
-  zh:{tagline:'下棋。赚取真实奖励。',subtitle:'挑战全球真实玩家，赢取USDT。1金币 = 1 USDT。',playNow:'▶ 立即游戏',viewRankings:'查看排名'},
-  ko:{tagline:'체스를 두세요. 진짜 보상을 받으세요.',subtitle:'전 세계 플레이어와 경쟁하여 USDT를 획득하세요.',playNow:'▶ 플레이',viewRankings:'순위보기'},
-  ur:{tagline:'شطرنج کھیلیں۔ انعام کمائیں۔',subtitle:'دنیا بھر کے کھلاڑیوں سے مقابلہ کریں اور USDT جیتیں۔',playNow:'▶ کھیلیں',viewRankings:'درجہ بندی'},
-  id:{tagline:'Main Catur. Dapatkan Hadiah Nyata.',subtitle:'Tantang pemain nyata di seluruh dunia dan menangkan USDT.',playNow:'▶ Main Sekarang',viewRankings:'Lihat Peringkat'},
-  ha:{tagline:'Wasa Chess. Samu Lada.',subtitle:'Yi gasa da yan wasa na duniya ka lashe USDT.',playNow:'▶ Fara Wasa',viewRankings:'Dubi Matsayi'},
-  de:{tagline:'Schach spielen. Echte Belohnungen verdienen.',subtitle:'Fordere Spieler weltweit heraus und gewinne USDT. 1 Coin = 1 USDT.',playNow:'▶ Jetzt spielen',viewRankings:'Rangliste'},
+en:{
+  tagline:'Play Chess. Earn Real Rewards.',
+  subtitle:'Challenge real players worldwide, climb the leaderboard, and win USDT with every victory. 1 COIN = 1 USDT.',
+  playNow:'▶ Play Now',viewRankings:'View Rankings',
+  nav_home:'Home',nav_play:'Play',nav_arena:'Arena',nav_promotions:'🎁 Promotions',
+  sb_main:'Main',sb_finance:'Finance',sb_account:'Account',sb_more:'More',sb_language:'🌐 Language',sb_support:'Support',
+  sb_home:'Home',sb_play:'Play',sb_1v1:'1 vs 1',sb_tournaments:'Tournaments',sb_promotions:'Promotions',
+  sb_deposit:'Deposit',sb_withdraw:'Withdraw',sb_stats:'Stats',sb_profile:'Profile',sb_theme:'Board Theme',
+  sb_live_support:'💬 Live Support',sb_online:'● Online Now',
+  hero_tag:'♛ ChessWin7 — Skill Based Arena',
+  stats_players:'Active Players',stats_coins:'Coins Awarded',stats_tournaments:'Tournaments Run',
+  arena_tag:'Live Now',arena_title:'The Arena',
+  arena_beginner:'Beginner',arena_intermediate:'Intermediate',arena_elite:'Elite',
+  arena_entry:'Entry Fee',arena_prize:'Prize Pool',arena_time:'Time Control',arena_btn:'Enter Tournament',
+  lb_tag:'Global Rankings',lb_title:'Leaderboard',
+  lb_rank:'Rank',lb_player:'Player',lb_tier:'Tier',lb_rating:'Rating',lb_wins:'Wins',lb_coins:'Coins',
+  faq_tag:'Help',faq_title:'Frequently Asked Questions',
+  lang_tag:'Choose Language',lang_title:'🌐 Select Your Language',
+  support_tag:'Help & Support',support_title:'💬 Live Support',
+  support_chat_title:'Chat With Us',support_online:'Online Now · Replies in minutes',
+  support_desc:'Have a question about deposits, withdrawals, or your account? Our support team is available 24/7.',
+  support_btn:'💬 Start Live Chat',
+  footer_terms:'Terms & Conditions',footer_faq:'FAQ',footer_about:'About Us',
+  play_tag:'Live Arena',play_title:'Play Chess Online',
+  play_opponent:'Opponent',play_you:'You (White)',play_choose:'Choose a mode →',
+  play_mode:'Game Mode',play_vsai:'vs AI',play_vsfriend:'vs Friend',play_match:'Matchmaking',
+  play_difficulty:'Difficulty',play_as:'Play As',play_start:'Start vs AI',
+  play_time:'Time Control',play_create:'Create Room',play_join_code:'Room Code',play_join:'Join Room',
+  play_find:'Find Opponent',play_searching:'Searching...',play_moves:'Move History',
+  play_new:'New',play_undo:'Undo',play_draw:'½ Draw',play_resign:'Resign',
+  dep_tag:'Finance',dep_title:'💰 Deposit',dep_form_title:'Submit Deposit Request',
+  dep_amount:'Amount (USDT)',dep_tx:'Transaction ID / TxHash',dep_note:'Note (Optional)',
+  dep_info:'📌 Send USDT to our wallet, then submit your TxID. Admin credits within 24h.',
+  dep_btn:'📤 Submit Request',dep_history:'My Deposit History',dep_empty:'No deposits yet',
+  wd_tag:'Finance',wd_title:'💸 Withdrawal',wd_form_title:'Submit Withdrawal Request',
+  wd_balance:'Available Balance',wd_amount:'Amount (USDT)',wd_wallet:'Wallet Address (TRC20/ERC20)',
+  wd_info:'📌 5% platform fee deducted. 100 COINS → 95 USDT. Processing: 48h.',
+  wd_btn:'📤 Submit Request',wd_history:'My Withdrawal History',wd_empty:'No withdrawals yet',
+  stats_tag:'Your Performance',stats_title:'Statistics',
+  stats_rating:'Rating',stats_wins:'Wins',stats_losses:'Losses',stats_wr:'Win Rate',stats_tiers:'Rating Tiers',
+  prof_tag:'Account',prof_title:'My Profile',prof_daily:'Daily Bonus',prof_daily_btn:'🎁 Claim Daily Bonus',
+  prof_claimed:'✓ Already Claimed Today',prof_settings:'Account Settings',prof_username:'Username',
+  prof_email:'Email',prof_mobile:'Mobile (Optional)',prof_save:'Save Changes',
+  prof_pw_title:'Change Password',prof_new_pw:'New Password',prof_conf_pw:'Confirm Password',prof_pw_btn:'Update Password',
+  prof_logout:'🚪 Logout',
+  theme_tag:'Settings',theme_title:'🎨 Board Theme',theme_desc:'Choose your chess board colour',theme_active:'Active:',
+  mini_tag:'Live Games',mini_title:'Active Arenas',mini_desc:'Watch live positions from ongoing matches across all skill levels',
+  mini_gold:'♛ Gold Tier',mini_silver:'♜ Silver Tier',mini_bronze:'♟ Bronze Tier',
+  tourn_tag:'Competitive',tourn_title:'Tournaments',
+  login:'Login',signup:'Sign Up',deposit_btn:'💰 Deposit',withdraw_btn:'💸 Withdraw',
+},
+es:{
+  tagline:'Juega Ajedrez. Gana Recompensas Reales.',
+  subtitle:'Desafía jugadores reales en todo el mundo y gana USDT. 1 MONEDA = 1 USDT.',
+  playNow:'▶ Jugar Ahora',viewRankings:'Ver Rankings',
+  nav_home:'Inicio',nav_play:'Jugar',nav_arena:'Arena',nav_promotions:'🎁 Promociones',
+  sb_main:'Principal',sb_finance:'Finanzas',sb_account:'Cuenta',sb_more:'Más',sb_language:'🌐 Idioma',sb_support:'Soporte',
+  sb_home:'Inicio',sb_play:'Jugar',sb_1v1:'1 vs 1',sb_tournaments:'Torneos',sb_promotions:'Promociones',
+  sb_deposit:'Depósito',sb_withdraw:'Retirar',sb_stats:'Estadísticas',sb_profile:'Perfil',sb_theme:'Tablero',
+  sb_live_support:'💬 Soporte en Vivo',sb_online:'● En línea ahora',
+  hero_tag:'♛ ChessWin7 — Arena de Habilidad',
+  stats_players:'Jugadores Activos',stats_coins:'Monedas Otorgadas',stats_tournaments:'Torneos Realizados',
+  arena_tag:'En Vivo',arena_title:'La Arena',arena_beginner:'Principiante',arena_intermediate:'Intermedio',arena_elite:'Élite',
+  arena_entry:'Entrada',arena_prize:'Premio',arena_time:'Control',arena_btn:'Entrar al Torneo',
+  lb_tag:'Rankings Globales',lb_title:'Tabla de Clasificación',
+  lb_rank:'Rango',lb_player:'Jugador',lb_tier:'Nivel',lb_rating:'Puntuación',lb_wins:'Victorias',lb_coins:'Monedas',
+  faq_tag:'Ayuda',faq_title:'Preguntas Frecuentes',
+  lang_tag:'Elegir Idioma',lang_title:'🌐 Selecciona Tu Idioma',
+  support_tag:'Ayuda y Soporte',support_title:'💬 Soporte en Vivo',
+  support_chat_title:'Chatea Con Nosotros',support_online:'En línea · Responde en minutos',
+  support_desc:'¿Tienes preguntas sobre depósitos, retiros o tu cuenta? Nuestro equipo está disponible 24/7.',
+  support_btn:'💬 Iniciar Chat',
+  footer_terms:'Términos y Condiciones',footer_faq:'Preguntas Frecuentes',footer_about:'Sobre Nosotros',
+  play_tag:'Arena en Vivo',play_title:'Juega Ajedrez en Línea',
+  play_opponent:'Oponente',play_you:'Tú (Blancas)',play_choose:'Elige un modo →',
+  play_mode:'Modo de Juego',play_vsai:'vs IA',play_vsfriend:'vs Amigo',play_match:'Búsqueda',
+  play_difficulty:'Dificultad',play_as:'Jugar como',play_start:'Jugar vs IA',
+  play_time:'Control de Tiempo',play_create:'Crear Sala',play_join_code:'Código de Sala',play_join:'Unirse',
+  play_find:'Buscar Oponente',play_searching:'Buscando...',play_moves:'Historial de Movimientos',
+  play_new:'Nuevo',play_undo:'Deshacer',play_draw:'½ Tablas',play_resign:'Rendirse',
+  dep_tag:'Finanzas',dep_title:'💰 Depósito',dep_form_title:'Enviar Solicitud de Depósito',
+  dep_amount:'Cantidad (USDT)',dep_tx:'ID de Transacción',dep_note:'Nota (Opcional)',
+  dep_info:'📌 Envía USDT a nuestra billetera, luego envía tu TxID. Admin acredita en 24h.',
+  dep_btn:'📤 Enviar Solicitud',dep_history:'Mi Historial de Depósitos',dep_empty:'Sin depósitos aún',
+  wd_tag:'Finanzas',wd_title:'💸 Retiro',wd_form_title:'Enviar Solicitud de Retiro',
+  wd_balance:'Saldo Disponible',wd_amount:'Cantidad (USDT)',wd_wallet:'Dirección de Billetera',
+  wd_info:'📌 5% de comisión. 100 COINS → 95 USDT. Procesamiento: 48h.',
+  wd_btn:'📤 Enviar Solicitud',wd_history:'Mi Historial de Retiros',wd_empty:'Sin retiros aún',
+  stats_tag:'Tu Rendimiento',stats_title:'Estadísticas',
+  stats_rating:'Puntuación',stats_wins:'Victorias',stats_losses:'Derrotas',stats_wr:'% Victorias',stats_tiers:'Niveles de Clasificación',
+  prof_tag:'Cuenta',prof_title:'Mi Perfil',prof_daily:'Bono Diario',prof_daily_btn:'🎁 Reclamar Bono Diario',
+  prof_claimed:'✓ Ya Reclamado Hoy',prof_settings:'Configuración de Cuenta',prof_username:'Usuario',
+  prof_email:'Correo',prof_mobile:'Teléfono (Opcional)',prof_save:'Guardar Cambios',
+  prof_pw_title:'Cambiar Contraseña',prof_new_pw:'Nueva Contraseña',prof_conf_pw:'Confirmar Contraseña',prof_pw_btn:'Actualizar',
+  prof_logout:'🚪 Cerrar Sesión',
+  theme_tag:'Ajustes',theme_title:'🎨 Tema del Tablero',theme_desc:'Elige el color de tu tablero',theme_active:'Activo:',
+  mini_tag:'Juegos en Vivo',mini_title:'Arenas Activas',mini_desc:'Ve posiciones en vivo de partidas en curso',
+  mini_gold:'♛ Nivel Oro',mini_silver:'♜ Nivel Plata',mini_bronze:'♟ Nivel Bronce',
+  tourn_tag:'Competitivo',tourn_title:'Torneos',
+  login:'Iniciar Sesión',signup:'Registrarse',deposit_btn:'💰 Depósito',withdraw_btn:'💸 Retirar',
+},
+ru:{
+  tagline:'Играй в шахматы. Зарабатывай.',
+  subtitle:'Играй с игроками по всему миру и побеждай. 1 МОНЕТА = 1 USDT.',
+  playNow:'▶ Играть',viewRankings:'Рейтинг',
+  nav_home:'Главная',nav_play:'Играть',nav_arena:'Арена',nav_promotions:'🎁 Акции',
+  sb_main:'Главное',sb_finance:'Финансы',sb_account:'Аккаунт',sb_more:'Ещё',sb_language:'🌐 Язык',sb_support:'Поддержка',
+  sb_home:'Главная',sb_play:'Играть',sb_1v1:'1 против 1',sb_tournaments:'Турниры',sb_promotions:'Акции',
+  sb_deposit:'Депозит',sb_withdraw:'Вывод',sb_stats:'Статистика',sb_profile:'Профиль',sb_theme:'Тема',
+  sb_live_support:'💬 Поддержка',sb_online:'● Онлайн сейчас',
+  hero_tag:'♛ ChessWin7 — Арена Мастерства',
+  stats_players:'Активных Игроков',stats_coins:'Монет Выдано',stats_tournaments:'Турниров',
+  arena_tag:'Прямо Сейчас',arena_title:'Арена',arena_beginner:'Новичок',arena_intermediate:'Средний',arena_elite:'Элита',
+  arena_entry:'Взнос',arena_prize:'Приз',arena_time:'Контроль',arena_btn:'Участвовать',
+  lb_tag:'Мировой Рейтинг',lb_title:'Таблица Лидеров',
+  lb_rank:'Место',lb_player:'Игрок',lb_tier:'Уровень',lb_rating:'Рейтинг',lb_wins:'Победы',lb_coins:'Монеты',
+  faq_tag:'Помощь',faq_title:'Часто Задаваемые Вопросы',
+  lang_tag:'Выбор Языка',lang_title:'🌐 Выберите Язык',
+  support_tag:'Помощь и Поддержка',support_title:'💬 Живая Поддержка',
+  support_chat_title:'Написать Нам',support_online:'Онлайн · Ответим за минуты',
+  support_desc:'Вопросы о депозитах, выводах или аккаунте? Наша команда доступна 24/7.',
+  support_btn:'💬 Начать Чат',
+  footer_terms:'Условия Использования',footer_faq:'FAQ',footer_about:'О Нас',
+  play_tag:'Живая Арена',play_title:'Играть Онлайн',
+  play_opponent:'Противник',play_you:'Вы (Белые)',play_choose:'Выберите режим →',
+  play_mode:'Режим',play_vsai:'vs ИИ',play_vsfriend:'vs Друг',play_match:'Поиск',
+  play_difficulty:'Сложность',play_as:'Играть за',play_start:'Играть vs ИИ',
+  play_time:'Контроль Времени',play_create:'Создать Комнату',play_join_code:'Код Комнаты',play_join:'Войти',
+  play_find:'Найти Противника',play_searching:'Поиск...',play_moves:'История Ходов',
+  play_new:'Новая',play_undo:'Отмена',play_draw:'½ Ничья',play_resign:'Сдаться',
+  dep_tag:'Финансы',dep_title:'💰 Депозит',dep_form_title:'Заявка на Депозит',
+  dep_amount:'Сумма (USDT)',dep_tx:'ID Транзакции',dep_note:'Примечание',
+  dep_info:'📌 Отправьте USDT на наш кошелёк, затем укажите TxID. Зачисление в течение 24ч.',
+  dep_btn:'📤 Отправить',dep_history:'История Депозитов',dep_empty:'Нет депозитов',
+  wd_tag:'Финансы',wd_title:'💸 Вывод',wd_form_title:'Заявка на Вывод',
+  wd_balance:'Доступный Баланс',wd_amount:'Сумма (USDT)',wd_wallet:'Адрес Кошелька',
+  wd_info:'📌 Комиссия 5%. 100 МОНЕТ → 95 USDT. Обработка: 48ч.',
+  wd_btn:'📤 Отправить',wd_history:'История Выводов',wd_empty:'Нет выводов',
+  stats_tag:'Ваш Прогресс',stats_title:'Статистика',
+  stats_rating:'Рейтинг',stats_wins:'Победы',stats_losses:'Поражения',stats_wr:'% Побед',stats_tiers:'Уровни',
+  prof_tag:'Аккаунт',prof_title:'Мой Профиль',prof_daily:'Ежедневный Бонус',prof_daily_btn:'🎁 Получить Бонус',
+  prof_claimed:'✓ Уже Получено Сегодня',prof_settings:'Настройки',prof_username:'Имя пользователя',
+  prof_email:'Email',prof_mobile:'Телефон (Необязательно)',prof_save:'Сохранить',
+  prof_pw_title:'Сменить Пароль',prof_new_pw:'Новый Пароль',prof_conf_pw:'Подтвердите Пароль',prof_pw_btn:'Обновить',
+  prof_logout:'🚪 Выйти',
+  theme_tag:'Настройки',theme_title:'🎨 Тема Доски',theme_desc:'Выберите цвет доски',theme_active:'Активная:',
+  mini_tag:'Игры в Прямом Эфире',mini_title:'Активные Арены',mini_desc:'Наблюдайте за живыми партиями',
+  mini_gold:'♛ Золотой Уровень',mini_silver:'♜ Серебряный Уровень',mini_bronze:'♟ Бронзовый Уровень',
+  tourn_tag:'Соревнования',tourn_title:'Турниры',
+  login:'Войти',signup:'Регистрация',deposit_btn:'💰 Депозит',withdraw_btn:'💸 Вывод',
+},
+ur:{
+  tagline:'شطرنج کھیلیں۔ انعام کمائیں۔',
+  subtitle:'دنیا بھر کے کھلاڑیوں سے مقابلہ کریں اور USDT جیتیں۔ 1 کوائن = 1 USDT۔',
+  playNow:'▶ ابھی کھیلیں',viewRankings:'درجہ بندی دیکھیں',
+  nav_home:'ہوم',nav_play:'کھیلیں',nav_arena:'ایرنا',nav_promotions:'🎁 پروموشن',
+  sb_main:'مین',sb_finance:'مالیات',sb_account:'اکاؤنٹ',sb_more:'مزید',sb_language:'🌐 زبان',sb_support:'سپورٹ',
+  sb_home:'ہوم',sb_play:'کھیلیں',sb_1v1:'1 بمقابلہ 1',sb_tournaments:'ٹورنامنٹ',sb_promotions:'پروموشن',
+  sb_deposit:'جمع',sb_withdraw:'نکالیں',sb_stats:'اعداد و شمار',sb_profile:'پروفائل',sb_theme:'تھیم',
+  sb_live_support:'💬 لائیو سپورٹ',sb_online:'● ابھی آن لائن',
+  hero_tag:'♛ ChessWin7 — مہارت کی ایرنا',
+  stats_players:'فعال کھلاڑی',stats_coins:'کوائن دیے گئے',stats_tournaments:'ٹورنامنٹ',
+  arena_tag:'ابھی لائیو',arena_title:'ایرنا',arena_beginner:'ابتدائی',arena_intermediate:'درمیانی',arena_elite:'ایلیٹ',
+  arena_entry:'داخلہ فیس',arena_prize:'انعامی رقم',arena_time:'وقت',arena_btn:'ٹورنامنٹ میں شامل ہوں',
+  lb_tag:'عالمی درجہ بندی',lb_title:'لیڈر بورڈ',
+  lb_rank:'رینک',lb_player:'کھلاڑی',lb_tier:'درجہ',lb_rating:'ریٹنگ',lb_wins:'جیت',lb_coins:'کوائن',
+  faq_tag:'مدد',faq_title:'اکثر پوچھے جانے والے سوالات',
+  lang_tag:'زبان منتخب کریں',lang_title:'🌐 اپنی زبان چنیں',
+  support_tag:'مدد اور سپورٹ',support_title:'💬 لائیو سپورٹ',
+  support_chat_title:'ہم سے چیٹ کریں',support_online:'آن لائن · چند منٹوں میں جواب',
+  support_desc:'ڈپازٹ، ود ڈرال یا اکاؤنٹ کے بارے میں سوال؟ ہماری ٹیم 24/7 دستیاب ہے۔',
+  support_btn:'💬 چیٹ شروع کریں',
+  footer_terms:'شرائط و ضوابط',footer_faq:'FAQ',footer_about:'ہمارے بارے میں',
+  play_tag:'لائیو ایرنا',play_title:'آن لائن شطرنج کھیلیں',
+  play_opponent:'حریف',play_you:'آپ (سفید)',play_choose:'موڈ چنیں →',
+  play_mode:'گیم موڈ',play_vsai:'بمقابلہ AI',play_vsfriend:'بمقابلہ دوست',play_match:'میچ میکنگ',
+  play_difficulty:'مشکل',play_as:'کے طور پر کھیلیں',play_start:'AI سے شروع کریں',
+  play_time:'وقت',play_create:'روم بنائیں',play_join_code:'روم کوڈ',play_join:'شامل ہوں',
+  play_find:'حریف ڈھونڈیں',play_searching:'تلاش میں...',play_moves:'چالوں کی تاریخ',
+  play_new:'نیا',play_undo:'واپس',play_draw:'½ ڈرا',play_resign:'ہار مانیں',
+  dep_tag:'مالیات',dep_title:'💰 ڈپازٹ',dep_form_title:'ڈپازٹ درخواست',
+  dep_amount:'رقم (USDT)',dep_tx:'ٹرانزیکشن ID',dep_note:'نوٹ (اختیاری)',
+  dep_info:'📌 USDT بھیجیں، پھر TxID جمع کریں۔ 24 گھنٹے میں کریڈٹ ہوگا۔',
+  dep_btn:'📤 درخواست بھیجیں',dep_history:'ڈپازٹ کی تاریخ',dep_empty:'کوئی ڈپازٹ نہیں',
+  wd_tag:'مالیات',wd_title:'💸 ود ڈرال',wd_form_title:'ود ڈرال درخواست',
+  wd_balance:'دستیاب بیلنس',wd_amount:'رقم (USDT)',wd_wallet:'والٹ ایڈریس',
+  wd_info:'📌 5% فیس کٹے گی۔ 100 کوائن → 95 USDT۔ پروسیسنگ: 48 گھنٹے۔',
+  wd_btn:'📤 درخواست بھیجیں',wd_history:'ود ڈرال کی تاریخ',wd_empty:'کوئی ود ڈرال نہیں',
+  stats_tag:'آپ کی کارکردگی',stats_title:'اعداد و شمار',
+  stats_rating:'ریٹنگ',stats_wins:'جیت',stats_losses:'ہار',stats_wr:'جیت کا تناسب',stats_tiers:'ریٹنگ درجات',
+  prof_tag:'اکاؤنٹ',prof_title:'میرا پروفائل',prof_daily:'روزانہ بونس',prof_daily_btn:'🎁 روزانہ بونس لیں',
+  prof_claimed:'✓ آج لے لیا گیا',prof_settings:'اکاؤنٹ سیٹنگز',prof_username:'صارف نام',
+  prof_email:'ای میل',prof_mobile:'موبائل (اختیاری)',prof_save:'تبدیلیاں محفوظ کریں',
+  prof_pw_title:'پاسورڈ تبدیل کریں',prof_new_pw:'نیا پاسورڈ',prof_conf_pw:'پاسورڈ تصدیق',prof_pw_btn:'اپ ڈیٹ کریں',
+  prof_logout:'🚪 لاگ آؤٹ',
+  theme_tag:'سیٹنگز',theme_title:'🎨 بورڈ تھیم',theme_desc:'اپنے بورڈ کا رنگ چنیں',theme_active:'فعال:',
+  mini_tag:'لائیو گیمز',mini_title:'فعال ایرناز',mini_desc:'جاری میچوں کی پوزیشنیں دیکھیں',
+  mini_gold:'♛ گولڈ ٹیئر',mini_silver:'♜ سلور ٹیئر',mini_bronze:'♟ برونز ٹیئر',
+  tourn_tag:'مقابلہ',tourn_title:'ٹورنامنٹ',
+  login:'لاگ ان',signup:'سائن اپ',deposit_btn:'💰 جمع',withdraw_btn:'💸 نکالیں',
+},
+zh:{
+  tagline:'下棋。赚取真实奖励。',subtitle:'挑战全球真实玩家，赢取USDT。1金币 = 1 USDT。',
+  playNow:'▶ 立即游戏',viewRankings:'查看排名',
+  nav_home:'首页',nav_play:'游戏',nav_arena:'竞技场',nav_promotions:'🎁 促销',
+  sb_main:'主菜单',sb_finance:'财务',sb_account:'账户',sb_more:'更多',sb_language:'🌐 语言',sb_support:'支持',
+  sb_home:'首页',sb_play:'游戏',sb_1v1:'1对1',sb_tournaments:'锦标赛',sb_promotions:'促销',
+  sb_deposit:'存款',sb_withdraw:'提款',sb_stats:'统计',sb_profile:'个人资料',sb_theme:'棋盘',
+  sb_live_support:'💬 在线客服',sb_online:'● 现在在线',
+  hero_tag:'♛ ChessWin7 — 技能竞技平台',
+  stats_players:'活跃玩家',stats_coins:'已发放金币',stats_tournaments:'已举办锦标赛',
+  arena_tag:'正在进行',arena_title:'竞技场',arena_beginner:'初级',arena_intermediate:'中级',arena_elite:'精英',
+  arena_entry:'报名费',arena_prize:'奖池',arena_time:'时间',arena_btn:'参加比赛',
+  lb_tag:'全球排名',lb_title:'排行榜',lb_rank:'排名',lb_player:'玩家',lb_tier:'等级',lb_rating:'评分',lb_wins:'胜场',lb_coins:'金币',
+  faq_tag:'帮助',faq_title:'常见问题',lang_tag:'选择语言',lang_title:'🌐 选择您的语言',
+  support_tag:'帮助与支持',support_title:'💬 在线客服',support_chat_title:'联系我们',support_online:'在线 · 几分钟内回复',
+  support_desc:'关于存款、提款或账户的问题？我们的团队24/7在线。',support_btn:'💬 开始聊天',
+  footer_terms:'条款和条件',footer_faq:'常见问题',footer_about:'关于我们',
+  play_tag:'竞技场',play_title:'在线下棋',play_opponent:'对手',play_you:'您（白棋）',play_choose:'选择模式 →',
+  play_mode:'游戏模式',play_vsai:'vs 电脑',play_vsfriend:'vs 朋友',play_match:'匹配对手',
+  play_difficulty:'难度',play_as:'执棋',play_start:'开始 vs 电脑',
+  play_time:'时间控制',play_create:'创建房间',play_join_code:'房间代码',play_join:'加入',
+  play_find:'查找对手',play_searching:'搜索中...',play_moves:'走法记录',
+  play_new:'新局',play_undo:'撤销',play_draw:'½ 和棋',play_resign:'认输',
+  dep_tag:'财务',dep_title:'💰 存款',dep_form_title:'提交存款申请',dep_amount:'金额 (USDT)',dep_tx:'交易ID',dep_note:'备注（可选）',
+  dep_info:'📌 发送USDT到我们的钱包，然后提交您的TxID。管理员24小时内到账。',dep_btn:'📤 提交申请',dep_history:'我的存款记录',dep_empty:'暂无存款',
+  wd_tag:'财务',wd_title:'💸 提款',wd_form_title:'提交提款申请',wd_balance:'可用余额',wd_amount:'金额 (USDT)',wd_wallet:'钱包地址',
+  wd_info:'📌 扣除5%平台费。100金币 → 95 USDT。处理时间：48小时。',wd_btn:'📤 提交申请',wd_history:'我的提款记录',wd_empty:'暂无提款',
+  stats_tag:'您的表现',stats_title:'统计',stats_rating:'评分',stats_wins:'胜场',stats_losses:'负场',stats_wr:'胜率',stats_tiers:'段位',
+  prof_tag:'账户',prof_title:'我的资料',prof_daily:'每日奖励',prof_daily_btn:'🎁 领取每日奖励',prof_claimed:'✓ 今日已领取',
+  prof_settings:'账户设置',prof_username:'用户名',prof_email:'邮箱',prof_mobile:'手机（可选）',prof_save:'保存更改',
+  prof_pw_title:'修改密码',prof_new_pw:'新密码',prof_conf_pw:'确认密码',prof_pw_btn:'更新',prof_logout:'🚪 退出登录',
+  theme_tag:'设置',theme_title:'🎨 棋盘主题',theme_desc:'选择您的棋盘颜色',theme_active:'当前：',
+  mini_tag:'实时游戏',mini_title:'活跃竞技场',mini_desc:'观看正在进行的比赛',
+  mini_gold:'♛ 黄金段位',mini_silver:'♜ 白银段位',mini_bronze:'♟ 青铜段位',
+  tourn_tag:'竞技',tourn_title:'锦标赛',login:'登录',signup:'注册',deposit_btn:'💰 存款',withdraw_btn:'💸 提款',
+},
+ja:{
+  tagline:'チェスで遊んで。報酬を稼いで。',subtitle:'世界中のプレイヤーと対戦してUSDTを獲得。1コイン = 1 USDT。',
+  playNow:'▶ プレイ',viewRankings:'ランキング',
+  nav_home:'ホーム',nav_play:'プレイ',nav_arena:'アリーナ',nav_promotions:'🎁 キャンペーン',
+  sb_main:'メイン',sb_finance:'財務',sb_account:'アカウント',sb_more:'その他',sb_language:'🌐 言語',sb_support:'サポート',
+  sb_home:'ホーム',sb_play:'プレイ',sb_1v1:'1対1',sb_tournaments:'トーナメント',sb_promotions:'キャンペーン',
+  sb_deposit:'入金',sb_withdraw:'出金',sb_stats:'統計',sb_profile:'プロフィール',sb_theme:'テーマ',
+  sb_live_support:'💬 ライブサポート',sb_online:'● オンライン中',
+  hero_tag:'♛ ChessWin7 — スキルベースアリーナ',
+  stats_players:'アクティブプレイヤー',stats_coins:'配布コイン',stats_tournaments:'トーナメント開催数',
+  arena_tag:'ライブ',arena_title:'アリーナ',arena_beginner:'初心者',arena_intermediate:'中級',arena_elite:'エリート',
+  arena_entry:'参加料',arena_prize:'賞金池',arena_time:'持ち時間',arena_btn:'トーナメント参加',
+  lb_tag:'グローバルランキング',lb_title:'リーダーボード',lb_rank:'順位',lb_player:'プレイヤー',lb_tier:'ティア',lb_rating:'レーティング',lb_wins:'勝利',lb_coins:'コイン',
+  faq_tag:'ヘルプ',faq_title:'よくある質問',lang_tag:'言語選択',lang_title:'🌐 言語を選択',
+  support_tag:'ヘルプ＆サポート',support_title:'💬 ライブサポート',support_chat_title:'チャットする',support_online:'オンライン · 数分で返答',
+  support_desc:'入金・出金・アカウントについてご質問は？チームが24/7対応します。',support_btn:'💬 チャット開始',
+  footer_terms:'利用規約',footer_faq:'よくある質問',footer_about:'私たちについて',
+  play_tag:'ライブアリーナ',play_title:'オンラインチェス',play_opponent:'相手',play_you:'あなた（白）',play_choose:'モードを選択 →',
+  play_mode:'ゲームモード',play_vsai:'vs AI',play_vsfriend:'vs 友達',play_match:'マッチング',
+  play_difficulty:'難易度',play_as:'プレイ色',play_start:'AI と開始',
+  play_time:'持ち時間',play_create:'ルーム作成',play_join_code:'ルームコード',play_join:'参加',
+  play_find:'対戦相手を探す',play_searching:'検索中...',play_moves:'指し手履歴',
+  play_new:'新局',play_undo:'戻す',play_draw:'½ 引き分け',play_resign:'投了',
+  dep_tag:'財務',dep_title:'💰 入金',dep_form_title:'入金申請',dep_amount:'金額 (USDT)',dep_tx:'トランザクションID',dep_note:'メモ（任意）',
+  dep_info:'📌 USDTを送金後、TxIDを送信してください。24時間以内に反映。',dep_btn:'📤 申請送信',dep_history:'入金履歴',dep_empty:'入金なし',
+  wd_tag:'財務',wd_title:'💸 出金',wd_form_title:'出金申請',wd_balance:'利用可能残高',wd_amount:'金額 (USDT)',wd_wallet:'ウォレットアドレス',
+  wd_info:'📌 5%手数料あり。100コイン → 95 USDT。処理時間：48時間。',wd_btn:'📤 申請送信',wd_history:'出金履歴',wd_empty:'出金なし',
+  stats_tag:'あなたの実績',stats_title:'統計',stats_rating:'レーティング',stats_wins:'勝利',stats_losses:'敗北',stats_wr:'勝率',stats_tiers:'ティア',
+  prof_tag:'アカウント',prof_title:'マイプロフィール',prof_daily:'デイリーボーナス',prof_daily_btn:'🎁 デイリーボーナス受取',prof_claimed:'✓ 本日受取済み',
+  prof_settings:'アカウント設定',prof_username:'ユーザー名',prof_email:'メール',prof_mobile:'電話番号（任意）',prof_save:'保存',
+  prof_pw_title:'パスワード変更',prof_new_pw:'新しいパスワード',prof_conf_pw:'パスワード確認',prof_pw_btn:'更新',prof_logout:'🚪 ログアウト',
+  theme_tag:'設定',theme_title:'🎨 ボードテーマ',theme_desc:'ボードの色を選択',theme_active:'現在：',
+  mini_tag:'ライブゲーム',mini_title:'アクティブアリーナ',mini_desc:'進行中の試合を観戦',
+  mini_gold:'♛ ゴールドティア',mini_silver:'♜ シルバーティア',mini_bronze:'♟ ブロンズティア',
+  tourn_tag:'競技',tourn_title:'トーナメント',login:'ログイン',signup:'登録',deposit_btn:'💰 入金',withdraw_btn:'💸 出金',
+},
+ko:{
+  tagline:'체스를 두세요. 진짜 보상을 받으세요.',subtitle:'전 세계 플레이어와 경쟁하여 USDT를 획득하세요.',
+  playNow:'▶ 플레이',viewRankings:'순위보기',
+  nav_home:'홈',nav_play:'플레이',nav_arena:'아레나',nav_promotions:'🎁 프로모션',
+  sb_main:'메인',sb_finance:'재무',sb_account:'계정',sb_more:'더보기',sb_language:'🌐 언어',sb_support:'지원',
+  sb_home:'홈',sb_play:'플레이',sb_1v1:'1대1',sb_tournaments:'토너먼트',sb_promotions:'프로모션',
+  sb_deposit:'입금',sb_withdraw:'출금',sb_stats:'통계',sb_profile:'프로필',sb_theme:'테마',
+  sb_live_support:'💬 라이브 지원',sb_online:'● 지금 온라인',
+  hero_tag:'♛ ChessWin7 — 실력 기반 아레나',
+  stats_players:'활성 플레이어',stats_coins:'지급된 코인',stats_tournaments:'토너먼트 수',
+  arena_tag:'진행 중',arena_title:'아레나',arena_beginner:'초급',arena_intermediate:'중급',arena_elite:'엘리트',
+  arena_entry:'참가비',arena_prize:'상금',arena_time:'시간',arena_btn:'토너먼트 참가',
+  lb_tag:'글로벌 순위',lb_title:'리더보드',lb_rank:'순위',lb_player:'플레이어',lb_tier:'등급',lb_rating:'레이팅',lb_wins:'승리',lb_coins:'코인',
+  faq_tag:'도움말',faq_title:'자주 묻는 질문',lang_tag:'언어 선택',lang_title:'🌐 언어를 선택하세요',
+  support_tag:'도움 & 지원',support_title:'💬 라이브 지원',support_chat_title:'채팅하기',support_online:'온라인 · 몇 분 내 답변',
+  support_desc:'입금, 출금, 계정에 대한 질문이 있으신가요? 24/7 이용 가능합니다.',support_btn:'💬 채팅 시작',
+  footer_terms:'이용약관',footer_faq:'FAQ',footer_about:'회사 소개',
+  play_tag:'라이브 아레나',play_title:'온라인 체스',play_opponent:'상대',play_you:'나 (백)',play_choose:'모드 선택 →',
+  play_mode:'게임 모드',play_vsai:'vs AI',play_vsfriend:'vs 친구',play_match:'매칭',
+  play_difficulty:'난이도',play_as:'색상',play_start:'AI와 시작',
+  play_time:'시간 제한',play_create:'방 만들기',play_join_code:'방 코드',play_join:'참가',
+  play_find:'상대 찾기',play_searching:'검색 중...',play_moves:'수순 기록',
+  play_new:'새 게임',play_undo:'무르기',play_draw:'½ 무승부',play_resign:'기권',
+  dep_tag:'재무',dep_title:'💰 입금',dep_form_title:'입금 신청',dep_amount:'금액 (USDT)',dep_tx:'거래 ID',dep_note:'메모 (선택)',
+  dep_info:'📌 USDT를 지갑으로 보낸 후 TxID를 제출하세요. 24시간 내 처리.',dep_btn:'📤 신청하기',dep_history:'입금 내역',dep_empty:'입금 없음',
+  wd_tag:'재무',wd_title:'💸 출금',wd_form_title:'출금 신청',wd_balance:'사용 가능 잔액',wd_amount:'금액 (USDT)',wd_wallet:'지갑 주소',
+  wd_info:'📌 5% 수수료 부과. 100코인 → 95 USDT. 처리: 48시간.',wd_btn:'📤 신청하기',wd_history:'출금 내역',wd_empty:'출금 없음',
+  stats_tag:'내 실적',stats_title:'통계',stats_rating:'레이팅',stats_wins:'승리',stats_losses:'패배',stats_wr:'승률',stats_tiers:'등급',
+  prof_tag:'계정',prof_title:'내 프로필',prof_daily:'일일 보너스',prof_daily_btn:'🎁 일일 보너스 받기',prof_claimed:'✓ 오늘 이미 받음',
+  prof_settings:'계정 설정',prof_username:'사용자명',prof_email:'이메일',prof_mobile:'전화번호 (선택)',prof_save:'저장',
+  prof_pw_title:'비밀번호 변경',prof_new_pw:'새 비밀번호',prof_conf_pw:'비밀번호 확인',prof_pw_btn:'업데이트',prof_logout:'🚪 로그아웃',
+  theme_tag:'설정',theme_title:'🎨 보드 테마',theme_desc:'체스 보드 색상 선택',theme_active:'현재:',
+  mini_tag:'라이브 게임',mini_title:'활성 아레나',mini_desc:'진행 중인 경기 관람',
+  mini_gold:'♛ 골드 등급',mini_silver:'♜ 실버 등급',mini_bronze:'♟ 브론즈 등급',
+  tourn_tag:'경쟁',tourn_title:'토너먼트',login:'로그인',signup:'가입',deposit_btn:'💰 입금',withdraw_btn:'💸 출금',
+},
+id:{
+  tagline:'Main Catur. Dapatkan Hadiah Nyata.',subtitle:'Tantang pemain nyata di seluruh dunia dan menangkan USDT. 1 KOIN = 1 USDT.',
+  playNow:'▶ Main Sekarang',viewRankings:'Lihat Peringkat',
+  nav_home:'Beranda',nav_play:'Main',nav_arena:'Arena',nav_promotions:'🎁 Promo',
+  sb_main:'Utama',sb_finance:'Keuangan',sb_account:'Akun',sb_more:'Lainnya',sb_language:'🌐 Bahasa',sb_support:'Dukungan',
+  sb_home:'Beranda',sb_play:'Main',sb_1v1:'1 vs 1',sb_tournaments:'Turnamen',sb_promotions:'Promo',
+  sb_deposit:'Setor',sb_withdraw:'Tarik',sb_stats:'Statistik',sb_profile:'Profil',sb_theme:'Tema',
+  sb_live_support:'💬 Dukungan Langsung',sb_online:'● Online Sekarang',
+  hero_tag:'♛ ChessWin7 — Arena Berbasis Keahlian',
+  stats_players:'Pemain Aktif',stats_coins:'Koin Diberikan',stats_tournaments:'Turnamen Digelar',
+  arena_tag:'Sedang Berlangsung',arena_title:'Arena',arena_beginner:'Pemula',arena_intermediate:'Menengah',arena_elite:'Elite',
+  arena_entry:'Biaya Masuk',arena_prize:'Hadiah',arena_time:'Kontrol Waktu',arena_btn:'Masuk Turnamen',
+  lb_tag:'Peringkat Global',lb_title:'Papan Peringkat',lb_rank:'Peringkat',lb_player:'Pemain',lb_tier:'Tingkat',lb_rating:'Rating',lb_wins:'Menang',lb_coins:'Koin',
+  faq_tag:'Bantuan',faq_title:'Pertanyaan Umum',lang_tag:'Pilih Bahasa',lang_title:'🌐 Pilih Bahasa Anda',
+  support_tag:'Bantuan & Dukungan',support_title:'💬 Dukungan Langsung',support_chat_title:'Chat Dengan Kami',support_online:'Online · Balas dalam menit',
+  support_desc:'Ada pertanyaan tentang setoran, penarikan, atau akun? Tim kami tersedia 24/7.',support_btn:'💬 Mulai Chat',
+  footer_terms:'Syarat & Ketentuan',footer_faq:'FAQ',footer_about:'Tentang Kami',
+  play_tag:'Arena Langsung',play_title:'Main Catur Online',play_opponent:'Lawan',play_you:'Anda (Putih)',play_choose:'Pilih mode →',
+  play_mode:'Mode Permainan',play_vsai:'vs AI',play_vsfriend:'vs Teman',play_match:'Pencarian',
+  play_difficulty:'Kesulitan',play_as:'Bermain sebagai',play_start:'Mulai vs AI',
+  play_time:'Kontrol Waktu',play_create:'Buat Ruang',play_join_code:'Kode Ruang',play_join:'Bergabung',
+  play_find:'Cari Lawan',play_searching:'Mencari...',play_moves:'Riwayat Langkah',
+  play_new:'Baru',play_undo:'Batalkan',play_draw:'½ Seri',play_resign:'Menyerah',
+  dep_tag:'Keuangan',dep_title:'💰 Setoran',dep_form_title:'Ajukan Setoran',dep_amount:'Jumlah (USDT)',dep_tx:'ID Transaksi',dep_note:'Catatan (Opsional)',
+  dep_info:'📌 Kirim USDT ke dompet kami, lalu kirim TxID. Admin mengkreditkan dalam 24 jam.',dep_btn:'📤 Kirim Permintaan',dep_history:'Riwayat Setoran',dep_empty:'Belum ada setoran',
+  wd_tag:'Keuangan',wd_title:'💸 Penarikan',wd_form_title:'Ajukan Penarikan',wd_balance:'Saldo Tersedia',wd_amount:'Jumlah (USDT)',wd_wallet:'Alamat Dompet',
+  wd_info:'📌 Biaya platform 5%. 100 KOIN → 95 USDT. Pemrosesan: 48 jam.',wd_btn:'📤 Kirim Permintaan',wd_history:'Riwayat Penarikan',wd_empty:'Belum ada penarikan',
+  stats_tag:'Performa Anda',stats_title:'Statistik',stats_rating:'Rating',stats_wins:'Menang',stats_losses:'Kalah',stats_wr:'Tingkat Menang',stats_tiers:'Tingkatan Rating',
+  prof_tag:'Akun',prof_title:'Profil Saya',prof_daily:'Bonus Harian',prof_daily_btn:'🎁 Klaim Bonus Harian',prof_claimed:'✓ Sudah Diklaim Hari Ini',
+  prof_settings:'Pengaturan Akun',prof_username:'Nama Pengguna',prof_email:'Email',prof_mobile:'Ponsel (Opsional)',prof_save:'Simpan Perubahan',
+  prof_pw_title:'Ganti Kata Sandi',prof_new_pw:'Kata Sandi Baru',prof_conf_pw:'Konfirmasi Kata Sandi',prof_pw_btn:'Perbarui',prof_logout:'🚪 Keluar',
+  theme_tag:'Pengaturan',theme_title:'🎨 Tema Papan',theme_desc:'Pilih warna papan catur',theme_active:'Aktif:',
+  mini_tag:'Game Langsung',mini_title:'Arena Aktif',mini_desc:'Tonton posisi langsung dari pertandingan yang sedang berlangsung',
+  mini_gold:'♛ Tingkat Emas',mini_silver:'♜ Tingkat Perak',mini_bronze:'♟ Tingkat Perunggu',
+  tourn_tag:'Kompetitif',tourn_title:'Turnamen',login:'Masuk',signup:'Daftar',deposit_btn:'💰 Setoran',withdraw_btn:'💸 Tarik',
+},
+ha:{
+  tagline:'Wasa Chess. Samu Lada.',subtitle:'Yi gasa da yan wasa na duniya ka lashe USDT. 1 KUDIN = 1 USDT.',
+  playNow:'▶ Fara Wasa',viewRankings:'Dubi Matsayi',
+  nav_home:'Gida',nav_play:'Wasa',nav_arena:'Arena',nav_promotions:'🎁 Tallafi',
+  sb_main:'Babban Menu',sb_finance:'Kudi',sb_account:'Asusun',sb_more:'Ƙari',sb_language:'🌐 Harshe',sb_support:'Taimako',
+  sb_home:'Gida',sb_play:'Wasa',sb_1v1:'1 da 1',sb_tournaments:'Gasar',sb_promotions:'Tallafi',
+  sb_deposit:'Ajiya',sb_withdraw:'Cire',sb_stats:'Alkaluma',sb_profile:'Bayani',sb_theme:'Jigon',
+  sb_live_support:'💬 Taimako Kai Tsaye',sb_online:'● Yana Online Yanzu',
+  hero_tag:'♛ ChessWin7 — Filin Gwaninta',
+  stats_players:'Masu Wasa',stats_coins:'Kudin da aka bai wa',stats_tournaments:'Gasanni',
+  arena_tag:'Yanzu Yana Gudana',arena_title:'Arena',arena_beginner:'Mafari',arena_intermediate:'Matsakaici',arena_elite:'Gwanaye',
+  arena_entry:'Kudin shiga',arena_prize:'Kyautar',arena_time:'Lokaci',arena_btn:'Shiga Gasar',
+  lb_tag:'Matsayi na Duniya',lb_title:'Jerin Masu Nasara',lb_rank:'Matsayi',lb_player:'Mai Wasa',lb_tier:'Daraja',lb_rating:'Maki',lb_wins:'Nasarori',lb_coins:'Kudi',
+  faq_tag:'Taimako',faq_title:'Tambayoyin da ake yawan yi',lang_tag:'Zaɓi Harshe',lang_title:'🌐 Zaɓi Harshenka',
+  support_tag:'Taimako da Goyan Baya',support_title:'💬 Taimako Kai Tsaye',support_chat_title:'Yi Hira da Mu',support_online:'Online · Muna amsa cikin mintuna',
+  support_desc:'Kuna da tambaya game da ajiya, cirewa, ko asusunka? Ƙungiyarmu tana akwai 24/7.',support_btn:'💬 Fara Hira',
+  footer_terms:'Sharuɗɗa da Yarjejeniya',footer_faq:'FAQ',footer_about:'Game da Mu',
+  play_tag:'Filin Wasa na Kai Tsaye',play_title:'Yi Wasan Chess Online',play_opponent:'Abokin Hamayya',play_you:'Kai (Fari)',play_choose:'Zaɓi yanayi →',
+  play_mode:'Yanayin Wasa',play_vsai:'vs AI',play_vsfriend:'vs Aboki',play_match:'Nemo Mai Wasa',
+  play_difficulty:'Matsalar',play_as:'Wasa da',play_start:'Fara vs AI',
+  play_time:'Lokacin Wasa',play_create:'Ƙirƙiri Dakin',play_join_code:'Lambar Daki',play_join:'Shiga',
+  play_find:'Nemo Mai Wasa',play_searching:'Ana nema...',play_moves:'Tarihin Motsi',
+  play_new:'Sabo',play_undo:'Janye',play_draw:'½ Daidaito',play_resign:'Mika wuya',
+  dep_tag:'Kudi',dep_title:'💰 Ajiya',dep_form_title:'Aika Buƙatar Ajiya',dep_amount:'Adadi (USDT)',dep_tx:'ID Mu\'amala',dep_note:'Bayani (Zaɓi)',
+  dep_info:'📌 Aika USDT zuwa walat ɗinmu, sannan aika TxID. Admin zai ƙara cikin awanni 24.',dep_btn:'📤 Aika Buƙata',dep_history:'Tarihin Ajiyata',dep_empty:'Babu ajiya tukuna',
+  wd_tag:'Kudi',wd_title:'💸 Cire Kudi',wd_form_title:'Aika Buƙatar Cirewa',wd_balance:'Kudin da Ake da shi',wd_amount:'Adadi (USDT)',wd_wallet:'Adireshin Walat',
+  wd_info:'📌 An cire kashi 5%. 100 KUDI → 95 USDT. Sarrafa: awanni 48.',wd_btn:'📤 Aika Buƙata',wd_history:'Tarihin Cirewa',wd_empty:'Babu cirewa tukuna',
+  stats_tag:'Aikinku',stats_title:'Alkaluma',stats_rating:'Maki',stats_wins:'Nasarori',stats_losses:'Asarar',stats_wr:'Kashi na Nasara',stats_tiers:'Matakan',
+  prof_tag:'Asusun',prof_title:'Bayananku',prof_daily:'Kyautar Yau',prof_daily_btn:'🎁 Karɓi Kyautar Yau',prof_claimed:'✓ An riga an karɓa Yau',
+  prof_settings:'Saitunan Asusun',prof_username:'Sunan Mai Amfani',prof_email:'Imel',prof_mobile:'Wayar hannu (Zaɓi)',prof_save:'Adana Canje-canje',
+  prof_pw_title:'Canza Kalmar Shiga',prof_new_pw:'Sabuwar Kalmar Shiga',prof_conf_pw:'Tabbatar Kalmar Shiga',prof_pw_btn:'Sabunta',prof_logout:'🚪 Fita',
+  theme_tag:'Saitunan',theme_title:'🎨 Jigon Allon Wasa',theme_desc:'Zaɓi launi na allon wasan chess',theme_active:'Aiki:',
+  mini_tag:'Wasannin Kai Tsaye',mini_title:'Filayen Wasa masu aiki',mini_desc:'Kalli matsayin wasannin da ake yi yanzu',
+  mini_gold:'♛ Matsayin Zinariya',mini_silver:'♜ Matsayin Azurfa',mini_bronze:'♟ Matsayin Tagulla',
+  tourn_tag:'Gasa',tourn_title:'Gasanni',login:'Shiga',signup:'Yi rajista',deposit_btn:'💰 Ajiya',withdraw_btn:'💸 Cire',
+},
+de:{
+  tagline:'Schach spielen. Echte Belohnungen verdienen.',subtitle:'Fordere Spieler weltweit heraus und gewinne USDT. 1 Coin = 1 USDT.',
+  playNow:'▶ Jetzt spielen',viewRankings:'Rangliste',
+  nav_home:'Startseite',nav_play:'Spielen',nav_arena:'Arena',nav_promotions:'🎁 Aktionen',
+  sb_main:'Hauptmenü',sb_finance:'Finanzen',sb_account:'Konto',sb_more:'Mehr',sb_language:'🌐 Sprache',sb_support:'Support',
+  sb_home:'Startseite',sb_play:'Spielen',sb_1v1:'1 gegen 1',sb_tournaments:'Turniere',sb_promotions:'Aktionen',
+  sb_deposit:'Einzahlung',sb_withdraw:'Auszahlung',sb_stats:'Statistiken',sb_profile:'Profil',sb_theme:'Design',
+  sb_live_support:'💬 Live-Support',sb_online:'● Jetzt online',
+  hero_tag:'♛ ChessWin7 — Fähigkeits-Arena',
+  stats_players:'Aktive Spieler',stats_coins:'Ausgegebene Coins',stats_tournaments:'Turniere',
+  arena_tag:'Jetzt Live',arena_title:'Die Arena',arena_beginner:'Anfänger',arena_intermediate:'Fortgeschritten',arena_elite:'Elite',
+  arena_entry:'Startgebühr',arena_prize:'Preispool',arena_time:'Zeitkontrolle',arena_btn:'Am Turnier teilnehmen',
+  lb_tag:'Globale Rangliste',lb_title:'Rangliste',lb_rank:'Rang',lb_player:'Spieler',lb_tier:'Stufe',lb_rating:'Wertung',lb_wins:'Siege',lb_coins:'Coins',
+  faq_tag:'Hilfe',faq_title:'Häufig gestellte Fragen',lang_tag:'Sprache wählen',lang_title:'🌐 Sprache auswählen',
+  support_tag:'Hilfe & Support',support_title:'💬 Live-Support',support_chat_title:'Mit uns chatten',support_online:'Online · Antwortet in Minuten',
+  support_desc:'Fragen zu Einzahlungen, Auszahlungen oder Ihrem Konto? Unser Team ist 24/7 erreichbar.',support_btn:'💬 Chat starten',
+  footer_terms:'Nutzungsbedingungen',footer_faq:'FAQ',footer_about:'Über uns',
+  play_tag:'Live-Arena',play_title:'Online Schach spielen',play_opponent:'Gegner',play_you:'Sie (Weiß)',play_choose:'Modus wählen →',
+  play_mode:'Spielmodus',play_vsai:'vs KI',play_vsfriend:'vs Freund',play_match:'Matchmaking',
+  play_difficulty:'Schwierigkeitsgrad',play_as:'Spielen als',play_start:'vs KI starten',
+  play_time:'Zeitkontrolle',play_create:'Raum erstellen',play_join_code:'Raumcode',play_join:'Beitreten',
+  play_find:'Gegner suchen',play_searching:'Suche...',play_moves:'Zughistorie',
+  play_new:'Neu',play_undo:'Rückgängig',play_draw:'½ Remis',play_resign:'Aufgeben',
+  dep_tag:'Finanzen',dep_title:'💰 Einzahlung',dep_form_title:'Einzahlungsantrag stellen',dep_amount:'Betrag (USDT)',dep_tx:'Transaktions-ID',dep_note:'Hinweis (Optional)',
+  dep_info:'📌 USDT an unsere Wallet senden, dann TxID einreichen. Admin schreibt innerhalb 24h gut.',dep_btn:'📤 Anfrage senden',dep_history:'Meine Einzahlungen',dep_empty:'Noch keine Einzahlungen',
+  wd_tag:'Finanzen',wd_title:'💸 Auszahlung',wd_form_title:'Auszahlungsantrag stellen',wd_balance:'Verfügbares Guthaben',wd_amount:'Betrag (USDT)',wd_wallet:'Wallet-Adresse',
+  wd_info:'📌 5% Plattformgebühr. 100 Coins → 95 USDT. Bearbeitung: 48h.',wd_btn:'📤 Anfrage senden',wd_history:'Meine Auszahlungen',wd_empty:'Noch keine Auszahlungen',
+  stats_tag:'Ihre Leistung',stats_title:'Statistiken',stats_rating:'Wertung',stats_wins:'Siege',stats_losses:'Niederlagen',stats_wr:'Gewinnrate',stats_tiers:'Rangstufen',
+  prof_tag:'Konto',prof_title:'Mein Profil',prof_daily:'Täglicher Bonus',prof_daily_btn:'🎁 Täglichen Bonus beanspruchen',prof_claimed:'✓ Heute bereits beansprucht',
+  prof_settings:'Kontoeinstellungen',prof_username:'Benutzername',prof_email:'E-Mail',prof_mobile:'Mobil (Optional)',prof_save:'Änderungen speichern',
+  prof_pw_title:'Passwort ändern',prof_new_pw:'Neues Passwort',prof_conf_pw:'Passwort bestätigen',prof_pw_btn:'Aktualisieren',prof_logout:'🚪 Abmelden',
+  theme_tag:'Einstellungen',theme_title:'🎨 Brett-Design',theme_desc:'Brettfarbe auswählen',theme_active:'Aktiv:',
+  mini_tag:'Live-Spiele',mini_title:'Aktive Arenen',mini_desc:'Positionen aus laufenden Partien beobachten',
+  mini_gold:'♛ Gold-Stufe',mini_silver:'♜ Silber-Stufe',mini_bronze:'♟ Bronze-Stufe',
+  tourn_tag:'Wettbewerb',tourn_title:'Turniere',login:'Anmelden',signup:'Registrieren',deposit_btn:'💰 Einzahlen',withdraw_btn:'💸 Auszahlen',
+},
 };
+
 function buildSbLangGrid(){
   var grid=document.getElementById('sbLangGrid');if(!grid)return;grid.innerHTML='';
   LANGS.forEach(function(l){
@@ -1719,32 +2160,198 @@ function buildMobLangGrid(){
     var flag=makeSafeEl('span','flag',l.flag);var name=makeSafeEl('span',null,l.name);
     item.appendChild(flag);item.appendChild(name);grid.appendChild(item);});
 }
+
+// Save language to localStorage (cookie alternative — persists across sessions)
+function saveLangCookie(code){try{localStorage.setItem('cw7_lang',code);}catch(e){}}
+function loadLangCookie(){try{return localStorage.getItem('cw7_lang')||'en';}catch(e){return'en';}}
+
 function setLang(code){
-  activeLang=code;var lang=LANGS.find(function(l){return l.code===code;})||LANGS[0];
+  activeLang=code;
+  saveLangCookie(code);
+  var lang=LANGS.find(function(l){return l.code===code;})||LANGS[0];
   var t=TRANSLATIONS[code]||TRANSLATIONS['en'];
   document.body.dir=(code==='ur')?'rtl':'ltr';
+
+  // ── Hero section ──
   var heroH1=document.querySelector('.hero h1');
   if(heroH1&&t.tagline){var parts=t.tagline.split('.');heroH1.innerHTML=parts.map(function(p,i){return i===1?'<span>'+p.trim()+'</span>':p.trim();}).filter(Boolean).join('.<br>');}
   var heroP=document.querySelector('.hero p');if(heroP&&t.subtitle)heroP.textContent=t.subtitle;
+  var heroTag=document.querySelector('.hero > div > p:first-child');if(heroTag&&t.hero_tag)heroTag.textContent=t.hero_tag;
   var b1=document.querySelector('.hero-btns .btn:first-child');if(b1&&t.playNow)b1.textContent=t.playNow;
   var b2=document.querySelector('.hero-btns .btn:last-child');if(b2&&t.viewRankings)b2.textContent=t.viewRankings;
+
+  // ── Guest nav ──
+  var gNav=document.getElementById('guestNav');
+  if(gNav){var btns=gNav.querySelectorAll('a');if(btns[0])btns[0].textContent=t.nav_home||'Home';if(btns[1])btns[1].textContent=t.nav_play||'Play';if(btns[2])btns[2].textContent=t.nav_arena||'Arena';if(btns[3])btns[3].textContent=t.nav_promotions||'🎁 Promotions';}
+
+  // ── Header auth buttons (guest state) ──
+  var hRight=document.getElementById('headerRight');
+  if(hRight&&!window.currentUser){hRight.innerHTML='<div style="display:flex;gap:8px"><button class="btn btn-o btn-sm" onclick="openAuth(\'login\')">'+(t.login||'Login')+'</button><button class="btn btn-sm" onclick="openAuth(\'signup\')">'+(t.signup||'Sign Up')+'</button></div>';}
+  if(hRight&&window.currentUser){var db1=hRight.querySelector('button:first-child');var db2=hRight.querySelectorAll('button')[1];if(db1)db1.textContent=t.deposit_btn||'💰 Deposit';if(db2)db2.textContent=t.withdraw_btn||'💸 Withdraw';}
+
+  // ── Sidebar sections ──
+  var sbSecs=document.querySelectorAll('#sidebar .sb-section');
+  var sbSecLabels=[t.sb_main,t.sb_finance,t.sb_account,t.sb_more];
+  sbSecs.forEach(function(s,i){if(sbSecLabels[i]&&s.textContent.indexOf('🌐')===-1&&s.textContent.indexOf('Support')===-1&&s.textContent.indexOf('Soporte')===-1&&s.textContent.indexOf('Поддержка')===-1&&s.textContent.indexOf('سپورٹ')===-1&&s.textContent.trim()!==''){}});
+
+  // ── Sidebar links ──
+  function setSbLink(idx,text){var links=document.querySelectorAll('#sidebar .sb-link');if(links[idx])links[idx].childNodes[1]&&(links[idx].childNodes[1].textContent=text);}
+
+  // ── Stats bar ──
+  var statLabels=document.querySelectorAll('.stat-label');
+  if(statLabels[0])statLabels[0].textContent=t.stats_players||'Active Players';
+  if(statLabels[1])statLabels[1].textContent=t.stats_coins||'Coins Awarded';
+  if(statLabels[2])statLabels[2].textContent=t.stats_tournaments||'Tournaments Run';
+
+  // ── Mini boards section ──
+  var miniTag=document.querySelector('.mini-boards-section p:first-of-type');if(miniTag)miniTag.textContent=t.mini_tag||'Live Games';
+  var miniH2=document.querySelector('.mini-boards-section h2');if(miniH2)miniH2.textContent=t.mini_title||'Active Arenas';
+  var miniDesc=document.querySelector('.mini-boards-section > div > p:last-of-type');if(miniDesc&&miniDesc!==miniH2)miniDesc.textContent=t.mini_desc||'Watch live positions';
+  var tierLabels=document.querySelectorAll('.mini-tier-label');
+  if(tierLabels[0])tierLabels[0].textContent=t.mini_gold||'♛ Gold Tier';
+  if(tierLabels[1])tierLabels[1].textContent=t.mini_silver||'♜ Silver Tier';
+  if(tierLabels[2])tierLabels[2].textContent=t.mini_bronze||'♟ Bronze Tier';
+
+  // ── Arena section ──
+  var arenaTag=document.querySelector('#arena .section-tag');if(arenaTag)arenaTag.textContent=t.arena_tag||'Live Now';
+  var arenaH2=document.querySelector('#arena h2');if(arenaH2)arenaH2.textContent=t.arena_title||'The Arena';
+  document.querySelectorAll('.card-row .lbl').forEach(function(el){
+    var txt=el.textContent;
+    if(txt==='Entry Fee'||txt===t.arena_entry)el.textContent=t.arena_entry||'Entry Fee';
+    if(txt==='Prize Pool'||txt===t.arena_prize)el.textContent=t.arena_prize||'Prize Pool';
+    if(txt==='Time Control'||txt===t.arena_time)el.textContent=t.arena_time||'Time Control';
+  });
+  document.querySelectorAll('#arena .card .btn').forEach(function(b){b.textContent=t.arena_btn||'Enter Tournament';});
+  var badges=document.querySelectorAll('#arena .card-badge');
+  if(badges[0])badges[0].textContent=t.arena_beginner||'Beginner';
+  if(badges[1])badges[1].textContent=t.arena_intermediate||'Intermediate';
+  if(badges[2])badges[2].textContent=t.arena_elite||'Elite';
+
+  // ── Leaderboard ──
+  var lbTag=document.querySelector('#leaderboard .section-tag');if(lbTag)lbTag.textContent=t.lb_tag||'Global Rankings';
+  var lbH2=document.querySelector('#leaderboard h2');if(lbH2)lbH2.textContent=t.lb_title||'Leaderboard';
+  var lbCols=document.querySelectorAll('.lb-head span');
+  if(lbCols[0])lbCols[0].textContent=t.lb_rank||'Rank';
+  if(lbCols[1])lbCols[1].textContent=t.lb_player||'Player';
+  if(lbCols[2])lbCols[2].textContent=t.lb_tier||'Tier';
+  if(lbCols[3])lbCols[3].textContent=t.lb_rating||'Rating';
+  if(lbCols[4])lbCols[4].textContent=t.lb_wins||'Wins';
+  if(lbCols[5])lbCols[5].textContent=t.lb_coins||'Coins';
+
+  // ── FAQ ──
+  var faqTag=document.querySelector('#faqSection .section-tag');if(faqTag)faqTag.textContent=t.faq_tag||'Help';
+  var faqH2=document.querySelector('#faqSection h2');if(faqH2)faqH2.textContent=t.faq_title||'Frequently Asked Questions';
+
+  // ── Lang & Support section ──
+  var lsDiv=document.querySelector('#langSupportSection');
+  if(lsDiv){
+    var ltag=lsDiv.querySelector('.section-tag');if(ltag)ltag.textContent=t.lang_tag||'Choose Language';
+    var lh2=lsDiv.querySelector('h2:first-of-type');if(lh2)lh2.textContent=t.lang_title||'🌐 Select Your Language';
+    var stag=lsDiv.querySelectorAll('.section-tag')[1];if(stag)stag.textContent=t.support_tag||'Help & Support';
+    var sh2=lsDiv.querySelectorAll('h2')[1];if(sh2)sh2.textContent=t.support_title||'💬 Live Support';
+    var schat=lsDiv.querySelector('.home-support-box > div > div:first-child');if(schat)schat.textContent=t.support_chat_title||'Chat With Us';
+    var sonl=lsDiv.querySelector('.home-support-box > div > div:last-child');if(sonl)sonl.innerHTML='<span style="width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;animation:pulse 1.5s infinite"></span>'+(t.support_online||'Online Now');
+    var sdesc=lsDiv.querySelector('.home-support-box p');if(sdesc)sdesc.textContent=t.support_desc||'';
+    var sbtn=lsDiv.querySelector('.home-support-box .btn');if(sbtn)sbtn.textContent=t.support_btn||'💬 Start Live Chat';
+  }
+
+  // ── Footer ──
+  var fLinks=document.querySelectorAll('.footer-links a');
+  if(fLinks[0])fLinks[0].textContent=t.footer_terms||'Terms & Conditions';
+  if(fLinks[1])fLinks[1].textContent=t.footer_faq||'FAQ';
+  if(fLinks[2])fLinks[2].textContent=t.footer_about||'About Us';
+
+  // ── Play page ──
+  var playTag=document.querySelector('#page-play .section-tag');if(playTag)playTag.textContent=t.play_tag||'Live Arena';
+  var playH2=document.querySelector('#page-play h2');if(playH2)playH2.textContent=t.play_title||'Play Chess Online';
+  var oppN=document.getElementById('oppName');if(oppN&&oppN.textContent===oppN.dataset.prev||!oppN.dataset.prev){}
+  var pSt=document.getElementById('pSt');if(pSt&&(pSt.textContent==='Choose a mode →'||!pSt.dataset.set))pSt.textContent=t.play_choose||'Choose a mode →';
+  var panelH3s=document.querySelectorAll('.panel h3');if(panelH3s[0])panelH3s[0].textContent=t.play_mode||'Game Mode';
+  var mts=document.querySelectorAll('.mt');if(mts[0])mts[0].textContent=t.play_vsai||'vs AI';if(mts[1])mts[1].textContent=t.play_vsfriend||'vs Friend';if(mts[2])mts[2].textContent=t.play_match||'Matchmaking';
+  if(panelH3s[1])panelH3s[1].textContent=t.play_moves||'Move History';
+  var pBtns=document.querySelectorAll('.board-controls .btn');
+  if(pBtns[0])pBtns[0].textContent=t.play_new||'New';if(pBtns[1])pBtns[1].textContent=t.play_undo||'Undo';if(pBtns[2])pBtns[2].textContent=t.play_draw||'½ Draw';if(pBtns[3])pBtns[3].textContent=t.play_resign||'Resign';
+  var aiDiffLabel=document.querySelector('#mc-ai .inp label:first-child');if(aiDiffLabel)aiDiffLabel.textContent=t.play_difficulty||'Difficulty';
+  var aiAsLabel=document.querySelector('#mc-ai .inp label:last-child');if(aiAsLabel)aiAsLabel.textContent=t.play_as||'Play As';
+  var aiStartBtn=document.querySelector('#mc-ai .btn');if(aiStartBtn)aiStartBtn.textContent=t.play_start||'Start vs AI';
+  var matchBtn=document.getElementById('matchBtn');if(matchBtn)matchBtn.textContent=t.play_find||'Find Opponent';
+  var matchSt=document.getElementById('matchSt');if(matchSt){var dot=matchSt.querySelector('.dot');matchSt.textContent='';if(dot)matchSt.appendChild(dot);matchSt.appendChild(document.createTextNode(t.play_searching||'Searching...'));}
+
+  // ── Deposit page ──
+  var depTag=document.querySelector('#page-deposit .section-tag');if(depTag)depTag.textContent=t.dep_tag||'Finance';
+  var depH2=document.querySelector('#page-deposit h2');if(depH2)depH2.textContent=t.dep_title||'💰 Deposit';
+  var depFormH3=document.querySelector('#page-deposit .finance-form:first-child h3');if(depFormH3)depFormH3.textContent=t.dep_form_title||'Submit Deposit Request';
+  var depLabels=document.querySelectorAll('#page-deposit .form-row label');
+  if(depLabels[0])depLabels[0].textContent=t.dep_amount||'Amount (USDT)';
+  if(depLabels[1])depLabels[1].textContent=t.dep_tx||'Transaction ID / TxHash';
+  if(depLabels[2])depLabels[2].textContent=t.dep_note||'Note (Optional)';
+  var depInfoBox=document.querySelector('#page-deposit .finance-form > div[style]');if(depInfoBox)depInfoBox.textContent=t.dep_info||'';
+  var depBtn=document.querySelector('#page-deposit .finance-form:first-child .btn');if(depBtn)depBtn.textContent=t.dep_btn||'📤 Submit Request';
+  var depHistH3=document.querySelector('#page-deposit .finance-form:last-child h3');if(depHistH3)depHistH3.textContent=t.dep_history||'My Deposit History';
+
+  // ── Withdrawal page ──
+  var wdTag=document.querySelector('#page-withdrawal .section-tag');if(wdTag)wdTag.textContent=t.wd_tag||'Finance';
+  var wdH2=document.querySelector('#page-withdrawal h2');if(wdH2)wdH2.textContent=t.wd_title||'💸 Withdrawal';
+  var wdFormH3=document.querySelector('#page-withdrawal .finance-form:first-child h3');if(wdFormH3)wdFormH3.textContent=t.wd_form_title||'Submit Withdrawal Request';
+  var wdBalLabel=document.querySelector('.bal-label');if(wdBalLabel)wdBalLabel.textContent=t.wd_balance||'Available Balance';
+  var wdLabels=document.querySelectorAll('#page-withdrawal .form-row label');
+  if(wdLabels[0])wdLabels[0].textContent=t.wd_amount||'Amount (USDT)';
+  if(wdLabels[1])wdLabels[1].textContent=t.wd_wallet||'Wallet Address (TRC20/ERC20)';
+  var wdInfoBox=document.querySelector('#page-withdrawal .finance-form > div[style]');if(wdInfoBox)wdInfoBox.textContent=t.wd_info||'';
+  var wdBtn=document.querySelector('#page-withdrawal .finance-form:first-child .btn');if(wdBtn)wdBtn.textContent=t.wd_btn||'📤 Submit Request';
+  var wdHistH3=document.querySelector('#page-withdrawal .finance-form:last-child h3');if(wdHistH3)wdHistH3.textContent=t.wd_history||'My Withdrawal History';
+
+  // ── Stats page ──
+  var stTag=document.querySelector('#page-stats .section-tag');if(stTag)stTag.textContent=t.stats_tag||'Your Performance';
+  var stH2=document.querySelector('#page-stats h2');if(stH2)stH2.textContent=t.stats_title||'Statistics';
+  var stCardLabels=document.querySelectorAll('#page-stats .card > div:last-child');
+  if(stCardLabels[0])stCardLabels[0].textContent=t.stats_rating||'Rating';
+  if(stCardLabels[1])stCardLabels[1].textContent=t.stats_wins||'Wins';
+  if(stCardLabels[2])stCardLabels[2].textContent=t.stats_losses||'Losses';
+  if(stCardLabels[3])stCardLabels[3].textContent=t.stats_wr||'Win Rate';
+  var stTierH3=document.querySelector('#page-stats .finance-form h3');if(stTierH3)stTierH3.textContent=t.stats_tiers||'Rating Tiers';
+
+  // ── Profile page ──
+  var profTag=document.querySelector('#page-profile .section-tag');if(profTag)profTag.textContent=t.prof_tag||'Account';
+  var profH2=document.querySelector('#page-profile h2');if(profH2)profH2.textContent=t.prof_title||'My Profile';
+  var profLogout=document.querySelector('.btn-red');if(profLogout)profLogout.textContent=t.prof_logout||'🚪 Logout';
+  var dailyH3=document.querySelector('#page-profile .finance-form:nth-child(2) h3');if(dailyH3)dailyH3.textContent=t.prof_daily||'Daily Bonus';
+  var dailyBtn=document.getElementById('profDailyBtn');
+  if(dailyBtn&&!dailyBtn.disabled)dailyBtn.textContent=t.prof_daily_btn||'🎁 Claim Daily Bonus';
+  if(dailyBtn&&dailyBtn.disabled)dailyBtn.textContent=t.prof_claimed||'✓ Already Claimed Today';
+  var settingsH3=document.querySelector('#page-profile .finance-form:nth-of-type(1) h3');
+  var profForms=document.querySelectorAll('#page-profile .finance-form');
+  if(profForms[2]){var h3=profForms[2].querySelector('h3');if(h3)h3.textContent=t.prof_settings||'Account Settings';}
+  if(profForms[3]){var h3=profForms[3].querySelector('h3');if(h3)h3.textContent=t.prof_pw_title||'Change Password';}
+  var profLabels=document.querySelectorAll('#page-profile .form-row label');
+  if(profLabels[0])profLabels[0].textContent=t.prof_username||'Username';
+  if(profLabels[1])profLabels[1].textContent=t.prof_email||'Email';
+  if(profLabels[2])profLabels[2].textContent=t.prof_mobile||'Mobile (Optional)';
+  if(profLabels[3])profLabels[3].textContent=t.prof_new_pw||'New Password';
+  if(profLabels[4])profLabels[4].textContent=t.prof_conf_pw||'Confirm Password';
+  var saveBtn=document.querySelector('#page-profile .btn-o:first-of-type');if(saveBtn)saveBtn.textContent=t.prof_save||'Save Changes';
+  var pwBtn=document.querySelector('#page-profile .btn-o:last-of-type');if(pwBtn)pwBtn.textContent=t.prof_pw_btn||'Update Password';
+
+  // ── Theme page ──
+  var themeTag=document.querySelector('#page-theme .section-tag');if(themeTag)themeTag.textContent=t.theme_tag||'Settings';
+  var themeH2=document.querySelector('#page-theme h2');if(themeH2)themeH2.textContent=t.theme_title||'🎨 Board Theme';
+  var themeDesc=document.querySelector('#page-theme p:not(.section-tag)');if(themeDesc)themeDesc.textContent=t.theme_desc||'Choose your chess board colour';
+  var themeActive=document.getElementById('activetheme');if(themeActive){var parent=themeActive.parentElement;if(parent){var textNodes=Array.from(parent.childNodes).filter(function(n){return n.nodeType===3;});if(textNodes[0])textNodes[0].textContent=(t.theme_active||'Active:')+' ';}}
+
+  // ── Tournament page ──
+  var tournTag=document.querySelector('#page-tournament .section-tag');if(tournTag)tournTag.textContent=t.tourn_tag||'Competitive';
+  var tournH2=document.querySelector('#page-tournament h2');if(tournH2)tournH2.textContent=t.tourn_title||'Tournaments';
+
+  // Rebuild language grids to reflect active selection
   buildSbLangGrid();buildHomeLangGrid();buildMobLangGrid();
   toast(lang.flag+' '+lang.name,'info');
 }
 
-// Support — uses textContent (XSS fix), widget untouched
-function openSupport(){document.getElementById('supportModal').classList.add('open');}
-var supportReplies=['Thanks for reaching out! Our team will assist you shortly.','Could you please provide more details?','Let me check that for you.','For deposit issues, please share your TxID — verified within 24h.','Withdrawal processing takes up to 48 hours.','Is there anything else I can help you with?','Our team is available 24/7. Please be patient! ✅'];
-var supportReplyIdx=0;
-function sendSupport(){
-  var input=document.getElementById('supportInput'),msgs=document.getElementById('supportMsgs');
-  if(!input||!msgs||!input.value.trim())return;
-  var userMsg=document.createElement('div');userMsg.className='sup-msg user';userMsg.textContent=input.value.trim();
-  msgs.appendChild(userMsg);input.value='';msgs.scrollTop=msgs.scrollHeight;
-  setTimeout(function(){
-    var agentMsg=document.createElement('div');agentMsg.className='sup-msg agent';agentMsg.textContent=supportReplies[supportReplyIdx%supportReplies.length];
-    supportReplyIdx++;msgs.appendChild(agentMsg);msgs.scrollTop=msgs.scrollHeight;
-  },1000);
+// Support — opens Crisp live chat
+function openSupport(){
+  if(window.$crisp){
+    window.$crisp.push(['do','chat:open']);
+  }
 }
 
 // Mobile drawer
@@ -1783,6 +2390,9 @@ buildLB(FAKE_LB);
 buildTicker(FAKE_LB);
 buildSbLangGrid();
 buildHomeLangGrid();
+// Load saved language from localStorage
+var _savedLang=loadLangCookie();
+if(_savedLang&&_savedLang!=='en'){activeLang=_savedLang;setLang(_savedLang);}else{buildSbLangGrid();buildHomeLangGrid();}
 setTimeout(loadLB,1500);
 </script>
 </body>
