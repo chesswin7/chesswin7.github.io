@@ -470,8 +470,9 @@ header{padding:0 10px}
     <a class="btn btn-o btn-sm" onclick="goPage('home')">Home</a>
     <a class="btn btn-o btn-sm" onclick="goPage('play')">Play</a>
     <a class="btn btn-o btn-sm" onclick="scrollToId('arena')">Arena</a>
-    <a class="btn btn-sm" style="background:linear-gradient(135deg,#f0a500,#FFD700);color:#000;font-weight:800" onclick="goPage(\'promotions\')">🎁 Promotions</a>
   </nav>
+  <!-- Promotions always visible regardless of login state -->
+  <a id="promoBtn" class="btn btn-sm" style="background:linear-gradient(135deg,#f0a500,#FFD700);color:#000;font-weight:800" onclick="goPage('promotions')">🎁 Promotions</a>
   <div id="headerRight">
     <div style="display:flex;gap:8px">
       <button class="btn btn-o btn-sm" onclick="openAuth('login')">Login</button>
