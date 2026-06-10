@@ -289,12 +289,12 @@ header{padding:0 14px;gap:8px}
 .hero-btns .btn{flex:1;min-width:120px;text-align:center}
 .board-wrap{width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center}
 .hero{justify-items:center}
-.board-wrap > div{display:flex;justify-content:center;align-items:flex-start;padding-left:18px!important}
-.chessboard{grid-template-columns:repeat(8,min(9.5vw,44px))!important;grid-template-rows:repeat(8,min(9.5vw,44px))!important}
-.sq{width:min(9.5vw,44px)!important;height:min(9.5vw,44px)!important}
-#h-ranks span{height:min(9.5vw,44px)!important;font-size:8px!important}
-#h-files span{width:min(9.5vw,44px)!important;font-size:8px!important}
-#h-ranks{width:14px!important}
+.board-wrap > div{display:flex;justify-content:center;align-items:flex-start;padding-left:0!important}
+.chessboard{grid-template-columns:repeat(8,min(10.2vw,44px))!important;grid-template-rows:repeat(8,min(10.2vw,44px))!important}
+.sq{width:min(10.2vw,44px)!important;height:min(10.2vw,44px)!important}
+#h-ranks span{height:min(10.2vw,44px)!important;font-size:8px!important}
+#h-files span{width:min(10.2vw,44px)!important;font-size:8px!important}
+#h-ranks{width:13px!important;flex-shrink:0}
 .stats-bar{grid-template-columns:repeat(3,1fr)}
 .stat-val{font-size:24px}
 .stat-item{padding:20px 10px}
@@ -311,13 +311,13 @@ header{padding:0 14px;gap:8px}
 .section{padding:32px 16px}
 .play-layout{grid-template-columns:1fr;gap:16px}
 .play-board-wrap{width:100%;align-items:center!important}
-#pBoard{grid-template-columns:repeat(8,min(9vw,44px))!important;grid-template-rows:repeat(8,min(9vw,44px))!important}
+#pBoard{grid-template-columns:repeat(8,min(10.2vw,44px))!important;grid-template-rows:repeat(8,min(10.2vw,44px))!important}
 .player-bar{max-width:100%}
 .board-controls{gap:6px;justify-content:center}
 .board-controls .btn{padding:6px 10px;font-size:11px}
-#p-ranks span{height:min(9vw,44px)!important;font-size:8px!important}
-#p-files span{width:min(9vw,44px)!important;font-size:8px!important}
-#p-ranks{width:14px!important}
+#p-ranks span{height:min(10.2vw,44px)!important;font-size:8px!important}
+#p-files span{width:min(10.2vw,44px)!important;font-size:8px!important}
+#p-ranks{width:13px!important;flex-shrink:0}
 #page-stats > div:first-of-type + div{grid-template-columns:repeat(2,1fr)!important}
 #page-profile > div{grid-template-columns:1fr!important}
 .profile-stats{grid-template-columns:repeat(3,1fr)}
@@ -349,13 +349,13 @@ header{padding:0 10px}
 .lb-head{grid-template-columns:36px 90px 80px 56px 44px 66px;min-width:372px}
 .lb-row{grid-template-columns:36px 90px 80px 56px 44px 66px;min-width:372px}
 .lb-viewport{min-width:372px}
-.chessboard{grid-template-columns:repeat(8,min(11vw,38px))!important;grid-template-rows:repeat(8,min(11vw,38px))!important}
-.sq{width:min(11vw,38px)!important;height:min(11vw,38px)!important}
-#h-ranks span{height:min(11vw,38px)!important}
-#h-files span{width:min(11vw,38px)!important}
-#pBoard{grid-template-columns:repeat(8,min(11vw,38px))!important;grid-template-rows:repeat(8,min(11vw,38px))!important}
-#p-ranks span{height:min(11vw,38px)!important}
-#p-files span{width:min(11vw,38px)!important}
+.chessboard{grid-template-columns:repeat(8,min(10.5vw,38px))!important;grid-template-rows:repeat(8,min(10.5vw,38px))!important}
+.sq{width:min(10.5vw,38px)!important;height:min(10.5vw,38px)!important}
+#h-ranks span{height:min(10.5vw,38px)!important;font-size:7px!important}
+#h-files span{width:min(10.5vw,38px)!important;font-size:7px!important}
+#pBoard{grid-template-columns:repeat(8,min(10.5vw,38px))!important;grid-template-rows:repeat(8,min(10.5vw,38px))!important}
+#p-ranks span{height:min(10.5vw,38px)!important;font-size:7px!important}
+#p-files span{width:min(10.5vw,38px)!important;font-size:7px!important}
 .theme-grid{grid-template-columns:repeat(2,1fr)}
 .home-lang-grid{grid-template-columns:1fr}
 .profile-stats{grid-template-columns:repeat(3,1fr)}
@@ -1076,9 +1076,8 @@ function setCoords(rId,fId,flip,sqSz){
 var hB=mkB(),hT='w',hSel=null,hLm=[],hLmv=null,hCr={wK:1,wQ:1,bK:1,bQ:1},hEp=null,hHist=[],hGO=false,hAI=true;
 function renderHome(){
   renderBoard('hBoard',hB,hSel,hLm,hLmv,false);setCoords('h-ranks','h-files',false,60);
-  // Fix mobile alignment - remove padding-left on small screens
   var wrap=document.getElementById('homeBoardWrap');
-  if(wrap){wrap.style.paddingLeft=window.innerWidth<=900?'14px':'45px';}
+  if(wrap){wrap.style.paddingLeft=window.innerWidth<=900?'0px':'45px';}
 }
 function homeCheckEnd(){var mv=allL(hT,hB,hEp,hCr),k=kng(hT,hB),inC=atk(k,Op(hT),hB,hEp,hCr);
   if(!mv.length){hGO=true;var st=document.getElementById('hSt');if(st)st.textContent=(hT==='w'?'Black':'White')+' wins!';}
