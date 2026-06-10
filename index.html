@@ -137,7 +137,7 @@ header{position:sticky;top:0;z-index:100;height:60px;background:var(--surface);b
 .sq.lc::after{content:'';position:absolute;inset:0;box-shadow:inset 0 0 0 4px rgba(0,231,1,.6)}
 .sq:hover{filter:brightness(1.3)}
 .piece{pointer-events:none;user-select:none;line-height:1}
-.board-controls{display:flex;gap:8px;margin-top:12px;justify-content:center;flex-wrap:wrap}
+.board-controls{display:flex;gap:8px;margin-top:12px;justify-content:center;flex-wrap:wrap;width:100%;align-items:center}
 .profile-btn{position:relative;width:36px;height:36px;border-radius:50%;background:var(--surface2);border:2px solid var(--border2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px}
 .profile-btn:hover{border-color:var(--accent)}
 .profile-drop{position:absolute;top:44px;right:0;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);min-width:180px;display:none;z-index:200;box-shadow:0 8px 32px rgba(0,0,0,.4)}
@@ -333,10 +333,10 @@ header{padding:0 14px;gap:8px}
 #legalModal .modal-box{width:94vw}
 #supportModal .modal-box{width:94vw}
 .sidebar{display:none!important}
-#headerRight .btn{padding:5px 7px!important;font-size:10px!important}
-#headerRight > div{gap:3px!important}
-#navBalance{padding:3px 6px!important;font-size:10px!important}
-#navExposure{display:none!important}
+#headerRight .btn{padding:4px 8px!important;font-size:10px!important}
+#headerRight > div{gap:4px!important}
+#navBalance{padding:3px 8px!important;font-size:10px!important}
+#navBalance span:first-child{display:none!important}
 }
 @media(max-width:480px){
 header{padding:0 10px}
@@ -1145,38 +1145,81 @@ var MINI_THEMES=[
 function fakeBoardPos(){var b=mkB(),t='w',ep=null,cr={wK:1,wQ:1,bK:1,bQ:1};for(var i=0;i<5+Math.floor(Math.random()*18);i++){var mv=allL(t,b,ep,cr);if(!mv.length)break;var m=mv[Math.floor(Math.random()*mv.length)],res=applyM(m,b,ep,cr);b=res.b;ep=res.ep;cr=res.cr;t=Op(t);}return b;}
 // Animated mini boards with slow random piece moves
 var _miniBoards=[];
+// ── Smooth mini board animation ──
+// Build board once, then only update individual squares (no full rebuild = no flicker)
 function renderMiniBoard(data){
   var mb=data.el;
   mb.innerHTML='';
+  mb.style.position='relative';
   for(var i=0;i<64;i++){
     var r=Rw(i),c=Cw(i);
-    var sq=document.createElement('div');sq.className='mini-sq';sq.style.background=(r+c)%2===0?data.th.dark:data.th.light;
+    var sq=document.createElement('div');
+    sq.className='mini-sq';
+    sq.dataset.idx=i;
+    sq.style.cssText='background:'+(((r+c)%2===0)?data.th.dark:data.th.light)+';position:relative;overflow:hidden';
     if(data.board[i]){
       var sp=document.createElement('img');
       var pk=data.board[i].c+data.board[i].n.toLowerCase();
       sp.src='https://images.chesscomfiles.com/chess-themes/pieces/neo/150/'+pk+'.png';
       sp.alt=pk;
-      sp.style.cssText='width:90%;height:90%;object-fit:contain;display:block;margin:auto;transition:opacity 0.4s ease';
-      if(data.animSq===i)sp.style.opacity='0';
+      sp.style.cssText='width:88%;height:88%;object-fit:contain;display:block;margin:auto;transition:opacity 0.5s ease,transform 0.5s ease';
       sq.appendChild(sp);
     }
     mb.appendChild(sq);
   }
 }
+
+function updateMiniSquare(mb, idx, piece, th, fadeIn){
+  var sqs=mb.querySelectorAll('.mini-sq');
+  var sq=sqs[idx];if(!sq)return;
+  // Remove existing piece
+  var old=sq.querySelector('img');
+  if(old){
+    old.style.opacity='0';
+    old.style.transform='scale(0.5)';
+    setTimeout(function(){if(old.parentNode)old.parentNode.removeChild(old);},400);
+  }
+  if(piece){
+    setTimeout(function(){
+      var sp=document.createElement('img');
+      var pk=piece.c+piece.n.toLowerCase();
+      sp.src='https://images.chesscomfiles.com/chess-themes/pieces/neo/150/'+pk+'.png';
+      sp.alt=pk;
+      sp.style.cssText='width:88%;height:88%;object-fit:contain;display:block;margin:auto;transition:opacity 0.5s ease,transform 0.5s ease;opacity:0;transform:scale(0.5)';
+      sq.appendChild(sp);
+      requestAnimationFrame(function(){
+        requestAnimationFrame(function(){
+          sp.style.opacity='1';
+          sp.style.transform='scale(1)';
+        });
+      });
+    },fadeIn?200:0);
+  }
+}
+
 function animateMiniBoard(data){
   var col=data.turn;
   var mvs=allL(col,data.board,data.ep,data.cr);
-  if(!mvs.length){data.board=fakeBoardPos();data.turn='w';data.ep=null;data.cr={wK:1,wQ:1,bK:1,bQ:1};return;}
+  if(!mvs.length){
+    // Reset with new position
+    var newPos=fakeBoardPos();
+    data.board=newPos;data.turn='w';data.ep=null;data.cr={wK:1,wQ:1,bK:1,bQ:1};
+    renderMiniBoard(data);
+    return;
+  }
   var mv=mvs[Math.floor(Math.random()*mvs.length)];
-  data.animSq=mv.f;
-  renderMiniBoard(data);
+  var fromPiece=data.board[mv.f];
+  var mb=data.el;
+  // Fade out source square
+  updateMiniSquare(mb, mv.f, null, data.th, false);
   setTimeout(function(){
+    // Apply move
     var res=applyM(mv,data.board,data.ep,data.cr);
     data.board=res.b;data.ep=res.ep;data.cr=res.cr;
     data.turn=Op(col);
-    data.animSq=-1;
-    renderMiniBoard(data);
-  },350);
+    // Fade in piece on destination square
+    updateMiniSquare(mb, mv.t, data.board[mv.t], data.th, true);
+  },450);
 }
 function buildMiniBoard(container,themeIdx){
   var pos=fakeBoardPos(),th=MINI_THEMES[themeIdx%12];
@@ -1692,20 +1735,17 @@ function buildNavbarAuth(data){
   // Exposure = pending withdrawals
   var exposure=0;
   hRight.innerHTML=
-    '<div style="display:flex;align-items:center;gap:6px;flex-wrap:nowrap">'+
-    // DP button
-    '<button class="btn btn-sm" style="background:#00e701;color:#000;font-weight:800;padding:6px 10px" onclick="goPage(\'deposit\')">💰 DP</button>'+
-    // WD button
-    '<button class="btn btn-sm btn-o" style="font-weight:800;padding:6px 10px" onclick="goPage(\'withdrawal\')">💸 WD</button>'+
-    // Balance
-    '<div id="navBalance" style="background:rgba(0,231,1,.1);border:1px solid rgba(0,231,1,.3);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:800;color:var(--accent);white-space:nowrap;cursor:pointer" onclick="goPage(\'profile\')" title="Available Balance">'+
-      '🪙 <span id="navCoins">'+coins.toLocaleString()+'</span>'+
+    '<div style="display:flex;align-items:center;gap:8px;flex-wrap:nowrap">'+
+    '<button class="btn btn-sm" style="background:#00e701;color:#000;font-weight:800" onclick="goPage(\'deposit\')">💰 Deposit</button>'+
+    '<button class="btn btn-sm btn-o" style="font-weight:800" onclick="goPage(\'withdrawal\')">💸 Withdraw</button>'+
+    '<div id="navBalance" style="background:rgba(0,231,1,.1);border:1px solid rgba(0,231,1,.3);border-radius:6px;padding:5px 12px;font-size:12px;font-weight:800;color:var(--accent);white-space:nowrap;cursor:pointer;display:flex;align-items:center;gap:5px" onclick="goPage(\'profile\')" title="Available Balance">'+
+      '<span style="font-size:10px;color:var(--muted);font-weight:600">BALANCE</span>'+
+      '<span>🪙</span><span id="navCoins">'+coins.toLocaleString()+'</span>'+
     '</div>'+
-    // Exposure
-    '<div id="navExposure" style="background:rgba(249,56,72,.08);border:1px solid rgba(249,56,72,.25);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:800;color:#f93848;white-space:nowrap;cursor:pointer" onclick="goPage(\'withdrawal\')" title="Pending Withdrawals (Exposure)">'+
-      '⚠ <span id="navExp">0</span>'+
+    '<div id="navExposure" style="background:rgba(249,56,72,.08);border:1px solid rgba(249,56,72,.25);border-radius:6px;padding:5px 12px;font-size:12px;font-weight:800;color:#f93848;white-space:nowrap;cursor:pointer;display:none;align-items:center;gap:5px" onclick="goPage(\'withdrawal\')" title="Pending Withdrawals (Exposure)">'+
+      '<span style="font-size:10px;color:var(--muted);font-weight:600">EXPOSURE</span>'+
+      '<span>⚠</span><span id="navExp">0</span>'+
     '</div>'+
-    // Profile icon + dropdown
     '<div class="profile-btn" onclick="toggleDrop()" id="pBtn" style="position:relative">👤'+
       '<div class="profile-drop" id="pDrop">'+
         '<div style="padding:10px 14px;border-bottom:1px solid var(--border);font-size:12px;color:var(--muted)">'+
@@ -1742,14 +1782,39 @@ function loadNavExposure(){
   }).catch(function(){});
 }
 
-// Account Statement Modal
+// Account Statement — full page overlay
 function showAccountStatement(){
   if(!window.currentUser){openAuth('login');return;}
-  var titleEl=document.getElementById('auth-title');if(titleEl)titleEl.textContent='Account Statement';
-  var modal=document.getElementById('authModal');
-  var f=document.getElementById('auth-form');if(!f)return;
-  f.innerHTML='<div style="text-align:center;padding:10px 0 20px"><div style="font-size:32px;margin-bottom:8px">📋</div><p style="color:var(--muted);font-size:13px">Loading your statement...</p></div>';
-  modal.classList.add('open');
+  // Create or reuse full-screen statement overlay
+  var overlay=document.getElementById('stmtOverlay');
+  if(!overlay){
+    overlay=document.createElement('div');
+    overlay.id='stmtOverlay';
+    overlay.style.cssText='display:none;position:fixed;inset:0;background:var(--bg);z-index:998;overflow-y:auto;padding:0';
+    document.body.appendChild(overlay);
+  }
+  overlay.style.display='block';
+  overlay.innerHTML=
+    '<div style="max-width:900px;margin:0 auto;padding:24px 20px">'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--border)">'+
+        '<div>'+
+          '<h2 style="font-size:22px;font-weight:900;color:var(--text)">📋 Account Statement</h2>'+
+          '<p style="font-size:13px;color:var(--muted);margin-top:4px">Complete transaction history</p>'+
+        '</div>'+
+        '<button onclick="document.getElementById(\'stmtOverlay\').style.display=\'none\'" '+
+          'style="background:var(--surface2);border:1px solid var(--border2);color:var(--text);padding:8px 16px;border-radius:var(--radius);cursor:pointer;font-size:13px;font-weight:700;font-family:Inter,sans-serif">'+
+          '✕ Close'+
+        '</button>'+
+      '</div>'+
+      '<div id="stmtContent" style="text-align:center;padding:40px 0;color:var(--muted)">'+
+        '<div style="font-size:40px;margin-bottom:12px">⏳</div>Loading...'+
+      '</div>'+
+    '</div>';
+  // Escape key closes
+  overlay._escHandler=function(e){if(e.key==='Escape')overlay.style.display='none';};
+  document.addEventListener('keydown',overlay._escHandler);
+  var stmtContent=document.getElementById('stmtContent');
+  if(!stmtContent)return;
   Promise.all([
     db.collection('deposits').where('userId','==',window.currentUser.uid).get(),
     db.collection('withdrawals').where('userId','==',window.currentUser.uid).get()
@@ -1763,45 +1828,76 @@ function showAccountStatement(){
       return ta-tb;
     });
     var bal=0;
+    var curCoins=window.currentUserData?window.currentUserData.coins||0:0;
+    var totalDep=deps.filter(function(d){return d.status==='approved';}).reduce(function(a,d){return a+(d.amount||0);},0);
+    var totalWd=wds.filter(function(w){return w.status==='approved';}).reduce(function(a,w){return a+(w.amount||0);},0);
+    var pendingDep=deps.filter(function(d){return d.status==='pending';}).length;
+    var pendingWd=wds.filter(function(w){return w.status==='pending';}).length;
     var rows=all.map(function(e){
       var cr=0,dr=0;
       if(e._type==='deposit'&&e.status==='approved')cr=e.amount;
       if(e._type==='withdrawal'&&e.status==='approved')dr=e.amount;
       bal+=cr-dr;
-      var dt=e.createdAt&&e.createdAt.toDate?e.createdAt.toDate().toLocaleDateString():'—';
-      var badge=e.status==='approved'?'<span style="color:var(--green);font-weight:700">✓ Approved</span>':e.status==='pending'?'<span style="color:#f0a500;font-weight:700">⏳ Pending</span>':'<span style="color:var(--red);font-weight:700">✗ Rejected</span>';
-      return'<tr>'+
-        '<td style="color:var(--muted);font-size:12px">'+dt+'</td>'+
-        '<td><span style="font-weight:700;color:'+(e._type==='deposit'?'var(--green)':'var(--red)')+'">'+
+      var dt=e.createdAt&&e.createdAt.toDate?e.createdAt.toDate().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'—';
+      var statusHtml=e.status==='approved'?
+        '<span style="background:rgba(0,231,1,.15);color:var(--green);padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700">✓ Approved</span>':
+        e.status==='pending'?
+        '<span style="background:rgba(240,165,0,.15);color:#f0a500;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700">⏳ Pending</span>':
+        '<span style="background:rgba(249,56,72,.15);color:var(--red);padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700">✗ Rejected</span>';
+      var ref=e._type==='deposit'?(e.txid?e.txid.substring(0,16)+'...':'—'):(e.wallet?e.wallet.substring(0,16)+'...':'—');
+      return'<tr style="border-bottom:1px solid var(--border)">'+
+        '<td style="padding:12px 16px;color:var(--muted);font-size:12px;white-space:nowrap">'+dt+'</td>'+
+        '<td style="padding:12px 16px"><span style="font-weight:700;color:'+(e._type==='deposit'?'var(--green)':'var(--red)')+'">'+
           (e._type==='deposit'?'💰 Deposit':'💸 Withdrawal')+'</span></td>'+
-        '<td style="color:var(--green);font-weight:700">'+(cr>0?'+'+cr.toLocaleString():'')+'</td>'+
-        '<td style="color:var(--red);font-weight:700">'+(dr>0?'-'+dr.toLocaleString():'')+'</td>'+
-        '<td style="color:var(--accent);font-weight:700">'+bal.toLocaleString()+'</td>'+
-        '<td>'+badge+'</td>'+
+        '<td style="padding:12px 16px;color:var(--green);font-weight:800;font-size:15px">'+(cr>0?'+'+cr.toLocaleString():'')+'</td>'+
+        '<td style="padding:12px 16px;color:var(--red);font-weight:800;font-size:15px">'+(dr>0?'-'+dr.toLocaleString():'')+'</td>'+
+        '<td style="padding:12px 16px;color:var(--accent);font-weight:800;font-size:15px">'+bal.toLocaleString()+'</td>'+
+        '<td style="padding:12px 16px">'+statusHtml+'</td>'+
+        '<td style="padding:12px 16px;color:var(--muted);font-size:11px;max-width:140px;overflow:hidden;text-overflow:ellipsis">'+ref+'</td>'+
       '</tr>';
     });
-    var curCoins=window.currentUserData?window.currentUserData.coins||0:0;
-    f.innerHTML=
-      '<div style="max-height:400px;overflow-y:auto">'+
-        '<table style="width:100%;border-collapse:collapse;font-size:12px">'+
-          '<thead><tr style="background:var(--surface2)">'+
-            '<th style="padding:8px;text-align:left;color:var(--muted)">Date</th>'+
-            '<th style="padding:8px;text-align:left;color:var(--muted)">Type</th>'+
-            '<th style="padding:8px;color:var(--green)">Credit</th>'+
-            '<th style="padding:8px;color:var(--red)">Debit</th>'+
-            '<th style="padding:8px;color:var(--accent)">Balance</th>'+
-            '<th style="padding:8px;text-align:left;color:var(--muted)">Status</th>'+
-          '</tr></thead>'+
-          '<tbody>'+(rows.length?rows.join(''):'<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--muted)">No transactions yet</td></tr>')+'</tbody>'+
-        '</table>'+
+    var el=document.getElementById('stmtContent');if(!el)return;
+    el.innerHTML=
+      // Summary cards
+      '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:24px">'+
+        '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center">'+
+          '<div style="font-size:22px;font-weight:900;color:var(--accent)">🪙 '+curCoins.toLocaleString()+'</div>'+
+          '<div style="font-size:11px;color:var(--muted);margin-top:4px;font-weight:700;text-transform:uppercase;letter-spacing:.06em">Current Balance</div>'+
+        '</div>'+
+        '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center">'+
+          '<div style="font-size:22px;font-weight:900;color:var(--green)">+'+totalDep.toLocaleString()+'</div>'+
+          '<div style="font-size:11px;color:var(--muted);margin-top:4px;font-weight:700;text-transform:uppercase;letter-spacing:.06em">Total Deposited</div>'+
+        '</div>'+
+        '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center">'+
+          '<div style="font-size:22px;font-weight:900;color:var(--red)">-'+totalWd.toLocaleString()+'</div>'+
+          '<div style="font-size:11px;color:var(--muted);margin-top:4px;font-weight:700;text-transform:uppercase;letter-spacing:.06em">Total Withdrawn</div>'+
+        '</div>'+
+        '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center">'+
+          '<div style="font-size:22px;font-weight:900;color:#f0a500">'+(pendingDep+pendingWd)+'</div>'+
+          '<div style="font-size:11px;color:var(--muted);margin-top:4px;font-weight:700;text-transform:uppercase;letter-spacing:.06em">Pending Requests</div>'+
+        '</div>'+
       '</div>'+
-      '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:14px;border-top:1px solid var(--border2)">'+
-        '<span style="font-size:13px;color:var(--muted)">Current Balance:</span>'+
-        '<span style="font-size:18px;font-weight:900;color:var(--accent)">🪙 '+curCoins.toLocaleString()+' COINS</span>'+
-      '</div>'+
-      '<button class="btn btn-o" style="width:100%;margin-top:12px" onclick="document.getElementById(\'authModal\').classList.remove(\'open\')">Close</button>';
+      // Table
+      '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden">'+
+        '<div style="padding:14px 16px;border-bottom:1px solid var(--border);font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.06em">Transaction History</div>'+
+        '<div style="overflow-x:auto">'+
+          '<table style="width:100%;border-collapse:collapse;min-width:600px">'+
+            '<thead><tr style="background:var(--surface2)">'+
+              '<th style="padding:12px 16px;text-align:left;font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.06em;text-transform:uppercase">Date</th>'+
+              '<th style="padding:12px 16px;text-align:left;font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.06em;text-transform:uppercase">Type</th>'+
+              '<th style="padding:12px 16px;font-size:11px;color:var(--green);font-weight:700;letter-spacing:.06em;text-transform:uppercase">Credit</th>'+
+              '<th style="padding:12px 16px;font-size:11px;color:var(--red);font-weight:700;letter-spacing:.06em;text-transform:uppercase">Debit</th>'+
+              '<th style="padding:12px 16px;font-size:11px;color:var(--accent);font-weight:700;letter-spacing:.06em;text-transform:uppercase">Balance</th>'+
+              '<th style="padding:12px 16px;text-align:left;font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.06em;text-transform:uppercase">Status</th>'+
+              '<th style="padding:12px 16px;text-align:left;font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.06em;text-transform:uppercase">Ref</th>'+
+            '</tr></thead>'+
+            '<tbody>'+(rows.length?rows.join(''):'<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--muted)">No transactions yet</td></tr>')+'</tbody>'+
+          '</table>'+
+        '</div>'+
+      '</div>';
   }).catch(function(e){
-    f.innerHTML='<p style="color:var(--red)">Error loading statement: '+e.message+'</p>';
+    var el=document.getElementById('stmtContent');
+    if(el)el.innerHTML='<p style="color:var(--red);padding:20px">Error loading statement: '+e.message+'</p>';
   });
 }
 
@@ -1818,7 +1914,7 @@ auth.onAuthStateChanged(function(user){
       var sbn=document.getElementById('sb-name');if(sbn)sbn.textContent=safeText(data.username||'—');
       var t=getTier(data.rating||1200);
       var sbt=document.getElementById('sb-tier');if(sbt)sbt.textContent=t.i+' '+t.n;
-      if(sidebar)sidebar.classList.add('show');if(gNav)gNav.style.display='none';
+      if(sidebar)sidebar.classList.add('show');if(gNav)gNav.style.display='none';var sbBtn=document.getElementById('sbReopenBtn');if(sbBtn)sbBtn.style.display='none';
       if(hRight)buildNavbarAuth(data);
       updateProfilePage(data);updateStatsPage(data);checkDailyBtn(data);loadLB();updateMobDrawer(user,data);
     });
@@ -1830,7 +1926,24 @@ auth.onAuthStateChanged(function(user){
     loadLB();
   }
 });
-function closeSidebar(){var sb=document.getElementById('sidebar');if(sb)sb.classList.remove('show');}
+function closeSidebar(){var sb=document.getElementById('sidebar');if(sb)sb.classList.remove('show');showSidebarToggle();}
+function showSidebarToggle(){
+  var btn=document.getElementById('sbReopenBtn');
+  if(!btn&&window.currentUser){
+    var hdr=document.querySelector('header > div:first-child');
+    if(hdr){
+      btn=document.createElement('button');
+      btn.id='sbReopenBtn';
+      btn.onclick=function(){var sb=document.getElementById('sidebar');if(sb){sb.classList.add('show');btn.style.display='none';}};
+      btn.style.cssText='background:var(--surface2);border:1px solid var(--border2);color:var(--accent);width:32px;height:32px;border-radius:var(--radius);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:6px';
+      btn.title='Open sidebar';
+      btn.innerHTML='☰';
+      hdr.appendChild(btn);
+    }
+  }
+  if(btn)btn.style.display='flex';
+}
+function openSidebar(){var sb=document.getElementById('sidebar');if(sb){sb.classList.add('show');var btn=document.getElementById('sbReopenBtn');if(btn)btn.style.display='none';}}
 function toggleDrop(){var d=document.getElementById('pDrop');if(d)d.classList.toggle('open');}
 document.addEventListener('click',function(e){if(!e.target.closest('#pBtn')){var d=document.getElementById('pDrop');if(d)d.classList.remove('open');}});
 
@@ -2697,6 +2810,97 @@ function setLang(code){
     }
     ki++;
   });
+
+  // ── Mobile drawer links ──
+  var mobAuthLinks=document.getElementById('mobAuthLinks');
+  if(mobAuthLinks){
+    var mobSecs=mobAuthLinks.querySelectorAll('.sb-section');
+    mobSecs.forEach(function(s){
+      var txt=s.textContent.trim().toLowerCase();
+      if(txt.indexOf('main')!==-1||txt.indexOf('principal')!==-1||txt.indexOf('главн')!==-1)s.textContent=t.sb_main||'Main';
+      else if(txt.indexOf('finance')!==-1||txt.indexOf('finanz')!==-1||txt.indexOf('финанс')!==-1||txt.indexOf('kudi')!==-1||txt.indexOf('مالیات')!==-1)s.textContent=t.sb_finance||'Finance';
+      else if(txt.indexOf('account')!==-1||txt.indexOf('cuenta')!==-1||txt.indexOf('аккаунт')!==-1||txt.indexOf('asusun')!==-1||txt.indexOf('اکاؤنٹ')!==-1)s.textContent=t.sb_account||'Account';
+      else if(txt.indexOf('support')!==-1||txt.indexOf('soporte')!==-1||txt.indexOf('поддержк')!==-1||txt.indexOf('taimako')!==-1||txt.indexOf('سپورٹ')!==-1)s.textContent=t.sb_support||'Support';
+    });
+    // Mobile drawer buttons
+    var mobBtns=mobAuthLinks.querySelectorAll('button');
+    mobBtns.forEach(function(b){
+      var txt=b.textContent.trim();
+      if(txt.indexOf('Deposit')!==-1||txt.indexOf('Depósito')!==-1||txt.indexOf('Депозит')!==-1||txt.indexOf('Ajiya')!==-1||txt.indexOf('جمع')!==-1||txt.indexOf('存款')!==-1)b.textContent=t.deposit_btn||'💰 Deposit';
+      else if(txt.indexOf('Withdraw')!==-1||txt.indexOf('Retirar')!==-1||txt.indexOf('Вывод')!==-1||txt.indexOf('Cire')!==-1||txt.indexOf('نکالیں')!==-1||txt.indexOf('提款')!==-1)b.textContent=t.withdraw_btn||'💸 Withdraw';
+    });
+  }
+
+  // ── Guest mobile links ──
+  var mobGuestLinks=document.getElementById('mobGuestLinks');
+  if(mobGuestLinks){
+    var gBtns=mobGuestLinks.querySelectorAll('button');
+    if(gBtns[0])gBtns[0].textContent=t.login||'Login';
+    if(gBtns[1])gBtns[1].textContent=t.signup||'Sign Up';
+  }
+
+  // ── Deposit page inputs ──
+  var dpAmtInput=document.querySelector('#dpAmt');if(dpAmtInput)dpAmtInput.placeholder='Min. 10 USDT';
+  var dpTxInput=document.querySelector('#dpTx');if(dpTxInput)dpTxInput.placeholder='Paste your TxID here';
+  var dpNoteInput=document.querySelector('#dpNote');if(dpNoteInput)dpNoteInput.placeholder='e.g. TRC20';
+
+  // ── Withdrawal page inputs ──
+  var wdAmtInput=document.querySelector('#wdAmt');if(wdAmtInput)wdAmtInput.placeholder='Min. 10 USDT';
+  var wdWalletInput=document.querySelector('#wdWallet');if(wdWalletInput)wdWalletInput.placeholder='Your USDT wallet address';
+
+  // ── Tournament page cards ──
+  var tournCards=document.querySelectorAll('#page-tournament .card');
+  tournCards.forEach(function(card){
+    var btn=card.querySelector('.btn');if(btn&&btn.textContent.trim()==='Join')btn.textContent=t.arena_btn||'Join';
+    var lbRows=card.querySelectorAll('.card-row .lbl');
+    lbRows.forEach(function(lbl){
+      var txt=lbl.textContent.trim();
+      if(txt==='Entry'||txt===t.arena_entry)lbl.textContent=t.arena_entry||'Entry';
+      if(txt==='Prize'||txt===t.arena_prize)lbl.textContent=t.arena_prize||'Prize';
+    });
+  });
+
+  // ── Navbar auth buttons (logged in state) ──
+  if(window.currentUser){
+    var nbDep=document.querySelector('#headerRight .btn:first-child');
+    var nbWd=document.querySelector('#headerRight .btn:nth-child(2)');
+    if(nbDep&&nbDep.textContent.indexOf('Deposit')!==-1)nbDep.textContent=(t.deposit_btn||'💰 Deposit').replace('💰 DP','💰 Deposit');
+    if(nbWd&&nbWd.textContent.indexOf('Withdraw')!==-1)nbWd.textContent=(t.withdraw_btn||'💸 Withdraw').replace('💸 WD','💸 Withdraw');
+  }
+
+  // ── Profile page pstat labels ──
+  var pstatLabels=document.querySelectorAll('.pstat-lbl');
+  if(pstatLabels[0])pstatLabels[0].textContent=t.stats_rating||'Rating';
+  if(pstatLabels[1])pstatLabels[1].textContent=t.stats_wins||'Wins';
+  if(pstatLabels[2])pstatLabels[2].textContent=t.lb_coins||'Coins';
+
+  // ── FAQ items — rebuild with translated questions ──
+  // FAQ content is in English only — rebuild FAQ section with translated heading
+  var faqItems=document.querySelectorAll('.faq-item');
+  // We can't translate individual FAQ Q&A without a full FAQ translation table
+  // At minimum keep heading translated (already done above)
+
+  // ── Footer copyright ──
+  var footerP=document.querySelector('footer > p:last-child');
+  if(footerP&&footerP.textContent.indexOf('ChessWin7')!==-1)footerP.textContent='© 2026 ChessWin7';
+
+  // ── Board controls buttons — both home and play ──
+  var allBoardBtns=document.querySelectorAll('.board-controls .btn');
+  allBoardBtns.forEach(function(b){
+    var txt=b.textContent.trim();
+    if(txt==='New'||txt===t.play_new)b.textContent=t.play_new||'New';
+    else if(txt==='Undo'||txt===t.play_undo)b.textContent=t.play_undo||'Undo';
+    else if(txt.indexOf('Draw')!==-1||txt.indexOf('Tablas')!==-1||txt.indexOf('Ничья')!==-1)b.textContent=t.play_draw||'½ Draw';
+    else if(txt==='Resign'||txt===t.play_resign)b.textContent=t.play_resign||'Resign';
+    else if(txt.indexOf('Play Online')!==-1)b.textContent=t.playNow||'Play Online';
+  });
+
+  // ── AI toggle button ──
+  var aiBtn=document.getElementById('aiBtn');
+  if(aiBtn){var aiOn=aiBtn.textContent.indexOf('ON')!==-1;aiBtn.textContent='AI: '+(aiOn?'ON':'OFF');}
+
+  // ── Leaderboard you indicator ──
+  // (handled dynamically in buildLB)
 
   // Rebuild language grids to reflect active selection
   buildSbLangGrid();buildHomeLangGrid();buildMobLangGrid();
