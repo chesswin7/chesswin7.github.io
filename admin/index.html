@@ -20,6 +20,11 @@ firebase.initializeApp({
 });
 const auth = firebase.auth();
 const db = firebase.firestore();
+// Keep admin logged in across refresh
+// Ensure LOCAL persistence is set BEFORE any auth operations
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(function(e){
+  console.warn('Persistence error:', e);
+});
 </script>
 <style>
 :root{
@@ -44,6 +49,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-
 .hdr-right{display:flex;align-items:center;gap:12px}
 .live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite;display:inline-block;margin-right:4px}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes badgePulse{0%,100%{transform:scale(1)}50%{transform:scale(1.4);background:var(--accent)}}
 .hdr-badge{background:var(--accent-dim);border:1px solid var(--accent-dark);border-radius:var(--radius);padding:3px 10px;font-size:11px;font-weight:700;color:var(--accent)}
 .body-row{display:flex;flex:1;overflow:hidden}
 .sb{width:var(--sidebar);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0}
@@ -433,6 +439,38 @@ let ALL_USERS=[], ALL_DEPOSITS=[], ALL_WITHDRAWALS=[];
 let activeUID=null, activeUserDoc=null;
 
 // ── LOGIN ──
+// Auto-restore admin session on page load
+window.addEventListener('load', function(){
+  // Show loading state — hide both login and admin until auth resolves
+  document.getElementById('loginGate').style.display='none';
+  document.getElementById('adminShell').style.display='none';
+  // Add loading screen
+  var loadDiv=document.createElement('div');
+  loadDiv.id='authLoading';
+  loadDiv.style.cssText='display:flex;align-items:center;justify-content:center;min-height:100vh;background:#0f212e;color:#b1bad3;font-size:14px;font-family:Inter,sans-serif;font-weight:600;flex-direction:column;gap:12px';
+  loadDiv.innerHTML='<div style="font-size:32px">♛</div><div>Loading...</div>';
+  document.body.appendChild(loadDiv);
+
+  auth.onAuthStateChanged(function(user){
+    // Remove loading screen
+    var ld=document.getElementById('authLoading');if(ld)ld.remove();
+
+    if(user && user.email === ADMIN_EMAIL){
+      // Restore admin session
+      document.getElementById('loginGate').style.display='none';
+      document.getElementById('adminShell').style.display='flex';
+      document.getElementById('hdrEmail').textContent=user.email;
+      document.getElementById('dash-date').textContent=new Date().toLocaleDateString('en-GB',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+      loadAll();
+      setupListeners();
+    } else {
+      // Not logged in — show login
+      document.getElementById('loginGate').style.display='flex';
+      document.getElementById('adminShell').style.display='none';
+    }
+  });
+});
+
 function doLogin(){
   const em=document.getElementById('lgEM').value.trim();
   const pw=document.getElementById('lgPW').value;
@@ -473,7 +511,16 @@ function loadAll(){
 
 function loadUsers(){
   db.collection('users').get().then(snap=>{
-    ALL_USERS=snap.docs.map(d=>({id:d.id,...d.data()}));
+    // Deduplicate by doc ID (uid) — prevent showing deleted/ghost users
+    const seen=new Set();
+    ALL_USERS=snap.docs
+      .map(d=>({id:d.id,...d.data()}))
+      .filter(u=>{
+        if(seen.has(u.id))return false;
+        seen.add(u.id);
+        return true;
+      })
+      .filter(u=>u.username||u.email); // Filter out ghost docs with no data
     renderUsers();
     updateDashCards();
     document.getElementById('sb-users').textContent=ALL_USERS.length;
@@ -512,6 +559,19 @@ function loadWithdrawals(){
 }
 
 // ── REAL-TIME LISTENERS ──
+function notifyNewRequest(type){
+  var el=document.getElementById(type==='deposit'?'sb-dp':'sb-wd');
+  if(el){
+    el.style.animation='none';
+    el.offsetHeight; // reflow
+    el.style.animation='badgePulse 0.5s ease 3';
+  }
+  // Browser notification if permission granted
+  if(window.Notification&&Notification.permission==='granted'){
+    new Notification('ChessWin7 Admin',{body:'New '+type+' request pending!',icon:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><text y="28" font-size="28">♛</text></svg>'});
+  }
+}
+
 function setupListeners(){
   // Listen for new deposits in real-time
   db.collection('deposits').onSnapshot(snap=>{
@@ -525,7 +585,11 @@ function setupListeners(){
     renderWithdrawals();updateBadges();updateDashCards();
   });
   db.collection('users').onSnapshot(snap=>{
-    ALL_USERS=snap.docs.map(d=>({id:d.id,...d.data()}));
+    const seen=new Set();
+    ALL_USERS=snap.docs
+      .map(d=>({id:d.id,...d.data()}))
+      .filter(u=>{if(seen.has(u.id))return false;seen.add(u.id);return true;})
+      .filter(u=>u.username||u.email);
     renderUsers();updateDashCards();
     document.getElementById('sb-users').textContent=ALL_USERS.length;
   });
@@ -922,14 +986,18 @@ function viewReq(id,type){
 function closeRModal(){document.getElementById('rModal').classList.remove('show');}
 
 // ── BADGES / COUNTERS ──
+var _prevPd=0,_prevPw=0;
 function updateBadges(){
   const pd=ALL_DEPOSITS.filter(d=>d.status==='pending').length;
   const pw=ALL_WITHDRAWALS.filter(w=>w.status==='pending').length;
   document.getElementById('sb-dp').textContent=pd;
   document.getElementById('sb-wd').textContent=pw;
-  // Flash badge if new pending
   if(pd>0)document.getElementById('sb-dp').style.background='var(--red)';
   if(pw>0)document.getElementById('sb-wd').style.background='var(--orange)';
+  // Notify only when count increases (new request arrived)
+  if(pd>_prevPd&&_prevPd!==undefined)notifyNewRequest('deposit');
+  if(pw>_prevPw&&_prevPw!==undefined)notifyNewRequest('withdrawal');
+  _prevPd=pd;_prevPw=pw;
 }
 
 // ── NAVIGATION ──
