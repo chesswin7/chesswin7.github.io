@@ -130,14 +130,14 @@ header{position:sticky;top:0;z-index:100;height:60px;background:var(--surface);b
 .section{padding:60px 48px}
 .section-tag{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
 .section h2{font-size:32px;font-weight:900;margin-bottom:32px}
-.board-wrap{position:relative}
+.board-wrap{position:relative;display:flex;flex-direction:column;align-items:center;width:100%}
 .chessboard{display:grid;grid-template-columns:repeat(8,60px);grid-template-rows:repeat(8,60px);border:2px solid rgba(0,231,1,.3);border-radius:4px;overflow:hidden;box-shadow:0 0 40px rgba(0,231,1,.1)}
 .sq{width:60px;height:60px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:filter .1s;position:relative}
 .sq.lm::after{content:'';position:absolute;width:34%;height:34%;border-radius:50%;background:rgba(0,231,1,.6)}
 .sq.lc::after{content:'';position:absolute;inset:0;box-shadow:inset 0 0 0 4px rgba(0,231,1,.6)}
 .sq:hover{filter:brightness(1.3)}
 .piece{pointer-events:none;user-select:none;line-height:1}
-.board-controls{display:flex;gap:8px;margin-top:12px;justify-content:center;flex-wrap:wrap;width:100%;align-items:center}
+.board-controls{display:flex;gap:8px;margin-top:10px;justify-content:center;flex-wrap:wrap;align-items:center;width:100%}
 .profile-btn{position:relative;width:36px;height:36px;border-radius:50%;background:var(--surface2);border:2px solid var(--border2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px}
 .profile-btn:hover{border-color:var(--accent)}
 .profile-drop{position:absolute;top:44px;right:0;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);min-width:180px;display:none;z-index:200;box-shadow:0 8px 32px rgba(0,0,0,.4)}
@@ -265,7 +265,7 @@ footer{padding:32px 48px;border-top:1px solid var(--border);text-align:center;co
 .home-lang-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(0,231,1,.07)}
 .home-lang-btn .flag{font-size:20px}
 .home-lang-btn .lname{font-size:13px;font-weight:700}
-.home-support-box{background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:24px;cursor:pointer;transition:all .2s}
+.home-support-box{background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:24px;cursor:pointer;transition:all .2s;min-width:0;overflow:hidden;direction:ltr!important}
 .home-support-box:hover{border-color:var(--accent2);box-shadow:0 8px 32px rgba(26,154,239,.15);transform:translateY(-2px)}
 .hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:6px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius)}
 .hamburger span{display:block;width:20px;height:2px;background:var(--text);border-radius:2px;transition:all .25s}
@@ -466,13 +466,14 @@ header{padding:0 10px}
     <div class="hamburger" id="hamburger" onclick="toggleMobDrawer()"><span></span><span></span><span></span></div>
     <div class="logo" onclick="goPage('home')">♛ ChessWin7</div>
   </div>
-  <nav id="guestNav" style="display:flex;gap:4px;align-items:center">
-    <a class="btn btn-o btn-sm" onclick="goPage('home')">Home</a>
-    <a class="btn btn-o btn-sm" onclick="goPage('play')">Play</a>
-    <a class="btn btn-o btn-sm" onclick="scrollToId('arena')">Arena</a>
-  </nav>
-  <!-- Promotions always visible regardless of login state -->
-  <a id="promoBtn" class="btn btn-sm" style="background:linear-gradient(135deg,#f0a500,#FFD700);color:#000;font-weight:800" onclick="goPage('promotions')">🎁 Promotions</a>
+  <div style="display:flex;gap:4px;align-items:center">
+    <nav id="guestNav" style="display:flex;gap:4px;align-items:center">
+      <a class="btn btn-o btn-sm" onclick="goPage('home')">Home</a>
+      <a class="btn btn-o btn-sm" onclick="goPage('play')">Play</a>
+      <a class="btn btn-o btn-sm" onclick="scrollToId('arena')">Arena</a>
+    </nav>
+    <a id="promoBtn" class="btn btn-sm" style="background:linear-gradient(135deg,#f0a500,#FFD700);color:#000;font-weight:800" onclick="goPage('promotions')">🎁 Promotions</a>
+  </div>
   <div id="headerRight">
     <div style="display:flex;gap:8px">
       <button class="btn btn-o btn-sm" onclick="openAuth('login')">Login</button>
@@ -554,19 +555,21 @@ header{padding:0 10px}
       </div>
     </div>
     <div class="board-wrap">
-      <div style="display:flex;gap:8px;align-items:flex-start;padding-left:45px" id="homeBoardWrap">
-        <div style="display:flex;flex-direction:column;width:20px" id="h-ranks"></div>
-        <div>
-          <div class="chessboard" id="hBoard"></div>
-          <div style="display:flex" id="h-files"></div>
+      <div style="display:inline-flex;flex-direction:column;align-items:center">
+        <div style="display:flex;gap:8px;align-items:flex-start;padding-left:45px" id="homeBoardWrap">
+          <div style="display:flex;flex-direction:column;width:20px" id="h-ranks"></div>
+          <div>
+            <div class="chessboard" id="hBoard"></div>
+            <div style="display:flex" id="h-files"></div>
+          </div>
         </div>
-      </div>
-      <div style="text-align:center;color:var(--muted);font-size:13px;font-weight:600;margin-top:8px" id="hSt">White to move</div>
-      <div class="board-controls">
+        <div style="text-align:center;color:var(--muted);font-size:13px;font-weight:600;margin-top:8px" id="hSt">White to move</div>
+        <div class="board-controls">
         <button class="btn btn-o btn-sm" onclick="resetHome()">New</button>
         <button class="btn btn-o btn-sm" onclick="undoHome()">Undo</button>
         <button class="btn btn-o btn-sm" id="aiBtn" onclick="toggleAI()">AI: ON</button>
         <button class="btn btn-sm" onclick="openAuth('signup')">Play Online</button>
+        </div>
       </div>
     </div>
   </div>
@@ -640,7 +643,7 @@ header{padding:0 10px}
     <div id="faqList"></div>
   </div>
 
-  <div class="section" id="langSupportSection" style="background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
+  <div class="section" id="langSupportSection" style="background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);overflow:hidden">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start">
       <div>
         <p class="section-tag">Choose Language</p>
@@ -650,12 +653,12 @@ header{padding:0 10px}
       <div>
         <p class="section-tag">Help &amp; Support</p>
         <h2 style="font-size:22px;margin-bottom:20px">💬 Live Support</h2>
-        <div class="home-support-box" onclick="openSupport()" style="direction:ltr">
-          <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
-            <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#1a9aef,#0d6ebd);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">💬</div>
-            <div>
-              <div style="font-size:16px;font-weight:800">Chat With Us</div>
-              <div style="font-size:12px;color:var(--green);font-weight:700;display:flex;align-items:center;gap:5px"><span style="width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;animation:pulse 1.5s infinite"></span>Online Now · Replies in minutes</div>
+        <div class="home-support-box" onclick="openSupport()" style="direction:ltr;min-width:0;overflow:hidden">
+          <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;min-width:0">
+            <div style="width:48px;height:48px;min-width:48px;border-radius:50%;background:linear-gradient(135deg,#1a9aef,#0d6ebd);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">💬</div>
+            <div style="min-width:0;overflow:hidden">
+              <div style="font-size:16px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Chat With Us</div>
+              <div style="font-size:12px;color:var(--green);font-weight:700;display:flex;align-items:center;gap:5px;white-space:nowrap"><span style="width:7px;height:7px;min-width:7px;border-radius:50%;background:var(--green);display:inline-block;animation:pulse 1.5s infinite;flex-shrink:0"></span><span>Online Now · Replies in minutes</span></div>
             </div>
           </div>
           <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:16px">Have a question about deposits, withdrawals, or your account? Our support team is available 24/7.</p>
@@ -1077,6 +1080,9 @@ function renderHome(){
   renderBoard('hBoard',hB,hSel,hLm,hLmv,false);setCoords('h-ranks','h-files',false,60);
   var wrap=document.getElementById('homeBoardWrap');
   if(wrap){wrap.style.paddingLeft=window.innerWidth<=900?'0px':'45px';}
+  // Ensure board-wrap is centered
+  var bw=document.querySelector('.board-wrap');
+  if(bw){bw.style.alignItems='center';}
 }
 function homeCheckEnd(){var mv=allL(hT,hB,hEp,hCr),k=kng(hT,hB),inC=atk(k,Op(hT),hB,hEp,hCr);
   if(!mv.length){hGO=true;var st=document.getElementById('hSt');if(st)st.textContent=(hT==='w'?'Black':'White')+' wins!';}
@@ -2832,7 +2838,7 @@ function setLang(code){
     var lh2=lsDiv.querySelector('h2:first-of-type');if(lh2)lh2.textContent=t.lang_title||'🌐 Select Your Language';
     var stag=lsDiv.querySelectorAll('.section-tag')[1];if(stag)stag.textContent=t.support_tag||'Help & Support';
     var sh2=lsDiv.querySelectorAll('h2')[1];if(sh2)sh2.textContent=t.support_title||'💬 Live Support';
-    var schat=lsDiv.querySelector('.home-support-box > div > div:first-child');if(schat)schat.textContent=t.support_chat_title||'Chat With Us';
+    var schat=lsDiv.querySelector('.home-support-box > div > div:first-child');if(schat){schat.textContent=t.support_chat_title||'Chat With Us';schat.style.cssText='font-size:16px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';}
     var sonl=lsDiv.querySelector('.home-support-box > div > div:last-child');if(sonl)sonl.innerHTML='<span style="width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;animation:pulse 1.5s infinite"></span>'+(t.support_online||'Online Now');
     var sdesc=lsDiv.querySelector('.home-support-box p');if(sdesc)sdesc.textContent=t.support_desc||'';
     var sbtn=lsDiv.querySelector('.home-support-box .btn');if(sbtn)sbtn.textContent=t.support_btn||'💬 Start Live Chat';
@@ -2948,7 +2954,7 @@ function setLang(code){
 
   // ── Live chat support box - fix alignment after lang change ──
   var supportBox=document.querySelector('.home-support-box');
-  if(supportBox)supportBox.style.direction='ltr';
+  if(supportBox){supportBox.style.direction='ltr';supportBox.style.overflow='hidden';}
 
   // ── Sidebar links ──
   var sbLinks=document.querySelectorAll('#sidebar .sb-link');
