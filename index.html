@@ -365,18 +365,7 @@ header{padding:0 10px}
 </style>
 </head>
 <body>
-<!-- AUTH LOADING SCREEN - hides flash of logged-out state on refresh -->
-<div id="authLoadingScreen" style="position:fixed;inset:0;background:#0f212e;z-index:99999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;font-family:Inter,sans-serif">
-  <div style="font-size:48px">♛</div>
-  <div style="font-size:14px;color:#b1bad3;font-weight:600">Loading ChessWin7...</div>
-</div>
-<script>
-// Safety: always remove loading screen after 3 seconds maximum
-setTimeout(function(){
-  var ls=document.getElementById('authLoadingScreen');
-  if(ls){ls.style.opacity='0';ls.style.transition='opacity 0.3s';setTimeout(function(){if(ls.parentNode)ls.parentNode.removeChild(ls);},300);}
-},3000);
-</script>
+
 <!-- AUTH MODAL -->
 <div class="modal" id="authModal">
   <div class="modal-box">
@@ -2112,9 +2101,7 @@ function showAccountStatement(){
 
 window.currentUser=null;window.currentUserData=null;
 auth.onAuthStateChanged(function(user){
-  // Remove loading screen immediately
-  var ls=document.getElementById('authLoadingScreen');
-  if(ls){ls.parentNode&&ls.parentNode.removeChild(ls);}
+
   window.currentUser=user;
   var hRight=document.getElementById('headerRight'),gNav=document.getElementById('guestNav'),sidebar=document.getElementById('sidebar');
   if(user){
