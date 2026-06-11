@@ -365,6 +365,11 @@ header{padding:0 10px}
 </style>
 </head>
 <body>
+<!-- AUTH LOADING SCREEN - hides flash of logged-out state on refresh -->
+<div id="authLoadingScreen" style="position:fixed;inset:0;background:#0f212e;z-index:99999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;font-family:Inter,sans-serif">
+  <div style="font-size:48px">♛</div>
+  <div style="font-size:14px;color:#b1bad3;font-weight:600">Loading ChessWin7...</div>
+</div>
 <!-- AUTH MODAL -->
 <div class="modal" id="authModal">
   <div class="modal-box">
@@ -792,12 +797,14 @@ header{padding:0 10px}
 <div class="page" id="page-deposit">
   <p class="section-tag">Finance</p>
   <h2 style="font-size:24px;font-weight:900;margin-bottom:24px">💰 Deposit</h2>
+  <!-- Platform Wallets — loaded from Firestore -->
+  <div id="platformWallets" style="margin-bottom:20px"></div>
   <div class="finance-form">
     <h3>Submit Deposit Request</h3>
     <div class="form-row"><label>Amount (USDT)</label><input type="number" id="dpAmt" placeholder="Min. 10 USDT" min="10"></div>
     <div class="form-row"><label>Transaction ID / TxHash</label><input type="text" id="dpTx" placeholder="Paste your TxID here"></div>
     <div class="form-row"><label>Note (Optional)</label><input type="text" id="dpNote" placeholder="e.g. TRC20"></div>
-    <div style="background:var(--surface2);border-radius:var(--radius);padding:12px;font-size:13px;color:var(--muted);margin-bottom:16px">📌 Send USDT to our wallet, then submit your TxID. Admin credits within 24h.</div>
+    <div style="background:var(--surface2);border-radius:var(--radius);padding:12px;font-size:13px;color:var(--muted);margin-bottom:16px">📌 Send USDT to our wallet above, then submit your TxID. Admin credits within 24h.</div>
     <button class="btn" onclick="submitDeposit()">📤 Submit Request</button>
   </div>
   <div class="finance-form"><h3>My Deposit History</h3><div id="dpHistory"><p style="color:var(--muted)">No deposits yet</p></div></div>
@@ -1932,13 +1939,25 @@ function updateNavBalance(coins){
 }
 
 function loadNavExposure(){
+  // Exposure = coins locked in active games/matchmaking/tournaments ONLY
+  // NOT pending withdrawals (those remain in available balance until approved)
   if(!window.currentUser)return;
-  db.collection('withdrawals').where('userId','==',window.currentUser.uid).where('status','==','pending').get().then(function(snap){
-    var exp=snap.docs.reduce(function(a,d){return a+(d.data().amount||0);},0);
-    var ne=document.getElementById('navExp');if(ne)ne.textContent=exp.toLocaleString();
-    var expDiv=document.getElementById('navExposure');
-    if(expDiv)expDiv.style.display=exp>0?'flex':'none';
-  }).catch(function(){});
+  var exp=window._gameExposure||0; // Set by game engine when match starts
+  var ne=document.getElementById('navExp');if(ne)ne.textContent=exp.toLocaleString();
+  var expDiv=document.getElementById('navExposure');
+  if(expDiv)expDiv.style.display=exp>0?'flex':'none';
+}
+
+// Call this when user enters a match/tournament to lock funds in exposure
+function setGameExposure(amount){
+  window._gameExposure=(window._gameExposure||0)+amount;
+  loadNavExposure();
+}
+
+// Call this when match ends to release exposure
+function releaseGameExposure(amount){
+  window._gameExposure=Math.max(0,(window._gameExposure||0)-amount);
+  loadNavExposure();
 }
 
 // Account Statement — full page overlay
@@ -2062,6 +2081,9 @@ function showAccountStatement(){
 
 window.currentUser=null;window.currentUserData=null;
 auth.onAuthStateChanged(function(user){
+  // Remove loading screen immediately when auth state is known
+  var ls=document.getElementById('authLoadingScreen');
+  if(ls){ls.style.opacity='0';ls.style.transition='opacity 0.2s';setTimeout(function(){if(ls.parentNode)ls.parentNode.removeChild(ls);},200);}
   window.currentUser=user;
   var hRight=document.getElementById('headerRight'),gNav=document.getElementById('guestNav'),sidebar=document.getElementById('sidebar');
   if(user){
@@ -2220,9 +2242,52 @@ function submitWithdrawal(){
     if(!wallet){toast('Enter wallet address','err');return;}
     if(bal<amt){toast('Insufficient balance! You have '+bal+' COINS','err');return;}
     return db.collection('withdrawals').add({userId:window.currentUser.uid,username:safeText(window.currentUserData?window.currentUserData.username:''),email:safeText(window.currentUser.email),amount:amt,wallet:wallet,status:'pending',createdAt:firebase.firestore.FieldValue.serverTimestamp()});
-  }).then(function(ref){if(!ref)return;toast('✓ Withdrawal request submitted!','ok');document.getElementById('wdAmt').value='';document.getElementById('wdWallet').value='';loadWithdrawalHistory();sendEmail({action:'notify-withdrawal',username:safeText(window.currentUserData?window.currentUserData.username:''),userEmail:safeText(window.currentUser.email),amount:amt,wallet:wallet});})
+  }).then(function(ref){if(!ref)return;toast('✓ Withdrawal request submitted!','ok');document.getElementById('wdAmt').value='';document.getElementById('wdWallet').value='';loadWithdrawalHistory();sendEmail({action:'notify-withdrawal',username:safeText(window.currentUserData?window.currentUserData.username:''),userEmail:safeText(window.currentUser.email),amount:amt,wallet:wallet});
+    // Note: exposure only tracks in-game funds, NOT pending withdrawals
+  })
   .catch(function(e){toast(e.message,'err');});
 }
+// ── Load platform wallets from Firestore and show on deposit page ──
+function loadPlatformWallets(){
+  var container=document.getElementById('platformWallets');
+  if(!container)return;
+  container.innerHTML='<div style="color:var(--muted);font-size:13px;padding:10px 0">Loading wallets...</div>';
+  db.collection('settings').doc('wallets').get().then(function(snap){
+    var wallets=snap.exists&&snap.data().list?snap.data().list:[];
+    if(wallets.length===0){
+      // Fallback default wallet
+      wallets=[{name:'TRC20 (USDT)',address:'TQn9Y2khEsLJW1ChVWFMSMeRDow5KcbLSE'}];
+    }
+    var html='<div style="margin-bottom:4px"><p style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:12px">📋 Send USDT to one of these wallets:</p>';
+    wallets.forEach(function(w){
+      html+=
+        '<div style="background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);padding:16px 18px;margin-bottom:10px">'+
+          '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'+
+            '<span style="font-size:13px;font-weight:800;color:var(--accent)">'+safeText(w.name)+'</span>'+
+            '<button onclick="copyWallet(''+w.address+'')" style="background:var(--surface2);border:1px solid var(--border2);color:var(--text);padding:4px 12px;border-radius:4px;cursor:pointer;font-size:11px;font-weight:700;font-family:Inter,sans-serif">📋 Copy</button>'+
+          '</div>'+
+          '<div id="wa-'+btoa(w.address).substring(0,8)+'" style="font-size:13px;font-family:monospace;color:var(--text);word-break:break-all;background:var(--surface2);padding:10px 12px;border-radius:6px;border:1px solid var(--border)">'+safeText(w.address)+'</div>'+
+        '</div>';
+    });
+    html+='</div>';
+    container.innerHTML=html;
+  }).catch(function(){
+    container.innerHTML='<div style="color:var(--muted);font-size:13px;padding:8px 0">⚠ Could not load wallet addresses. Please contact support.</div>';
+  });
+}
+
+function copyWallet(addr){
+  navigator.clipboard.writeText(addr).then(function(){
+    toast('✓ Wallet address copied!','ok');
+  }).catch(function(){
+    // Fallback for older browsers
+    var el=document.createElement('textarea');
+    el.value=addr;document.body.appendChild(el);el.select();
+    document.execCommand('copy');document.body.removeChild(el);
+    toast('✓ Wallet address copied!','ok');
+  });
+}
+
 function loadDepositHistory(){
   if(!window.currentUser)return;
   db.collection('deposits').where('userId','==',window.currentUser.uid).get().then(function(snap){
@@ -2269,6 +2334,7 @@ function goPage(id,el){
   if(id==='play')renderPlay();
   if(id==='stats'&&window.currentUserData)updateStatsPage(window.currentUserData);
   if(id==='profile'&&window.currentUserData){updateProfilePage(window.currentUserData);loadDepositHistory();loadWithdrawalHistory();}
+  if(id==='deposit'){loadPlatformWallets();loadDepositHistory();}
   if(id==='theme')buildThemePicker();
 }
 function scrollToId(id){
