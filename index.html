@@ -1082,7 +1082,7 @@ function renderBoard(elId,brd,sel,lm,lmv,flip){
     if(brd[idx]){
       var sp=document.createElement('img');
       var pk=brd[idx].c+brd[idx].n.toLowerCase();
-      sp.src='https://images.chesscomfiles.com/chess-themes/pieces/neo/150/'+pk+'.png';
+      sp.src='https://lichess1.org/assets/piece/cburnett/'+pk+'.svg';
       sp.alt=pk;sp.style.cssText='width:88%;height:88%;object-fit:contain;pointer-events:none;user-select:none;display:block;margin:auto';
       sq.appendChild(sp);
     }
@@ -1196,7 +1196,7 @@ function renderMiniBoard(data){
     if(data.board[i]){
       var sp=document.createElement('img');
       var pk=data.board[i].c+data.board[i].n.toLowerCase();
-      sp.src='https://images.chesscomfiles.com/chess-themes/pieces/neo/150/'+pk+'.png';
+      sp.src='https://lichess1.org/assets/piece/cburnett/'+pk+'.svg';
       sp.alt=pk;
       sp.style.cssText='width:88%;height:88%;object-fit:contain;display:block;margin:auto;transition:opacity 0.5s ease,transform 0.5s ease';
       sq.appendChild(sp);
@@ -1219,7 +1219,7 @@ function updateMiniSquare(mb, idx, piece, th, fadeIn){
     setTimeout(function(){
       var sp=document.createElement('img');
       var pk=piece.c+piece.n.toLowerCase();
-      sp.src='https://images.chesscomfiles.com/chess-themes/pieces/neo/150/'+pk+'.png';
+      sp.src='https://lichess1.org/assets/piece/cburnett/'+pk+'.svg';
       sp.alt=pk;
       sp.style.cssText='width:88%;height:88%;object-fit:contain;display:block;margin:auto;transition:opacity 0.5s ease,transform 0.5s ease;opacity:0;transform:scale(0.5)';
       sq.appendChild(sp);
@@ -1553,7 +1553,7 @@ function buildThemePicker(){
         var col=PIECE_COLORS[idx];
         if(piece&&col){
           var img=document.createElement('img');
-          img.src='https://images.chesscomfiles.com/chess-themes/pieces/neo/150/'+col+piece.toLowerCase()+'.png';
+          img.src='https://lichess1.org/assets/piece/cburnett/'+col+piece.toLowerCase()+'.svg';
           img.style.cssText='width:100%;height:100%;object-fit:contain;display:block;pointer-events:none';
           sq.appendChild(img);
         }
@@ -2273,24 +2273,32 @@ function loadPlatformWallets(){
   db.collection('settings').doc('wallets').get().then(function(snap){
     var wallets=snap.exists&&snap.data().list?snap.data().list:[];
     if(wallets.length===0){
-      // Fallback default wallet
       wallets=[{name:'TRC20 (USDT)',address:'TQn9Y2khEsLJW1ChVWFMSMeRDow5KcbLSE'}];
     }
-    var html='<div style="margin-bottom:4px"><p style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:12px">📋 Send USDT to one of these wallets:</p>';
-    wallets.forEach(function(w){
-      html+=
-        '<div style="background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);padding:16px 18px;margin-bottom:10px">'+
-          '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'+
-            '<span style="font-size:13px;font-weight:800;color:var(--accent)">'+safeText(w.name)+'</span>'+
-            '<button onclick="copyWallet(''+w.address+'')" style="background:var(--surface2);border:1px solid var(--border2);color:var(--text);padding:4px 12px;border-radius:4px;cursor:pointer;font-size:11px;font-weight:700;font-family:Inter,sans-serif">📋 Copy</button>'+
-          '</div>'+
-          '<div id="wa-'+btoa(w.address).substring(0,8)+'" style="font-size:13px;font-family:monospace;color:var(--text);word-break:break-all;background:var(--surface2);padding:10px 12px;border-radius:6px;border:1px solid var(--border)">'+safeText(w.address)+'</div>'+
-        '</div>';
+    container.innerHTML='<p style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:12px">📋 Send USDT to one of these wallets:</p>';
+    wallets.forEach(function(w,i){
+      var wDiv=document.createElement('div');
+      wDiv.style.cssText='background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);padding:16px 18px;margin-bottom:10px';
+      var header=document.createElement('div');
+      header.style.cssText='display:flex;justify-content:space-between;align-items:center;margin-bottom:8px';
+      var name=document.createElement('span');
+      name.style.cssText='font-size:13px;font-weight:800;color:var(--accent)';
+      name.textContent=w.name;
+      var copyBtn=document.createElement('button');
+      copyBtn.textContent='📋 Copy';
+      copyBtn.style.cssText='background:var(--surface2);border:1px solid var(--border2);color:var(--text);padding:4px 12px;border-radius:4px;cursor:pointer;font-size:11px;font-weight:700;font-family:Inter,sans-serif';
+      copyBtn.onclick=function(){copyWallet(w.address);};
+      header.appendChild(name);
+      header.appendChild(copyBtn);
+      var addrBox=document.createElement('div');
+      addrBox.style.cssText='font-size:13px;font-family:monospace;color:var(--text);word-break:break-all;background:var(--surface2);padding:10px 12px;border-radius:6px;border:1px solid var(--border)';
+      addrBox.textContent=w.address;
+      wDiv.appendChild(header);
+      wDiv.appendChild(addrBox);
+      container.appendChild(wDiv);
     });
-    html+='</div>';
-    container.innerHTML=html;
   }).catch(function(){
-    container.innerHTML='<div style="color:var(--muted);font-size:13px;padding:8px 0">⚠ Could not load wallet addresses. Please contact support.</div>';
+    container.innerHTML='<div style="color:var(--muted);font-size:13px">⚠ Could not load wallet addresses. Please contact support.</div>';
   });
 }
 
