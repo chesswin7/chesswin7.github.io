@@ -303,10 +303,16 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-
               <button class="btn btn-sm" onclick="toast('Saved','ok')">Save</button>
             </div>
           </div>
-          <div class="tbl-wrap" style="padding:20px">
-            <div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:10px">USDT Wallet Address</div>
-            <input value="TQn9Y2khEsLJW1ChVWFMSMeRDow5KcbLSE" class="set-input" style="width:100%;margin-bottom:10px">
-            <button class="btn btn-sm" onclick="toast('Wallet saved','ok')">Save</button>
+          <div class="tbl-wrap" style="padding:20px;grid-column:1/-1">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+              <div>
+                <div style="font-size:13px;font-weight:700;color:var(--accent)">Platform Wallet Addresses</div>
+                <div style="font-size:12px;color:var(--muted);margin-top:3px">These wallets are shown to users on the Deposit page</div>
+              </div>
+              <button class="btn btn-sm" onclick="addWalletRow()">+ Add Wallet</button>
+            </div>
+            <div id="walletList" style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px"></div>
+            <button class="btn" style="width:100%" onclick="saveWallets()">💾 Save All Wallets</button>
           </div>
           <div class="tbl-wrap" style="padding:20px">
             <div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:10px">Change Admin Password</div>
@@ -416,6 +422,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-
 
 <script>
 // ── ADMIN EMAIL (change this to your admin email) ──
+function safeText(s){return String(s||'');}
 const ADMIN_EMAIL = 'admin@chesswin7.com';
 
 const TIERS=[
@@ -507,6 +514,7 @@ function loadAll(){
   loadUsers();
   loadDeposits();
   loadWithdrawals();
+  loadWallets();
 }
 
 function loadUsers(){
@@ -676,6 +684,72 @@ function toggleUserStatus(uid, newStatus){
     renderUsers();
     toast(newStatus==='active'?'User activated':'User deactivated', newStatus==='active'?'ok':'er');
   }).catch(e=>toast('Error: '+e.message,'er'));
+}
+
+// ── WALLET MANAGEMENT ──
+var _wallets=[];
+
+function loadWallets(){
+  db.collection('settings').doc('wallets').get().then(function(snap){
+    _wallets=snap.exists&&snap.data().list?snap.data().list:[];
+    if(_wallets.length===0){
+      // Default wallet
+      _wallets=[{name:'TRC20 (USDT)',address:'TQn9Y2khEsLJW1ChVWFMSMeRDow5KcbLSE'}];
+    }
+    renderWalletList();
+  }).catch(function(){renderWalletList();});
+}
+
+function renderWalletList(){
+  var list=document.getElementById('walletList');if(!list)return;
+  list.innerHTML='';
+  if(_wallets.length===0){
+    list.innerHTML='<div style="color:var(--muted);font-size:13px;padding:10px">No wallets added yet. Click "+ Add Wallet"</div>';
+    return;
+  }
+  _wallets.forEach(function(w,i){
+    var row=document.createElement('div');
+    row.style.cssText='display:flex;gap:10px;align-items:center';
+    row.innerHTML=
+      '<input class="set-input" placeholder="Wallet Name (e.g. TRC20)" value="'+safeText(w.name)+'" style="width:160px;flex-shrink:0" data-idx="'+i+'" data-field="name">'+
+      '<input class="set-input" placeholder="Wallet Address" value="'+safeText(w.address)+'" style="flex:1" data-idx="'+i+'" data-field="address">'+
+      '<button onclick="removeWallet('+i+')" style="background:var(--red);border:none;color:#fff;padding:7px 12px;border-radius:var(--radius);cursor:pointer;font-size:13px;font-weight:700;white-space:nowrap">✕ Remove</button>';
+    row.querySelectorAll('input').forEach(function(inp){
+      inp.addEventListener('input',function(){
+        var idx=parseInt(this.dataset.idx);
+        var field=this.dataset.field;
+        if(_wallets[idx])_wallets[idx][field]=this.value;
+      });
+    });
+    list.appendChild(row);
+  });
+}
+
+function addWalletRow(){
+  _wallets.push({name:'',address:''});
+  renderWalletList();
+  // Focus the new name input
+  var inputs=document.querySelectorAll('#walletList input[data-field="name"]');
+  if(inputs.length>0)inputs[inputs.length-1].focus();
+}
+
+function removeWallet(i){
+  _wallets.splice(i,1);
+  renderWalletList();
+}
+
+function saveWallets(){
+  // Filter out empty entries
+  var valid=_wallets.filter(function(w){return w.name.trim()&&w.address.trim();});
+  if(valid.length===0){toast('Add at least one wallet first','er');return;}
+  db.collection('settings').doc('wallets').set({
+    list:valid,
+    updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+  }).then(function(){
+    _wallets=valid;
+    renderWalletList();
+    toast('✓ Wallets saved! Users will see these on the Deposit page','ok');
+  }).catch(function(e){toast('Error: '+e.message,'er');});
 }
 
 function exportUsers(){
