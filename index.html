@@ -370,6 +370,13 @@ header{padding:0 10px}
   <div style="font-size:48px">♛</div>
   <div style="font-size:14px;color:#b1bad3;font-weight:600">Loading ChessWin7...</div>
 </div>
+<script>
+// Safety: always remove loading screen after 3 seconds maximum
+setTimeout(function(){
+  var ls=document.getElementById('authLoadingScreen');
+  if(ls){ls.style.opacity='0';ls.style.transition='opacity 0.3s';setTimeout(function(){if(ls.parentNode)ls.parentNode.removeChild(ls);},300);}
+},3000);
+</script>
 <!-- AUTH MODAL -->
 <div class="modal" id="authModal">
   <div class="modal-box">
@@ -742,17 +749,16 @@ header{padding:0 10px}
       <div class="panel">
         <h3>Game Mode</h3>
         <div class="mode-tabs">
-          <button class="mt active" onclick="switchMode('ai',this)">vs AI</button>
+          <button class="mt active" onclick="switchMode('ai',this)">vs AI 🤖</button>
           <button class="mt" onclick="switchMode('friend',this)">vs Friend</button>
           <button class="mt" onclick="switchMode('match',this)">Matchmaking</button>
         </div>
         <div class="mc active" id="mc-ai">
           <div class="inp">
-            <label>Difficulty</label>
-            <select id="aiDiff"><option value="1">Beginner</option><option value="2" selected>Easy</option><option value="3">Medium</option><option value="4">Hard</option></select>
             <label>Play As</label>
             <select id="aiCol"><option value="w">White</option><option value="b">Black</option><option value="r">Random</option></select>
           </div>
+          <input type="hidden" id="aiDiff" value="4">
           <button class="btn" style="width:100%" onclick="startAI()">Start vs AI</button>
         </div>
         <div class="mc" id="mc-friend">
@@ -970,7 +976,7 @@ function evlAdv(b){
 }
 function mmAdv(b,d,al,be,mx,ep,cr,startTime){
   // Timeout protection: never run > 2.5 seconds
-  if(Date.now()-startTime>2500)return mx?al:be;
+  if(Date.now()-startTime>5000)return mx?al:be;
   var col=mx?'w':'b',mvs=allL(col,b,ep,cr);
   if(d===0||!mvs.length){
     if(!mvs.length){var k=kng(col,b);if(atk(k,Op(col),b,ep,cr))return mx?-99999:99999;return 0;}
@@ -1006,22 +1012,47 @@ function mmAdv(b,d,al,be,mx,ep,cr,startTime){
 }
 function bestAI(b,d,ep,cr){
   var mvs=allL('b',b,ep,cr);if(!mvs.length)return null;
-  // Difficulty randomness: Beginner=60% random, Easy=30% random, Medium=10% random
-  var rChance=d===1?0.60:d===2?0.30:d===3?0.10:0;
-  if(rChance>0&&Math.random()<rChance)return mvs[Math.floor(Math.random()*mvs.length)];
-  // Effective depth: Beginner=1, Easy=2, Medium=3, Hard=4
-  var depth=Math.max(1,d);
+  // Always maximum strength — depth 6, no randomness
+  var depth=6;
   var startTime=Date.now();
+  var timeLimit=4500;
   var best=Infinity,bm=mvs[0];
+
+  // Move ordering for hard mode: captures, checks, then quiet moves
+  if(true){
+    mvs.sort(function(a,b2){
+      var ca=b[a.t]?V[b[a.t].n]*10:0;
+      var cb=b[b2.t]?V[b[b2.t].n]*10:0;
+      // Penalise moving into attacked squares (crude but effective)
+      var ra=atk(a.t,'w',b,ep,cr)?-50:0;
+      var rb=atk(b2.t,'w',b,ep,cr)?-50:0;
+      return(cb+rb)-(ca+ra);
+    });
+  }
+
   try{
     for(var i=0;i<mvs.length;i++){
       var res=applyM(mvs[i],b,ep,cr);
       var s=mmAdv(res.b,depth-1,-Infinity,Infinity,true,res.ep,res.cr,startTime);
       if(s<best){best=s;bm=mvs[i];}
-      if(Date.now()-startTime>2400)break; // safety cutoff
+      if(Date.now()-startTime>timeLimit)break;
+    }
+    // Hard mode: if multiple moves have same score, pick the one with best positional value
+    if(best>-90000){
+      var topMvs=[];
+      var startTime2=Date.now();
+      for(var j=0;j<mvs.length;j++){
+        var res2=applyM(mvs[j],b,ep,cr);
+        var s2=mmAdv(res2.b,depth-1,-Infinity,Infinity,true,res2.ep,res2.cr,startTime2);
+        if(s2<=best+10)topMvs.push({mv:mvs[j],s:s2});
+        if(Date.now()-startTime2>1000)break;
+      }
+      if(topMvs.length>0){
+        topMvs.sort(function(a,b){return a.s-b.s;});
+        bm=topMvs[0].mv;
+      }
     }
   }catch(e){
-    // Never crash — return best found so far or random
     if(!bm)bm=mvs[Math.floor(Math.random()*mvs.length)];
   }
   return bm;
@@ -1104,11 +1135,11 @@ function homeClick(i){if(hGO)return;var p=hB[i];
     if(mv){hHist.push({b:hB.slice(),t:hT,s:hSel,l:hLm.slice(),lv:hLmv,cr:Object.assign({},hCr),ep:hEp});
       var res=applyM(mv,hB,hEp,hCr);hB=res.b;hEp=res.ep;hCr=res.cr;hLmv=mv;hSel=null;hLm=[];hT=Op(hT);renderHome();
       var ended=homeCheckEnd();
-      if(!ended&&hT==='b'&&hAI)setTimeout(function(){var bm=bestAI(hB,2,hEp,hCr);if(bm){hHist.push({b:hB.slice(),t:hT,s:null,l:[],lv:hLmv,cr:Object.assign({},hCr),ep:hEp});var r2=applyM(bm,hB,hEp,hCr);hB=r2.b;hEp=r2.ep;hCr=r2.cr;hLmv=bm;hT=Op(hT);renderHome();homeCheckEnd();}},400);}
+      if(!ended&&hT==='b'&&hAI)setTimeout(function(){var bm=bestAI(hB,4,hEp,hCr);if(bm){hHist.push({b:hB.slice(),t:hT,s:null,l:[],lv:hLmv,cr:Object.assign({},hCr),ep:hEp});var r2=applyM(bm,hB,hEp,hCr);hB=r2.b;hEp=r2.ep;hCr=r2.cr;hLmv=bm;hT=Op(hT);renderHome();homeCheckEnd();}},400);}
     else{hSel=null;hLm=[];renderHome();}}}
 function resetHome(){hB=mkB();hT='w';hSel=null;hLm=[];hLmv=null;hCr={wK:1,wQ:1,bK:1,bQ:1};hEp=null;hHist=[];hGO=false;renderHome();var st=document.getElementById('hSt');if(st)st.textContent='White to move';}
 function undoHome(){if(!hHist.length)return;var h=hHist.pop();hB=h.b;hT=h.t;hSel=h.s;hLm=h.l;hLmv=h.lv;hCr=h.cr;hEp=h.ep;hGO=false;renderHome();homeCheckEnd();}
-function toggleAI(){hAI=!hAI;var btn=document.getElementById('aiBtn');if(btn)btn.textContent='AI: '+(hAI?'ON':'OFF');if(hAI&&hT==='b'&&!hGO){var bm=bestAI(hB,2,hEp,hCr);if(bm){var res=applyM(bm,hB,hEp,hCr);hB=res.b;hEp=res.ep;hCr=res.cr;hLmv=bm;hT=Op(hT);renderHome();homeCheckEnd();}}}
+function toggleAI(){hAI=!hAI;var btn=document.getElementById('aiBtn');if(btn)btn.textContent='AI: '+(hAI?'ON':'OFF');if(hAI&&hT==='b'&&!hGO){var bm=bestAI(hB,4,hEp,hCr);if(bm){var res=applyM(bm,hB,hEp,hCr);hB=res.b;hEp=res.ep;hCr=res.cr;hLmv=bm;hT=Op(hT);renderHome();homeCheckEnd();}}}
 
 // Play board state
 var pB=mkB(),pT='w',pSel=null,pLm=[],pLmv=null,pCr={wK:1,wQ:1,bK:1,bQ:1},pEp=null,pHist=[],pMH=[],pGO=false,pMode='ai',pColor='w';
@@ -2081,9 +2112,9 @@ function showAccountStatement(){
 
 window.currentUser=null;window.currentUserData=null;
 auth.onAuthStateChanged(function(user){
-  // Remove loading screen immediately when auth state is known
+  // Remove loading screen immediately
   var ls=document.getElementById('authLoadingScreen');
-  if(ls){ls.style.opacity='0';ls.style.transition='opacity 0.2s';setTimeout(function(){if(ls.parentNode)ls.parentNode.removeChild(ls);},200);}
+  if(ls){ls.parentNode&&ls.parentNode.removeChild(ls);}
   window.currentUser=user;
   var hRight=document.getElementById('headerRight'),gNav=document.getElementById('guestNav'),sidebar=document.getElementById('sidebar');
   if(user){
@@ -2926,7 +2957,7 @@ function setLang(code){
   if(panelH3s[1])panelH3s[1].textContent=t.play_moves||'Move History';
   var pBtns=document.querySelectorAll('.board-controls .btn');
   if(pBtns[0])pBtns[0].textContent=t.play_new||'New';if(pBtns[1])pBtns[1].textContent=t.play_undo||'Undo';if(pBtns[2])pBtns[2].textContent=t.play_draw||'½ Draw';if(pBtns[3])pBtns[3].textContent=t.play_resign||'Resign';
-  var aiDiffLabel=document.querySelector('#mc-ai .inp label:first-child');if(aiDiffLabel)aiDiffLabel.textContent=t.play_difficulty||'Difficulty';
+  // Difficulty label removed — always hard mode
   var aiAsLabel=document.querySelector('#mc-ai .inp label:last-child');if(aiAsLabel)aiAsLabel.textContent=t.play_as||'Play As';
   var aiStartBtn=document.querySelector('#mc-ai .btn');if(aiStartBtn)aiStartBtn.textContent=t.play_start||'Start vs AI';
   var matchBtn=document.getElementById('matchBtn');if(matchBtn)matchBtn.textContent=t.play_find||'Find Opponent';
