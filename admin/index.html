@@ -700,6 +700,24 @@ function loadWallets(){
   }).catch(function(){renderWalletList();});
 }
 
+var CRYPTO_OPTIONS=[
+  {label:'USDT (TRC20)',icon:'💚'},
+  {label:'USDT (ERC20)',icon:'💙'},
+  {label:'USDT (BEP20 - BSC)',icon:'💛'},
+  {label:'Bitcoin (BTC)',icon:'🟠'},
+  {label:'Ethereum (ETH)',icon:'🔵'},
+  {label:'BNB (BEP20)',icon:'🟡'},
+  {label:'TRON (TRX)',icon:'🔴'},
+  {label:'Solana (SOL)',icon:'🟣'},
+  {label:'Litecoin (LTC)',icon:'⚪'},
+  {label:'Ripple (XRP)',icon:'🔷'},
+  {label:'Dogecoin (DOGE)',icon:'🐕'},
+  {label:'Polygon (MATIC)',icon:'🟪'},
+  {label:'Cardano (ADA)',icon:'🔹'},
+  {label:'Avalanche (AVAX)',icon:'🔺'},
+  {label:'Custom',icon:'🔧'},
+];
+
 function renderWalletList(){
   var list=document.getElementById('walletList');if(!list)return;
   list.innerHTML='';
@@ -709,24 +727,65 @@ function renderWalletList(){
   }
   _wallets.forEach(function(w,i){
     var row=document.createElement('div');
-    row.style.cssText='display:flex;gap:10px;align-items:center';
-    row.innerHTML=
-      '<input class="set-input" placeholder="Wallet Name (e.g. TRC20)" value="'+safeText(w.name)+'" style="width:160px;flex-shrink:0" data-idx="'+i+'" data-field="name">'+
-      '<input class="set-input" placeholder="Wallet Address" value="'+safeText(w.address)+'" style="flex:1" data-idx="'+i+'" data-field="address">'+
-      '<button onclick="removeWallet('+i+')" style="background:var(--red);border:none;color:#fff;padding:7px 12px;border-radius:var(--radius);cursor:pointer;font-size:13px;font-weight:700;white-space:nowrap">✕ Remove</button>';
-    row.querySelectorAll('input').forEach(function(inp){
-      inp.addEventListener('input',function(){
-        var idx=parseInt(this.dataset.idx);
-        var field=this.dataset.field;
-        if(_wallets[idx])_wallets[idx][field]=this.value;
-      });
+    row.style.cssText='display:flex;gap:10px;align-items:center;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px';
+
+    // Crypto selector dropdown
+    var sel=document.createElement('select');
+    sel.style.cssText='background:var(--surface3);border:1px solid var(--border2);color:var(--text);padding:7px 10px;border-radius:var(--radius);font-size:13px;font-family:Inter,sans-serif;min-width:200px;cursor:pointer';
+    CRYPTO_OPTIONS.forEach(function(opt){
+      var option=document.createElement('option');
+      option.value=opt.label;
+      option.textContent=opt.icon+' '+opt.label;
+      if(w.name===opt.label)option.selected=true;
+      sel.appendChild(option);
     });
+    // If current name doesn't match any option, add it as custom
+    var matched=CRYPTO_OPTIONS.some(function(o){return o.label===w.name;});
+    if(!matched&&w.name){
+      var customOpt=document.createElement('option');
+      customOpt.value=w.name;customOpt.textContent='🔧 '+w.name;customOpt.selected=true;
+      sel.insertBefore(customOpt,sel.firstChild);
+    }
+    sel.addEventListener('change',function(){
+      if(_wallets[i])_wallets[i].name=this.value;
+    });
+
+    // Custom name input (shown when "Custom" selected)
+    var customInp=document.createElement('input');
+    customInp.className='set-input';
+    customInp.placeholder='Custom name...';
+    customInp.style.cssText='width:140px;display:'+(w.name&&!CRYPTO_OPTIONS.slice(0,-1).some(function(o){return o.label===w.name;})?'block':'none');
+    customInp.value=(!CRYPTO_OPTIONS.slice(0,-1).some(function(o){return o.label===w.name;})?w.name:'');
+    customInp.addEventListener('input',function(){if(_wallets[i])_wallets[i].name=this.value;});
+    sel.addEventListener('change',function(){
+      customInp.style.display=this.value==='Custom'?'block':'none';
+      if(this.value!=='Custom')customInp.value='';
+    });
+
+    // Address input
+    var addrInp=document.createElement('input');
+    addrInp.className='set-input';
+    addrInp.placeholder='Wallet Address';
+    addrInp.value=safeText(w.address);
+    addrInp.style.cssText='flex:1;font-family:monospace;font-size:12px';
+    addrInp.addEventListener('input',function(){if(_wallets[i])_wallets[i].address=this.value;});
+
+    // Remove button
+    var rmBtn=document.createElement('button');
+    rmBtn.textContent='✕';
+    rmBtn.style.cssText='background:var(--red);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:14px;font-weight:700;flex-shrink:0';
+    rmBtn.onclick=function(){removeWallet(i);};
+
+    row.appendChild(sel);
+    row.appendChild(customInp);
+    row.appendChild(addrInp);
+    row.appendChild(rmBtn);
     list.appendChild(row);
   });
 }
 
 function addWalletRow(){
-  _wallets.push({name:'',address:''});
+  _wallets.push({name:'USDT (TRC20)',address:''});
   renderWalletList();
   // Focus the new name input
   var inputs=document.querySelectorAll('#walletList input[data-field="name"]');
