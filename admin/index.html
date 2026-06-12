@@ -701,106 +701,139 @@ function loadWallets(){
 }
 
 var CRYPTO_OPTIONS=[
-  {label:'USDT (TRC20)',icon:'<img src="https://cryptologos.cc/logos/tether-usdt-logo.svg" style="width:18px;height:18px;vertical-align:middle;margin-right:4px">',ticker:'USDT'},
-  {label:'USDT (ERC20)',icon:'<img src="https://cryptologos.cc/logos/tether-usdt-logo.svg" style="width:18px;height:18px;vertical-align:middle;margin-right:4px">',ticker:'USDT'},
-  {label:'USDT (BEP20 - BSC)',icon:'<img src="https://cryptologos.cc/logos/tether-usdt-logo.svg" style="width:18px;height:18px;vertical-align:middle;margin-right:4px">',ticker:'USDT'},
-  {label:'Bitcoin (BTC)',icon:'<img src="https://cryptologos.cc/logos/bitcoin-btc-logo.svg" style="width:18px;height:18px;vertical-align:middle;margin-right:4px">',ticker:'BTC'},
-  {label:'Ethereum (ETH)',icon:'<img src="https://cryptologos.cc/logos/ethereum-eth-logo.svg" style="width:18px;height:18px;vertical-align:middle;margin-right:4px">',ticker:'ETH'},
-  {label:'BNB (BEP20)',icon:'<img src="https://cryptologos.cc/logos/bnb-bnb-logo.svg" style="width:18px;height:18px;vertical-align:middle;margin-right:4px">',ticker:'BNB'},
-  {label:'TRON (TRX)',icon:'<img src="https://cryptologos.cc/logos/tron-trx-logo.svg" style="width:18px;height:18px;vertical-align:middle;margin-right:4px">',ticker:'TRX'},
-  {label:'Solana (SOL)',icon:'<img src="https://cryptologos.cc/logos/solana-sol-logo.svg" style="width:18px;height:18px;vertical-align:middle;margin-right:4px">',ticker:'SOL'},
-  {label:'Litecoin (LTC)',icon:'<img src="https://cryptologos.cc/logos/litecoin-ltc-logo.svg" style="width:18px;height:18px;vertical-align:middle;margin-right:4px">',ticker:'LTC'},
-  {label:'Ripple (XRP)',icon:'<img src="https://cryptologos.cc/logos/xrp-xrp-logo.svg" style="width:18px;height:18px;vertical-align:middle;margin-right:4px">',ticker:'XRP'},
-  {label:'Dogecoin (DOGE)',icon:'<img src="https://cryptologos.cc/logos/dogecoin-doge-logo.svg" style="width:18px;height:18px;vertical-align:middle;margin-right:4px">',ticker:'DOGE'},
-  {label:'Polygon (MATIC)',icon:'<img src="https://cryptologos.cc/logos/polygon-matic-logo.svg" style="width:18px;height:18px;vertical-align:middle;margin-right:4px">',ticker:'MATIC'},
-  {label:'Cardano (ADA)',icon:'<img src="https://cryptologos.cc/logos/cardano-ada-logo.svg" style="width:18px;height:18px;vertical-align:middle;margin-right:4px">',ticker:'ADA'},
-  {label:'Avalanche (AVAX)',icon:'<img src="https://cryptologos.cc/logos/avalanche-avax-logo.svg" style="width:18px;height:18px;vertical-align:middle;margin-right:4px">',ticker:'AVAX'},
-  {label:'Shiba Inu (SHIB)',icon:'<img src="https://cryptologos.cc/logos/shiba-inu-shib-logo.svg" style="width:18px;height:18px;vertical-align:middle;margin-right:4px">',ticker:'SHIB'},
-  {label:'Custom',icon:'🔧 ',ticker:''},
+  {label:'Bitcoin',       ticker:'BTC',  emoji:'₿',   color:'#f7931a'},
+  {label:'Ethereum',      ticker:'ETH',  emoji:'Ξ',   color:'#627eea'},
+  {label:'XRP',           ticker:'XRP',  emoji:'🌊',  color:'#346aa9'},
+  {label:'Solana',        ticker:'SOL',  emoji:'◎',   color:'#9945ff'},
+  {label:'USD Coin',      ticker:'USDC', emoji:'🪙',  color:'#2775ca'},
+  {label:'Tether',        ticker:'USDT', emoji:'₮',   color:'#26a17b'},
+  {label:'Binance Coin',  ticker:'BNB',  emoji:'🟡',  color:'#f3ba2f'},
+  {label:'Litecoin',      ticker:'LTC',  emoji:'⚡',  color:'#bfbbbb'},
+  {label:'TRON',          ticker:'TRX',  emoji:'🔺',  color:'#ff0013'},
+  {label:'Dogecoin',      ticker:'DOGE', emoji:'🐶',  color:'#c2a633'},
+  {label:'Pepe',          ticker:'PEPE', emoji:'🐸',  color:'#479f53'},
+  {label:'Shiba Inu',     ticker:'SHIB', emoji:'🦴',  color:'#e44d26'},
 ];
 
 function renderWalletList(){
   var list=document.getElementById('walletList');if(!list)return;
   list.innerHTML='';
   if(_wallets.length===0){
-    list.innerHTML='<div style="color:var(--muted);font-size:13px;padding:10px">No wallets added yet. Click "+ Add Wallet"</div>';
+    list.innerHTML='<div style="color:var(--muted);font-size:13px;padding:10px">No wallets yet. Click "+ Add Wallet"</div>';
     return;
   }
   _wallets.forEach(function(w,i){
+    var opt=CRYPTO_OPTIONS.find(function(o){return o.ticker===w.ticker;})||CRYPTO_OPTIONS[5];
     var row=document.createElement('div');
-    row.style.cssText='display:flex;gap:10px;align-items:center;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px';
+    row.style.cssText='background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:12px';
 
-    // Crypto selector dropdown
+    // ── Header row: coin selector + remove ──
+    var hdr=document.createElement('div');
+    hdr.style.cssText='display:flex;align-items:center;gap:10px;margin-bottom:12px';
+
+    // Coin emoji badge
+    var badge=document.createElement('div');
+    badge.style.cssText='width:36px;height:36px;border-radius:50%;background:'+opt.color+';display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;font-weight:900;color:#fff';
+    badge.textContent=opt.emoji;
+
+    // Dropdown
     var sel=document.createElement('select');
-    sel.style.cssText='background:var(--surface3);border:1px solid var(--border2);color:var(--text);padding:7px 10px;border-radius:var(--radius);font-size:13px;font-family:Inter,sans-serif;min-width:200px;cursor:pointer';
-    CRYPTO_OPTIONS.forEach(function(opt){
+    sel.style.cssText='flex:1;background:var(--surface3);border:1px solid var(--border2);color:var(--text);padding:8px 12px;border-radius:var(--radius);font-size:13px;font-weight:700;font-family:Inter,sans-serif;cursor:pointer';
+    CRYPTO_OPTIONS.forEach(function(o){
       var option=document.createElement('option');
-      option.value=opt.label;
-      // Options can't render HTML images, use ticker as prefix instead
-      option.textContent=(opt.ticker?'['+opt.ticker+'] ':'')+opt.label;
-      if(w.name===opt.label)option.selected=true;
+      option.value=o.ticker;
+      option.textContent=o.emoji+' '+o.label+' ('+o.ticker+')';
+      if(w.ticker===o.ticker)option.selected=true;
       sel.appendChild(option);
     });
-    // If current name doesn't match any option, add it as custom
-    var matched=CRYPTO_OPTIONS.some(function(o){return o.label===w.name;});
-    if(!matched&&w.name){
-      var customOpt=document.createElement('option');
-      customOpt.value=w.name;customOpt.textContent='🔧 '+w.name;customOpt.selected=true;
-      sel.insertBefore(customOpt,sel.firstChild);
-    }
     sel.addEventListener('change',function(){
-      if(_wallets[i])_wallets[i].name=this.value;
+      var picked=CRYPTO_OPTIONS.find(function(o){return o.ticker===this.value;}.bind(this));
+      if(picked){
+        if(_wallets[i]){_wallets[i].ticker=picked.ticker;_wallets[i].name=picked.label+' ('+picked.ticker+')';}
+        badge.textContent=picked.emoji;
+        badge.style.background=picked.color;
+      }
     });
 
-    // Custom name input (shown when "Custom" selected)
-    var customInp=document.createElement('input');
-    customInp.className='set-input';
-    customInp.placeholder='Custom name...';
-    customInp.style.cssText='width:140px;display:'+(w.name&&!CRYPTO_OPTIONS.slice(0,-1).some(function(o){return o.label===w.name;})?'block':'none');
-    customInp.value=(!CRYPTO_OPTIONS.slice(0,-1).some(function(o){return o.label===w.name;})?w.name:'');
-    customInp.addEventListener('input',function(){if(_wallets[i])_wallets[i].name=this.value;});
-    sel.addEventListener('change',function(){
-      customInp.style.display=this.value==='Custom'?'block':'none';
-      if(this.value!=='Custom')customInp.value='';
-    });
-
-    // Address input
-    var addrInp=document.createElement('input');
-    addrInp.className='set-input';
-    addrInp.placeholder='Wallet Address';
-    addrInp.value=safeText(w.address);
-    addrInp.style.cssText='flex:1;font-family:monospace;font-size:12px';
-    addrInp.addEventListener('input',function(){if(_wallets[i])_wallets[i].address=this.value;});
-
-    // Remove button
+    // Remove btn
     var rmBtn=document.createElement('button');
-    rmBtn.textContent='✕';
-    rmBtn.style.cssText='background:var(--red);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:14px;font-weight:700;flex-shrink:0';
+    rmBtn.innerHTML='✕ Remove';
+    rmBtn.style.cssText='background:var(--red);border:none;color:#fff;padding:6px 12px;border-radius:var(--radius);cursor:pointer;font-size:12px;font-weight:700;white-space:nowrap';
     rmBtn.onclick=function(){removeWallet(i);};
 
-    // Show crypto icon next to dropdown
-    var iconDiv=document.createElement('div');
-    iconDiv.style.cssText='width:28px;height:28px;flex-shrink:0;display:flex;align-items:center;justify-content:center';
-    var matchedOpt=CRYPTO_OPTIONS.find(function(o){return o.label===w.name;});
-    if(matchedOpt&&matchedOpt.icon.indexOf('<img')===0){
-      iconDiv.innerHTML=matchedOpt.icon.replace('margin-right:4px','margin-right:0');
-    }else{iconDiv.textContent='🔧';}
-    sel.addEventListener('change',function(){
-      var mo=CRYPTO_OPTIONS.find(function(o){return o.label===this.value;}.bind(this));
-      if(mo&&mo.icon.indexOf('<img')===0)iconDiv.innerHTML=mo.icon.replace('margin-right:4px','margin-right:0');
-      else iconDiv.textContent='🔧';
+    hdr.appendChild(badge);hdr.appendChild(sel);hdr.appendChild(rmBtn);
+    row.appendChild(hdr);
+
+    // ── Wallet address ──
+    var addrLabel=document.createElement('div');
+    addrLabel.style.cssText='font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px';
+    addrLabel.textContent='Wallet Address';
+    var addrInp=document.createElement('input');
+    addrInp.className='set-input';
+    addrInp.placeholder='Enter wallet address...';
+    addrInp.value=w.address||'';
+    addrInp.style.cssText='width:100%;font-family:monospace;font-size:12px;margin-bottom:12px';
+    addrInp.addEventListener('input',function(){if(_wallets[i])_wallets[i].address=this.value;});
+    row.appendChild(addrLabel);row.appendChild(addrInp);
+
+    // ── QR Code upload ──
+    var qrSection=document.createElement('div');
+    qrSection.style.cssText='display:flex;align-items:center;gap:12px';
+
+    // QR preview
+    var qrPreview=document.createElement('div');
+    qrPreview.style.cssText='width:64px;height:64px;border:2px dashed var(--border2);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;background:var(--surface)';
+    if(w.qr){
+      var qrImg=document.createElement('img');
+      qrImg.src=w.qr;qrImg.style.cssText='width:100%;height:100%;object-fit:cover';
+      qrPreview.appendChild(qrImg);
+    } else {
+      qrPreview.innerHTML='<span style="font-size:24px">📷</span>';
+    }
+
+    // Upload btn + instructions
+    var qrRight=document.createElement('div');qrRight.style.flex='1';
+    var qrLabel=document.createElement('div');
+    qrLabel.style.cssText='font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px';
+    qrLabel.textContent='QR Code (Optional)';
+    var qrUpload=document.createElement('input');
+    qrUpload.type='file';qrUpload.accept='image/*';qrUpload.style.display='none';
+    qrUpload.addEventListener('change',function(){
+      var file=this.files[0];if(!file)return;
+      if(file.size>500000){toast('QR image must be under 500KB','er');return;}
+      var reader=new FileReader();
+      reader.onload=function(e){
+        if(_wallets[i])_wallets[i].qr=e.target.result;
+        qrPreview.innerHTML='';
+        var img=document.createElement('img');
+        img.src=e.target.result;img.style.cssText='width:100%;height:100%;object-fit:cover';
+        qrPreview.appendChild(img);
+        toast('QR uploaded!','ok');
+      };
+      reader.readAsDataURL(file);
     });
-    row.appendChild(iconDiv);
-    row.appendChild(sel);
-    row.appendChild(customInp);
-    row.appendChild(addrInp);
-    row.appendChild(rmBtn);
+    var qrBtn=document.createElement('button');
+    qrBtn.textContent=w.qr?'🔄 Change QR':'📷 Upload QR';
+    qrBtn.style.cssText='background:var(--surface3);border:1px solid var(--border2);color:var(--text);padding:6px 14px;border-radius:var(--radius);cursor:pointer;font-size:12px;font-weight:700;font-family:Inter,sans-serif;margin-right:8px';
+    qrBtn.onclick=function(){qrUpload.click();};
+    var qrClear=document.createElement('button');
+    qrClear.textContent='✕';
+    qrClear.style.cssText='background:transparent;border:1px solid var(--border2);color:var(--muted);padding:6px 10px;border-radius:var(--radius);cursor:pointer;font-size:12px';
+    qrClear.onclick=function(){if(_wallets[i])_wallets[i].qr='';qrPreview.innerHTML='<span style="font-size:24px">📷</span>';};
+
+    qrRight.appendChild(qrLabel);
+    qrRight.appendChild(qrBtn);
+    qrRight.appendChild(qrClear);
+    qrRight.appendChild(qrUpload);
+    qrSection.appendChild(qrPreview);
+    qrSection.appendChild(qrRight);
+    row.appendChild(qrSection);
     list.appendChild(row);
   });
 }
 
 function addWalletRow(){
-  _wallets.push({name:'USDT (TRC20)',address:''});
+  _wallets.push({name:'Tether (USDT)',ticker:'USDT',address:'',qr:''});
   renderWalletList();
   // Focus the new name input
   var inputs=document.querySelectorAll('#walletList input[data-field="name"]');
@@ -814,7 +847,7 @@ function removeWallet(i){
 
 function saveWallets(){
   // Filter out empty entries
-  var valid=_wallets.filter(function(w){return w.name.trim()&&w.address.trim();});
+  var valid=_wallets.filter(function(w){return w.address.trim();}).map(function(w){var opt=CRYPTO_OPTIONS.find(function(o){return o.ticker===w.ticker;})||CRYPTO_OPTIONS[5];return{name:opt.label+' ('+opt.ticker+')',ticker:opt.ticker,address:w.address.trim(),qr:w.qr||'',emoji:opt.emoji,color:opt.color};});
   if(valid.length===0){toast('Add at least one wallet first','er');return;}
   db.collection('settings').doc('wallets').set({
     list:valid,
