@@ -229,6 +229,7 @@ footer{padding:32px 48px;border-top:1px solid var(--border);text-align:center;co
 .sb-sup-dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0;animation:pulse 1.5s infinite}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;margin-right:6px;animation:pulse 1.5s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes checkFlash{0%,100%{background:rgba(249,56,72,0.85)}50%{background:rgba(249,56,72,0.3)}}
 .reveal{opacity:0;transform:translateY(16px);transition:opacity .5s,transform .5s}
 .reveal.in{opacity:1;transform:translateY(0)}
 .promo-page{min-height:calc(100vh - 60px);background:var(--bg);padding:32px 24px}
@@ -1126,7 +1127,7 @@ function homeClick(i){if(hGO)return;var p=hB[i];
       var res=applyM(mv,hB,hEp,hCr);hB=res.b;hEp=res.ep;hCr=res.cr;hLmv=mv;hSel=null;hLm=[];hT=Op(hT);renderHome();
       var ended=homeCheckEnd();
       if(!ended&&hT==='b'&&hAI){
-        var hst=document.getElementById('hSt');if(hst)hst.innerHTML='<span style="color:var(--accent2)">🤖 Thinking...</span>';
+        var hst=document.getElementById('hSt');if(hst)hst.innerHTML='<span style="color:var(--accent2);font-weight:800">🤖 AI Thinking...</span>';
         setTimeout(function(){var bm=bestAI(hB,4,hEp,hCr);if(bm){hHist.push({b:hB.slice(),t:hT,s:null,l:[],lv:hLmv,cr:Object.assign({},hCr),ep:hEp});var r2=applyM(bm,hB,hEp,hCr);hB=r2.b;hEp=r2.ep;hCr=r2.cr;hLmv=bm;hT=Op(hT);renderHome();homeCheckEnd();}},300);}}
     else{hSel=null;hLm=[];renderHome();}}}
 function resetHome(){hB=mkB();hT='w';hSel=null;hLm=[];hLmv=null;hCr={wK:1,wQ:1,bK:1,bQ:1};hEp=null;hHist=[];hGO=false;renderHome();var st=document.getElementById('hSt');if(st)st.textContent='White to move';}
@@ -1135,7 +1136,31 @@ function toggleAI(){hAI=!hAI;var btn=document.getElementById('aiBtn');if(btn)btn
 
 // Play board state
 var pB=mkB(),pT='w',pSel=null,pLm=[],pLmv=null,pCr={wK:1,wQ:1,bK:1,bQ:1},pEp=null,pHist=[],pMH=[],pGO=false,pMode='ai',pColor='w';
-function renderPlay(){renderBoard('pBoard',pB,pSel,pLm,pLmv,pColor==='b');setCoords('p-ranks','p-files',pColor==='b',55);}
+function renderPlay(){
+  renderBoard('pBoard',pB,pSel,pLm,pLmv,pColor==='b');
+  setCoords('p-ranks','p-files',pColor==='b',55);
+  // Highlight king red if in check
+  highlightCheck();
+}
+function highlightCheck(){
+  var board=document.getElementById('pBoard');if(!board)return;
+  // Remove any existing check highlight
+  board.querySelectorAll('.sq.in-check').forEach(function(sq){sq.classList.remove('in-check');sq.style.background='';});
+  // Check both kings
+  ['w','b'].forEach(function(col){
+    var k=kng(col,pB);
+    if(k>=0&&atk(k,Op(col),pB,pEp,pCr)){
+      var sqs=board.querySelectorAll('.sq');
+      sqs.forEach(function(sq){
+        if(parseInt(sq.dataset.i)===k){
+          sq.classList.add('in-check');
+          sq.style.background='rgba(249,56,72,0.85)';
+          sq.style.animation='checkFlash 0.4s ease 3';
+        }
+      });
+    }
+  });
+}
 function playCheckEnd(){var mv=allL(pT,pB,pEp,pCr),k=kng(pT,pB),inC=atk(k,Op(pT),pB,pEp,pCr);
   var st=document.getElementById('pSt');
   if(!mv.length){pGO=true;if(st)st.textContent=(pT==='w'?'Black':'White')+' wins!';
@@ -1152,11 +1177,16 @@ function playClick(i){if(pGO)return;if(pMode==='ai'&&pT!==pColor)return;var p=pB
       var res=applyM(mv,pB,pEp,pCr);pB=res.b;pEp=res.ep;pCr=res.cr;pLmv=mv;pSel=null;pLm=[];pT=Op(pT);pMH.push(mv);updMoves();renderPlay();
       var ended=playCheckEnd();
       if(!ended&&pMode==='ai'&&pT!==pColor){
-        var pst=document.getElementById('pSt');
-        if(pst)pst.innerHTML='<span style="color:var(--accent2)">🤖 AI is thinking...</span>';
+        // Show thinking on OPPONENT bar (above board)
+        var oppBar=document.getElementById('oppBar');
+        if(oppBar)oppBar.style.borderColor='var(--accent2)';
+        var oppName=document.getElementById('oppName');
+        if(oppName)oppName.innerHTML='🤖 <span style="color:var(--accent2);animation:pulse 0.8s infinite">Thinking...</span>';
         setTimeout(function(){
           var bm=bestAI(pB,4,pEp,pCr);
-          if(bm){pHist.push({b:pB.slice(),t:pT,s:null,l:[],lv:pLmv,cr:Object.assign({},pCr),ep:pEp});var r2=applyM(bm,pB,pEp,pCr);pB=r2.b;pEp=r2.ep;pCr=r2.cr;pLmv=bm;pT=Op(pT);pMH.push(bm);updMoves();renderPlay();playCheckEnd();}
+          if(bm){pHist.push({b:pB.slice(),t:pT,s:null,l:[],lv:pLmv,cr:Object.assign({},pCr),ep:pEp});var r2=applyM(bm,pB,pEp,pCr);pB=r2.b;pEp=r2.ep;pCr=r2.cr;pLmv=bm;pT=Op(pT);pMH.push(bm);updMoves();renderPlay();playCheckEnd();
+            var ob=document.getElementById('oppBar');if(ob)ob.style.borderColor='';
+            var on2=document.getElementById('oppName');if(on2)on2.textContent='AI';}
         },300);
       }
     } else{pSel=null;pLm=[];renderPlay();}
@@ -2540,6 +2570,14 @@ en:{
   mini_tag:'Live Games',mini_title:'Active Arenas',mini_desc:'Watch live positions from ongoing matches across all skill levels',
   mini_gold:'♛ Gold Tier',mini_silver:'♜ Silver Tier',mini_bronze:'♟ Bronze Tier',
   tourn_tag:'Competitive',tourn_title:'Tournaments',
+  tourn_1v1:'⚔️ 1 vs 1',tourn_swiss:'🔄 Swiss Tournament',tourn_knockout:'🥊 Knockout',tourn_double:'🏅 Double Elimination',
+  tourn_rapid:'⏱ Rapid Tournament',tourn_blitz:'⚡ Blitz Tournament',tourn_bullet:'🔫 Bullet Tournament',tourn_ultra:'💨 Ultra Bullet',
+  tourn_spring:'🌸 Spring Open',tourn_summer:'☀️ Summer Open',tourn_autumn:'🍂 Autumn Open',tourn_winter:'❄️ Winter Open',
+  tourn_arena:'Arena',tourn_seasonal:'Seasonal',
+  dep_note_text:'📌 Send crypto to our wallet above, then submit your TxID. Admin credits within 24h.',
+  wd_note_text:'📌 5% platform fee deducted. 100 COINS → 95 USDT. Processing: 48h.',
+  dep_submit:'📤 Submit Request',wd_submit:'📤 Submit Request',
+  dep_hist_empty:'No deposits yet',wd_hist_empty:'No withdrawals yet',
   login:'Login',signup:'Sign Up',deposit_btn:'💰 Deposit',withdraw_btn:'💸 Withdraw',
 },
 es:{
@@ -2590,7 +2628,15 @@ es:{
   mini_tag:'Juegos en Vivo',mini_title:'Arenas Activas',mini_desc:'Ve posiciones en vivo de partidas en curso',
   mini_gold:'♛ Nivel Oro',mini_silver:'♜ Nivel Plata',mini_bronze:'♟ Nivel Bronce',
   tourn_tag:'Competitivo',tourn_title:'Torneos',
-  login:'Iniciar Sesión',signup:'Registrarse',deposit_btn:'💰 Depósito',withdraw_btn:'💸 Retirar',
+
+  tourn_1v1:'⚔️ 1 vs 1',tourn_swiss:'🔄 Torneo Suizo',tourn_knockout:'🥊 Eliminación',tourn_double:'🏅 Doble Eliminación',
+  tourn_rapid:'⏱ Torneo Rápido',tourn_blitz:'⚡ Torneo Blitz',tourn_bullet:'🔫 Torneo Bala',tourn_ultra:'💨 Ultra Bala',
+  tourn_spring:'🌸 Abierto Primavera',tourn_summer:'☀️ Abierto Verano',tourn_autumn:'🍂 Abierto Otoño',tourn_winter:'❄️ Abierto Invierno',
+  tourn_arena:'Arena',tourn_seasonal:'Temporada',
+  dep_note_text:'📌 Envía USDT a nuestra billetera arriba, luego envía tu TxID. Admin acredita en 24h.',
+  wd_note_text:'📌 Comisión 5%. 100 MONEDAS → 95 USDT. Procesamiento: 48h.',
+  dep_submit:'📤 Enviar Solicitud',wd_submit:'📤 Enviar Solicitud',
+  dep_hist_empty:'Sin depósitos aún',wd_hist_empty:'Sin retiros aún',  login:'Iniciar Sesión',signup:'Registrarse',deposit_btn:'💰 Depósito',withdraw_btn:'💸 Retirar',
 },
 ru:{
   tagline:'Играй в шахматы. Зарабатывай.',
@@ -2640,7 +2686,15 @@ ru:{
   mini_tag:'Игры в Прямом Эфире',mini_title:'Активные Арены',mini_desc:'Наблюдайте за живыми партиями',
   mini_gold:'♛ Золотой Уровень',mini_silver:'♜ Серебряный Уровень',mini_bronze:'♟ Бронзовый Уровень',
   tourn_tag:'Соревнования',tourn_title:'Турниры',
-  login:'Войти',signup:'Регистрация',deposit_btn:'💰 Депозит',withdraw_btn:'💸 Вывод',
+
+  tourn_1v1:'⚔️ 1 против 1',tourn_swiss:'🔄 Швейцарский',tourn_knockout:'🥊 На вылет',tourn_double:'🏅 Двойное выбывание',
+  tourn_rapid:'⏱ Рапид',tourn_blitz:'⚡ Блиц',tourn_bullet:'🔫 Пуля',tourn_ultra:'💨 Ультрапуля',
+  tourn_spring:'🌸 Весенний Open',tourn_summer:'☀️ Летний Open',tourn_autumn:'🍂 Осенний Open',tourn_winter:'❄️ Зимний Open',
+  tourn_arena:'Арена',tourn_seasonal:'Сезонные',
+  dep_note_text:'📌 Отправьте криптовалюту на кошелёк выше, затем укажите TxID. Зачисление в течение 24ч.',
+  wd_note_text:'📌 Комиссия 5%. 100 МОНЕТ → 95 USDT. Обработка: 48ч.',
+  dep_submit:'📤 Отправить',wd_submit:'📤 Отправить',
+  dep_hist_empty:'Нет депозитов',wd_hist_empty:'Нет выводов',  login:'Войти',signup:'Регистрация',deposit_btn:'💰 Депозит',withdraw_btn:'💸 Вывод',
 },
 ur:{
   tagline:'شطرنج کھیلیں۔ انعام کمائیں۔',
@@ -2690,7 +2744,15 @@ ur:{
   mini_tag:'لائیو گیمز',mini_title:'فعال ایرناز',mini_desc:'جاری میچوں کی پوزیشنیں دیکھیں',
   mini_gold:'♛ گولڈ ٹیئر',mini_silver:'♜ سلور ٹیئر',mini_bronze:'♟ برونز ٹیئر',
   tourn_tag:'مقابلہ',tourn_title:'ٹورنامنٹ',
-  login:'لاگ ان',signup:'سائن اپ',deposit_btn:'💰 جمع',withdraw_btn:'💸 نکالیں',
+
+  tourn_1v1:'⚔️ 1 بمقابلہ 1',tourn_swiss:'🔄 سوئس ٹورنامنٹ',tourn_knockout:'🥊 ناک آؤٹ',tourn_double:'🏅 ڈبل الیمنیشن',
+  tourn_rapid:'⏱ ریپڈ',tourn_blitz:'⚡ بلٹز',tourn_bullet:'🔫 بلٹ',tourn_ultra:'💨 الٹرا بلٹ',
+  tourn_spring:'🌸 اسپرنگ اوپن',tourn_summer:'☀️ سمر اوپن',tourn_autumn:'🍂 آٹم اوپن',tourn_winter:'❄️ ونٹر اوپن',
+  tourn_arena:'ایرنا',tourn_seasonal:'سیزنل',
+  dep_note_text:'📌 اوپر دیے گئے والٹ پر کرپٹو بھیجیں، پھر TxID جمع کریں۔ 24 گھنٹے میں کریڈٹ ہوگا۔',
+  wd_note_text:'📌 5% فیس کٹے گی۔ 100 کوائن → 95 USDT۔ پروسیسنگ: 48 گھنٹے۔',
+  dep_submit:'📤 درخواست بھیجیں',wd_submit:'📤 درخواست بھیجیں',
+  dep_hist_empty:'کوئی ڈپازٹ نہیں',wd_hist_empty:'کوئی ود ڈرال نہیں',  login:'لاگ ان',signup:'سائن اپ',deposit_btn:'💰 جمع',withdraw_btn:'💸 نکالیں',
 },
 zh:{
   tagline:'下棋。赚取真实奖励。',subtitle:'挑战全球真实玩家，赢取USDT。1金币 = 1 USDT。',
@@ -2727,7 +2789,15 @@ zh:{
   mini_tag:'实时游戏',mini_title:'活跃竞技场',mini_desc:'观看正在进行的比赛',
   mini_gold:'♛ 黄金段位',mini_silver:'♜ 白银段位',mini_bronze:'♟ 青铜段位',
   tourn_tag:'竞技',tourn_title:'锦标赛',login:'登录',signup:'注册',deposit_btn:'💰 存款',withdraw_btn:'💸 提款',
-},
+
+  tourn_1v1:'⚔️ 1对1',tourn_swiss:'🔄 瑞士制',tourn_knockout:'🥊 淘汰赛',tourn_double:'🏅 双败淘汰',
+  tourn_rapid:'⏱ 快速赛',tourn_blitz:'⚡ 闪电战',tourn_bullet:'🔫 子弹棋',tourn_ultra:'💨 超快棋',
+  tourn_spring:'🌸 春季公开赛',tourn_summer:'☀️ 夏季公开赛',tourn_autumn:'🍂 秋季公开赛',tourn_winter:'❄️ 冬季公开赛',
+  tourn_arena:'竞技场',tourn_seasonal:'季节赛',
+  dep_note_text:'📌 将加密货币发送到上方钱包，然后提交您的TxID。管理员24小时内到账。',
+  wd_note_text:'📌 扣除5%平台费。100金币 → 95 USDT。处理时间：48小时。',
+  dep_submit:'📤 提交申请',wd_submit:'📤 提交申请',
+  dep_hist_empty:'暂无存款',wd_hist_empty:'暂无提款',},
 ja:{
   tagline:'チェスで遊んで。報酬を稼いで。',subtitle:'世界中のプレイヤーと対戦してUSDTを獲得。1コイン = 1 USDT。',
   playNow:'▶ プレイ',viewRankings:'ランキング',
@@ -2763,7 +2833,15 @@ ja:{
   mini_tag:'ライブゲーム',mini_title:'アクティブアリーナ',mini_desc:'進行中の試合を観戦',
   mini_gold:'♛ ゴールドティア',mini_silver:'♜ シルバーティア',mini_bronze:'♟ ブロンズティア',
   tourn_tag:'競技',tourn_title:'トーナメント',login:'ログイン',signup:'登録',deposit_btn:'💰 入金',withdraw_btn:'💸 出金',
-},
+
+  tourn_1v1:'⚔️ 1対1',tourn_swiss:'🔄 スイス式',tourn_knockout:'🥊 ノックアウト',tourn_double:'🏅 ダブルエリミ',
+  tourn_rapid:'⏱ ラピッド',tourn_blitz:'⚡ ブリッツ',tourn_bullet:'🔫 バレット',tourn_ultra:'💨 ウルトラ',
+  tourn_spring:'🌸 春季オープン',tourn_summer:'☀️ 夏季オープン',tourn_autumn:'🍂 秋季オープン',tourn_winter:'❄️ 冬季オープン',
+  tourn_arena:'アリーナ',tourn_seasonal:'シーズン',
+  dep_note_text:'📌 上のウォレットに送金後、TxIDを送信してください。24時間以内に反映。',
+  wd_note_text:'📌 5%手数料あり。100コイン → 95 USDT。処理時間：48時間。',
+  dep_submit:'📤 申請送信',wd_submit:'📤 申請送信',
+  dep_hist_empty:'入金なし',wd_hist_empty:'出金なし',},
 ko:{
   tagline:'체스를 두세요. 진짜 보상을 받으세요.',subtitle:'전 세계 플레이어와 경쟁하여 USDT를 획득하세요.',
   playNow:'▶ 플레이',viewRankings:'순위보기',
@@ -2799,7 +2877,15 @@ ko:{
   mini_tag:'라이브 게임',mini_title:'활성 아레나',mini_desc:'진행 중인 경기 관람',
   mini_gold:'♛ 골드 등급',mini_silver:'♜ 실버 등급',mini_bronze:'♟ 브론즈 등급',
   tourn_tag:'경쟁',tourn_title:'토너먼트',login:'로그인',signup:'가입',deposit_btn:'💰 입금',withdraw_btn:'💸 출금',
-},
+
+  tourn_1v1:'⚔️ 1대1',tourn_swiss:'🔄 스위스식',tourn_knockout:'🥊 녹아웃',tourn_double:'🏅 더블 엘리미',
+  tourn_rapid:'⏱ 래피드',tourn_blitz:'⚡ 블리츠',tourn_bullet:'🔫 블릿',tourn_ultra:'💨 울트라',
+  tourn_spring:'🌸 봄 오픈',tourn_summer:'☀️ 여름 오픈',tourn_autumn:'🍂 가을 오픈',tourn_winter:'❄️ 겨울 오픈',
+  tourn_arena:'아레나',tourn_seasonal:'시즌',
+  dep_note_text:'📌 위 지갑으로 암호화폐를 보낸 후 TxID를 제출하세요. 24시간 내 처리.',
+  wd_note_text:'📌 5% 수수료 부과. 100코인 → 95 USDT. 처리: 48시간.',
+  dep_submit:'📤 신청하기',wd_submit:'📤 신청하기',
+  dep_hist_empty:'입금 없음',wd_hist_empty:'출금 없음',},
 id:{
   tagline:'Main Catur. Dapatkan Hadiah Nyata.',subtitle:'Tantang pemain nyata di seluruh dunia dan menangkan USDT. 1 KOIN = 1 USDT.',
   playNow:'▶ Main Sekarang',viewRankings:'Lihat Peringkat',
@@ -2835,7 +2921,15 @@ id:{
   mini_tag:'Game Langsung',mini_title:'Arena Aktif',mini_desc:'Tonton posisi langsung dari pertandingan yang sedang berlangsung',
   mini_gold:'♛ Tingkat Emas',mini_silver:'♜ Tingkat Perak',mini_bronze:'♟ Tingkat Perunggu',
   tourn_tag:'Kompetitif',tourn_title:'Turnamen',login:'Masuk',signup:'Daftar',deposit_btn:'💰 Setoran',withdraw_btn:'💸 Tarik',
-},
+
+  tourn_1v1:'⚔️ 1 vs 1',tourn_swiss:'🔄 Swiss',tourn_knockout:'🥊 Knockout',tourn_double:'🏅 Double Elim',
+  tourn_rapid:'⏱ Rapid',tourn_blitz:'⚡ Blitz',tourn_bullet:'🔫 Bullet',tourn_ultra:'💨 Ultra',
+  tourn_spring:'🌸 Spring Open',tourn_summer:'☀️ Summer Open',tourn_autumn:'🍂 Autumn Open',tourn_winter:'❄️ Winter Open',
+  tourn_arena:'Arena',tourn_seasonal:'Musiman',
+  dep_note_text:'📌 Kirim kripto ke dompet di atas, lalu kirim TxID. Admin mengkreditkan dalam 24 jam.',
+  wd_note_text:'📌 Biaya 5%. 100 KOIN → 95 USDT. Pemrosesan: 48 jam.',
+  dep_submit:'📤 Kirim Permintaan',wd_submit:'📤 Kirim Permintaan',
+  dep_hist_empty:'Belum ada setoran',wd_hist_empty:'Belum ada penarikan',},
 ha:{
   tagline:'Wasa Chess. Samu Lada.',subtitle:'Yi gasa da yan wasa na duniya ka lashe USDT. 1 KUDIN = 1 USDT.',
   playNow:'▶ Fara Wasa',viewRankings:'Dubi Matsayi',
@@ -2871,7 +2965,15 @@ ha:{
   mini_tag:'Wasannin Kai Tsaye',mini_title:'Filayen Wasa masu aiki',mini_desc:'Kalli matsayin wasannin da ake yi yanzu',
   mini_gold:'♛ Matsayin Zinariya',mini_silver:'♜ Matsayin Azurfa',mini_bronze:'♟ Matsayin Tagulla',
   tourn_tag:'Gasa',tourn_title:'Gasanni',login:'Shiga',signup:'Yi rajista',deposit_btn:'💰 Ajiya',withdraw_btn:'💸 Cire',
-},
+
+  tourn_1v1:'⚔️ 1 da 1',tourn_swiss:'🔄 Swiss',tourn_knockout:'🥊 Knockout',tourn_double:'🏅 Double Elim',
+  tourn_rapid:'⏱ Rapid',tourn_blitz:'⚡ Blitz',tourn_bullet:'🔫 Bullet',tourn_ultra:'💨 Ultra',
+  tourn_spring:'🌸 Spring Open',tourn_summer:'☀️ Summer Open',tourn_autumn:'🍂 Autumn Open',tourn_winter:'❄️ Winter Open',
+  tourn_arena:'Arena',tourn_seasonal:'Lokaci',
+  dep_note_text:'📌 Aika crypto zuwa walat da ke sama, sannan aika TxID. Admin zai ƙara cikin awanni 24.',
+  wd_note_text:'📌 An cire kashi 5%. 100 KUDI → 95 USDT. Sarrafa: awanni 48.',
+  dep_submit:'📤 Aika Bukata',wd_submit:'📤 Aika Bukata',
+  dep_hist_empty:'Babu ajiya tukuna',wd_hist_empty:'Babu cirewa tukuna',},
 de:{
   tagline:'Schach spielen. Echte Belohnungen verdienen.',subtitle:'Fordere Spieler weltweit heraus und gewinne USDT. 1 Coin = 1 USDT.',
   playNow:'▶ Jetzt spielen',viewRankings:'Rangliste',
@@ -2907,7 +3009,15 @@ de:{
   mini_tag:'Live-Spiele',mini_title:'Aktive Arenen',mini_desc:'Positionen aus laufenden Partien beobachten',
   mini_gold:'♛ Gold-Stufe',mini_silver:'♜ Silber-Stufe',mini_bronze:'♟ Bronze-Stufe',
   tourn_tag:'Wettbewerb',tourn_title:'Turniere',login:'Anmelden',signup:'Registrieren',deposit_btn:'💰 Einzahlen',withdraw_btn:'💸 Auszahlen',
-},
+
+  tourn_1v1:'⚔️ 1 gegen 1',tourn_swiss:'🔄 Schweizer System',tourn_knockout:'🥊 K.O.-Runde',tourn_double:'🏅 Doppelte Elim.',
+  tourn_rapid:'⏱ Rapid',tourn_blitz:'⚡ Blitz',tourn_bullet:'🔫 Bullet',tourn_ultra:'💨 Ultra Bullet',
+  tourn_spring:'🌸 Frühlings Open',tourn_summer:'☀️ Sommer Open',tourn_autumn:'🍂 Herbst Open',tourn_winter:'❄️ Winter Open',
+  tourn_arena:'Arena',tourn_seasonal:'Saisonal',
+  dep_note_text:'📌 Senden Sie Krypto an die obige Wallet, dann TxID einreichen. Admin schreibt innerhalb 24h gut.',
+  wd_note_text:'📌 5% Gebühr. 100 Coins → 95 USDT. Bearbeitung: 48h.',
+  dep_submit:'📤 Anfrage senden',wd_submit:'📤 Anfrage senden',
+  dep_hist_empty:'Noch keine Einzahlungen',wd_hist_empty:'Noch keine Auszahlungen',},
 };
 
 function buildSbLangGrid(){
@@ -3114,6 +3224,44 @@ function setLang(code){
   // ── Tournament page ──
   var tournTag=document.querySelector('#page-tournament .section-tag');if(tournTag)tournTag.textContent=t.tourn_tag||'Competitive';
   var tournH2=document.querySelector('#page-tournament h2');if(tournH2)tournH2.textContent=t.tourn_title||'Tournaments';
+
+  // ── Tournament dropdown items (sidebar) ──
+  var sbDrop=document.getElementById('sbTournDrop');
+  if(sbDrop){
+    var subs=sbDrop.querySelectorAll('.sb-sub');
+    var tournKeys=['tourn_swiss','tourn_knockout','tourn_double','tourn_rapid','tourn_blitz','tourn_bullet','tourn_ultra','tourn_spring','tourn_summer','tourn_autumn','tourn_winter'];
+    subs.forEach(function(sub,i){if(tournKeys[i]&&t[tournKeys[i]])sub.textContent=t[tournKeys[i]];});
+    var arenaLabel=sbDrop.querySelector('div[style*="accent"]');
+    if(arenaLabel)arenaLabel.textContent=t.tourn_arena||'Arena';
+    var seasonLabel=sbDrop.querySelector('div[style*="accent2"]');
+    if(seasonLabel)seasonLabel.textContent=t.tourn_seasonal||'Seasonal';
+  }
+  // Mobile drawer tournament dropdown
+  var mobDrop=document.getElementById('mobTournDrop');
+  if(mobDrop){
+    var mobSubs=mobDrop.querySelectorAll('.sb-sub');
+    var tournKeys2=['tourn_swiss','tourn_knockout','tourn_double','tourn_rapid','tourn_blitz','tourn_bullet','tourn_ultra','tourn_spring','tourn_summer','tourn_autumn','tourn_winter'];
+    mobSubs.forEach(function(sub,i){if(tournKeys2[i]&&t[tournKeys2[i]])sub.textContent=t[tournKeys2[i]];});
+  }
+  // Sidebar 1v1 link
+  var sb1v1=document.querySelector('#sidebar .sb-link[onclick*="1v1"]');
+  if(sb1v1){var nodes=sb1v1.childNodes;for(var ni=0;ni<nodes.length;ni++){if(nodes[ni].nodeType===3&&nodes[ni].textContent.trim()){nodes[ni].textContent=t.tourn_1v1||'1 vs 1';break;}}}
+
+  // ── Deposit page inner text ──
+  var depNote=document.querySelector('#page-deposit .finance-form > div[style]');
+  if(depNote)depNote.textContent=t.dep_note_text||'📌 Send crypto to our wallet above, then submit your TxID. Admin credits within 24h.';
+  var depSubmitBtn=document.querySelector('#page-deposit .finance-form:first-of-type .btn');
+  if(depSubmitBtn)depSubmitBtn.textContent=t.dep_submit||'📤 Submit Request';
+  var depEmpty=document.querySelector('#dpHistory p');
+  if(depEmpty&&depEmpty.textContent.indexOf('No deposits')!==-1||depEmpty&&depEmpty.textContent.indexOf('deposits')!==-1)depEmpty.textContent=t.dep_hist_empty||'No deposits yet';
+
+  // ── Withdrawal page inner text ──
+  var wdNote=document.querySelector('#page-withdrawal .finance-form > div[style]');
+  if(wdNote)wdNote.textContent=t.wd_note_text||'📌 5% platform fee deducted. 100 COINS → 95 USDT. Processing: 48h.';
+  var wdSubmitBtn=document.querySelector('#page-withdrawal .finance-form:first-of-type .btn');
+  if(wdSubmitBtn)wdSubmitBtn.textContent=t.wd_submit||'📤 Submit Request';
+  var wdEmpty=document.querySelector('#wdHistory p');
+  if(wdEmpty)wdEmpty.textContent=t.wd_hist_empty||'No withdrawals yet';
 
   // ── Sidebar tournament link text ──
   var sbTourn=document.getElementById('sbTourn');
