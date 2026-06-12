@@ -2291,27 +2291,55 @@ function loadPlatformWallets(){
     c2.innerHTML='';
     var hdr=document.createElement('p');
     hdr.style.cssText='font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:12px';
-    hdr.textContent='📋 Send USDT to one of these wallets:';
+    hdr.textContent='📋 Send crypto to one of these wallets:';
     c2.appendChild(hdr);
     wallets.forEach(function(w,i){
+      var color=w.color||'#26a17b';
+      var emoji=w.emoji||'💵';
       var wDiv=document.createElement('div');
-      wDiv.style.cssText='background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);padding:16px 18px;margin-bottom:10px';
+      wDiv.style.cssText='background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:16px 18px;margin-bottom:12px;overflow:hidden';
+
+      // Header: badge + name + copy btn
       var header=document.createElement('div');
-      header.style.cssText='display:flex;justify-content:space-between;align-items:center;margin-bottom:8px';
-      var name=document.createElement('span');
-      name.style.cssText='font-size:13px;font-weight:800;color:var(--accent)';
-      name.textContent=w.name;
+      header.style.cssText='display:flex;align-items:center;gap:12px;margin-bottom:12px';
+      var badge=document.createElement('div');
+      badge.style.cssText='width:40px;height:40px;border-radius:50%;background:'+color+';display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;font-weight:900';
+      badge.textContent=emoji;
+      var nameDiv=document.createElement('div');nameDiv.style.flex='1';
+      var nameEl=document.createElement('div');
+      nameEl.style.cssText='font-size:14px;font-weight:800;color:var(--text)';
+      nameEl.textContent=w.name||(w.ticker||'');
+      var tickEl=document.createElement('div');
+      tickEl.style.cssText='font-size:11px;color:var(--muted);font-weight:600;margin-top:2px';
+      tickEl.textContent=w.ticker||'';
+      nameDiv.appendChild(nameEl);nameDiv.appendChild(tickEl);
       var copyBtn=document.createElement('button');
-      copyBtn.textContent='📋 Copy';
-      copyBtn.style.cssText='background:var(--surface2);border:1px solid var(--border2);color:var(--text);padding:4px 12px;border-radius:4px;cursor:pointer;font-size:11px;font-weight:700;font-family:Inter,sans-serif';
+      copyBtn.textContent='📋 Copy Address';
+      copyBtn.style.cssText='background:var(--surface2);border:1px solid var(--border2);color:var(--text);padding:6px 14px;border-radius:var(--radius);cursor:pointer;font-size:12px;font-weight:700;font-family:Inter,sans-serif;white-space:nowrap';
       copyBtn.onclick=function(){copyWallet(w.address);};
-      header.appendChild(name);
-      header.appendChild(copyBtn);
+      header.appendChild(badge);header.appendChild(nameDiv);header.appendChild(copyBtn);
+
+      // Address box
       var addrBox=document.createElement('div');
-      addrBox.style.cssText='font-size:13px;font-family:monospace;color:var(--text);word-break:break-all;background:var(--surface2);padding:10px 12px;border-radius:6px;border:1px solid var(--border)';
+      addrBox.style.cssText='font-size:12px;font-family:monospace;color:var(--text);word-break:break-all;background:var(--surface2);padding:10px 14px;border-radius:6px;border:1px solid var(--border);margin-bottom:'+(w.qr?'12px':'0');
       addrBox.textContent=w.address;
+
       wDiv.appendChild(header);
       wDiv.appendChild(addrBox);
+
+      // QR Code if available
+      if(w.qr){
+        var qrWrap=document.createElement('div');
+        qrWrap.style.cssText='display:flex;align-items:center;gap:14px;padding:12px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)';
+        var qrImg=document.createElement('img');
+        qrImg.src=w.qr;
+        qrImg.style.cssText='width:90px;height:90px;object-fit:contain;border-radius:6px;background:#fff;padding:4px';
+        qrImg.alt='QR Code';
+        var qrText=document.createElement('div');
+        qrText.innerHTML='<div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px">📷 Scan QR Code</div><div style="font-size:11px;color:var(--muted);line-height:1.6">Scan this QR code with your crypto wallet app to get the address automatically</div>';
+        qrWrap.appendChild(qrImg);qrWrap.appendChild(qrText);
+        wDiv.appendChild(qrWrap);
+      }
       container.appendChild(wDiv);
     });
   };
