@@ -1146,19 +1146,21 @@ function playClick(i){if(pGO)return;if(pMode==='ai'&&pT!==pColor)return;var p=pB
   else{if(i===pSel){pSel=null;pLm=[];renderPlay();return;}
     if(p&&p.c===pT){pSel=i;pLm=legal(i,pB,pEp,pCr).map(function(m){return m.t;});renderPlay();return;}
     var mvs=legal(pSel,pB,pEp,pCr),mv=mvs.find(function(m){return m.t===i;});
-    if(mv){pHist.push({b:pB.slice(),t:pT,s:pSel,l:pLm.slice(),lv:pLmv,cr:Object.assign({},pCr),ep:pEp});
+    if(mv){
+      pHist.push({b:pB.slice(),t:pT,s:pSel,l:pLm.slice(),lv:pLmv,cr:Object.assign({},pCr),ep:pEp});
       var res=applyM(mv,pB,pEp,pCr);pB=res.b;pEp=res.ep;pCr=res.cr;pLmv=mv;pSel=null;pLm=[];pT=Op(pT);pMH.push(mv);updMoves();renderPlay();
       var ended=playCheckEnd();
       if(!ended&&pMode==='ai'&&pT!==pColor){
         var pst=document.getElementById('pSt');
         if(pst)pst.innerHTML='<span style="color:var(--accent2)">🤖 AI is thinking...</span>';
         setTimeout(function(){
-          var d=parseInt((document.getElementById('aiDiff')||{value:4}).value)||4;
-          var bm=bestAI(pB,d,pEp,pCr);
+          var bm=bestAI(pB,4,pEp,pCr);
           if(bm){pHist.push({b:pB.slice(),t:pT,s:null,l:[],lv:pLmv,cr:Object.assign({},pCr),ep:pEp});var r2=applyM(bm,pB,pEp,pCr);pB=r2.b;pEp=r2.ep;pCr=r2.cr;pLmv=bm;pT=Op(pT);pMH.push(bm);updMoves();renderPlay();playCheckEnd();}
         },300);
-      }},500);}
-    else{pSel=null;pLm=[];renderPlay();}}}
+      }
+    } else{pSel=null;pLm=[];renderPlay();}
+  }
+}
 function updMoves(){var box=document.getElementById('pMoves');if(!box)return;box.innerHTML='';
   pMH.forEach(function(m,i){var d=document.createElement('div');var sq=function(x){return'abcdefgh'[Cw(x)]+(8-Rw(x));};
     d.className=i%2===0?'mv-w':'mv-b';
