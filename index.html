@@ -191,7 +191,7 @@ footer{padding:32px 48px;border-top:1px solid var(--border);text-align:center;co
 .form-row label{display:block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
 .form-row input{width:100%;padding:10px 14px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-size:14px;font-family:'Inter',sans-serif;outline:none}
 .form-row input:focus{border-color:var(--accent)}
-.balance-box{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);padding:14px 18px;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.balance-box{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);padding:14px 18px;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:12px;flex-wrap:wrap}
 .bal-label{font-size:12px;color:var(--muted);font-weight:600}
 .bal-value{font-size:20px;font-weight:900;color:var(--accent)}
 .profile-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;text-align:center;margin-bottom:20px}
@@ -811,7 +811,7 @@ header{padding:0 10px}
   <h2 style="font-size:24px;font-weight:900;margin-bottom:24px">💸 Withdrawal</h2>
   <div class="finance-form">
     <h3>Submit Withdrawal Request</h3>
-    <div class="balance-box"><span class="bal-label">Available Balance</span><span class="bal-value" id="wdBal">0 COINS</span></div>
+    <div class="balance-box" style="flex-wrap:wrap"><span class="bal-label">Available Balance</span><span class="bal-value" id="wdBal" style="font-size:16px;word-break:break-all">0 COINS</span></div>
     <div class="form-row"><label>Amount (USDT)</label><input type="number" id="wdAmt" placeholder="Min. 10 USDT" min="10"></div>
     <div class="form-row"><label>Wallet Address (TRC20/ERC20)</label><input type="text" id="wdWallet" placeholder="Your USDT wallet address"></div>
     <div style="background:var(--surface2);border-radius:var(--radius);padding:12px;font-size:13px;color:var(--muted);margin-bottom:16px">📌 5% platform fee deducted. 100 COINS → 95 USDT. Processing: 48h.</div>
@@ -1081,7 +1081,7 @@ function renderBoard(elId,brd,sel,lm,lmv,flip){
     if(lm&&lm.includes(idx))sq.classList.add(brd[idx]?'lc':'lm');
     if(brd[idx]){
       var sp=document.createElement('img');
-      var pk=brd[idx].c+brd[idx].n.toLowerCase();
+      var pk=brd[idx].c+brd[idx].n;
       sp.src='https://lichess1.org/assets/piece/cburnett/'+pk+'.svg';
       sp.alt=pk;sp.style.cssText='width:88%;height:88%;object-fit:contain;pointer-events:none;user-select:none;display:block;margin:auto';
       sq.appendChild(sp);
@@ -1195,7 +1195,7 @@ function renderMiniBoard(data){
     sq.style.cssText='background:'+(((r+c)%2===0)?data.th.dark:data.th.light)+';position:relative;overflow:hidden';
     if(data.board[i]){
       var sp=document.createElement('img');
-      var pk=data.board[i].c+data.board[i].n.toLowerCase();
+      var pk=data.board[i].c+data.board[i].n;
       sp.src='https://lichess1.org/assets/piece/cburnett/'+pk+'.svg';
       sp.alt=pk;
       sp.style.cssText='width:88%;height:88%;object-fit:contain;display:block;margin:auto;transition:opacity 0.5s ease,transform 0.5s ease';
@@ -1218,7 +1218,7 @@ function updateMiniSquare(mb, idx, piece, th, fadeIn){
   if(piece){
     setTimeout(function(){
       var sp=document.createElement('img');
-      var pk=piece.c+piece.n.toLowerCase();
+      var pk=piece.c+piece.n;
       sp.src='https://lichess1.org/assets/piece/cburnett/'+pk+'.svg';
       sp.alt=pk;
       sp.style.cssText='width:88%;height:88%;object-fit:contain;display:block;margin:auto;transition:opacity 0.5s ease,transform 0.5s ease;opacity:0;transform:scale(0.5)';
@@ -1553,7 +1553,7 @@ function buildThemePicker(){
         var col=PIECE_COLORS[idx];
         if(piece&&col){
           var img=document.createElement('img');
-          img.src='https://lichess1.org/assets/piece/cburnett/'+col+piece.toLowerCase()+'.svg';
+          img.src='https://lichess1.org/assets/piece/cburnett/'+col+piece+'.svg';
           img.style.cssText='width:100%;height:100%;object-fit:contain;display:block;pointer-events:none';
           sq.appendChild(img);
         }
@@ -2116,6 +2116,8 @@ auth.onAuthStateChanged(function(user){
       if(sidebar)sidebar.classList.add('show');if(gNav)gNav.style.display='none';var sbBtn=document.getElementById('sbReopenBtn');if(sbBtn)sbBtn.style.display='none';
       if(hRight)buildNavbarAuth(data);
       updateProfilePage(data);updateStatsPage(data);checkDailyBtn(data);loadLB();updateMobDrawer(user,data);
+      // Load deposit wallets immediately on login
+      loadPlatformWallets();
     });
   }else{
     window.currentUserData=null;
