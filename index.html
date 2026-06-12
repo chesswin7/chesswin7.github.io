@@ -475,7 +475,7 @@ header{padding:0 10px}
     </nav>
     <a id="promoBtn" class="btn btn-sm" style="background:linear-gradient(135deg,#f0a500,#FFD700);color:#000;font-weight:800" onclick="goPage('promotions')">🎁 Promotions</a>
   </div>
-  <div id="headerRight">
+  <div id="headerRight" style="visibility:hidden">
     <div style="display:flex;gap:8px">
       <button class="btn btn-o btn-sm" onclick="openAuth('login')">Login</button>
       <button class="btn btn-sm" onclick="openAuth('signup')">Sign Up</button>
@@ -1124,7 +1124,9 @@ function homeClick(i){if(hGO)return;var p=hB[i];
     if(mv){hHist.push({b:hB.slice(),t:hT,s:hSel,l:hLm.slice(),lv:hLmv,cr:Object.assign({},hCr),ep:hEp});
       var res=applyM(mv,hB,hEp,hCr);hB=res.b;hEp=res.ep;hCr=res.cr;hLmv=mv;hSel=null;hLm=[];hT=Op(hT);renderHome();
       var ended=homeCheckEnd();
-      if(!ended&&hT==='b'&&hAI)setTimeout(function(){var bm=bestAI(hB,4,hEp,hCr);if(bm){hHist.push({b:hB.slice(),t:hT,s:null,l:[],lv:hLmv,cr:Object.assign({},hCr),ep:hEp});var r2=applyM(bm,hB,hEp,hCr);hB=r2.b;hEp=r2.ep;hCr=r2.cr;hLmv=bm;hT=Op(hT);renderHome();homeCheckEnd();}},400);}
+      if(!ended&&hT==='b'&&hAI){
+        var hst=document.getElementById('hSt');if(hst)hst.innerHTML='<span style="color:var(--accent2)">🤖 Thinking...</span>';
+        setTimeout(function(){var bm=bestAI(hB,4,hEp,hCr);if(bm){hHist.push({b:hB.slice(),t:hT,s:null,l:[],lv:hLmv,cr:Object.assign({},hCr),ep:hEp});var r2=applyM(bm,hB,hEp,hCr);hB=r2.b;hEp=r2.ep;hCr=r2.cr;hLmv=bm;hT=Op(hT);renderHome();homeCheckEnd();}},300);}}
     else{hSel=null;hLm=[];renderHome();}}}
 function resetHome(){hB=mkB();hT='w';hSel=null;hLm=[];hLmv=null;hCr={wK:1,wQ:1,bK:1,bQ:1};hEp=null;hHist=[];hGO=false;renderHome();var st=document.getElementById('hSt');if(st)st.textContent='White to move';}
 function undoHome(){if(!hHist.length)return;var h=hHist.pop();hB=h.b;hT=h.t;hSel=h.s;hLm=h.l;hLmv=h.lv;hCr=h.cr;hEp=h.ep;hGO=false;renderHome();homeCheckEnd();}
@@ -1147,7 +1149,15 @@ function playClick(i){if(pGO)return;if(pMode==='ai'&&pT!==pColor)return;var p=pB
     if(mv){pHist.push({b:pB.slice(),t:pT,s:pSel,l:pLm.slice(),lv:pLmv,cr:Object.assign({},pCr),ep:pEp});
       var res=applyM(mv,pB,pEp,pCr);pB=res.b;pEp=res.ep;pCr=res.cr;pLmv=mv;pSel=null;pLm=[];pT=Op(pT);pMH.push(mv);updMoves();renderPlay();
       var ended=playCheckEnd();
-      if(!ended&&pMode==='ai'&&pT!==pColor)setTimeout(function(){var d=parseInt(document.getElementById('aiDiff').value)||2;var bm=bestAI(pB,d,pEp,pCr);if(bm){pHist.push({b:pB.slice(),t:pT,s:null,l:[],lv:pLmv,cr:Object.assign({},pCr),ep:pEp});var r2=applyM(bm,pB,pEp,pCr);pB=r2.b;pEp=r2.ep;pCr=r2.cr;pLmv=bm;pT=Op(pT);pMH.push(bm);updMoves();renderPlay();playCheckEnd();}},500);}
+      if(!ended&&pMode==='ai'&&pT!==pColor){
+        var pst=document.getElementById('pSt');
+        if(pst)pst.innerHTML='<span style="color:var(--accent2)">🤖 AI is thinking...</span>';
+        setTimeout(function(){
+          var d=parseInt((document.getElementById('aiDiff')||{value:4}).value)||4;
+          var bm=bestAI(pB,d,pEp,pCr);
+          if(bm){pHist.push({b:pB.slice(),t:pT,s:null,l:[],lv:pLmv,cr:Object.assign({},pCr),ep:pEp});var r2=applyM(bm,pB,pEp,pCr);pB=r2.b;pEp=r2.ep;pCr=r2.cr;pLmv=bm;pT=Op(pT);pMH.push(bm);updMoves();renderPlay();playCheckEnd();}
+        },300);
+      }},500);}
     else{pSel=null;pLm=[];renderPlay();}}}
 function updMoves(){var box=document.getElementById('pMoves');if(!box)return;box.innerHTML='';
   pMH.forEach(function(m,i){var d=document.createElement('div');var sq=function(x){return'abcdefgh'[Cw(x)]+(8-Rw(x));};
@@ -2104,6 +2114,7 @@ auth.onAuthStateChanged(function(user){
 
   window.currentUser=user;
   var hRight=document.getElementById('headerRight'),gNav=document.getElementById('guestNav'),sidebar=document.getElementById('sidebar');
+  if(hRight)hRight.style.visibility='visible';
   if(user){
     db.collection('users').doc(user.uid).get().then(function(snap){
       // IMPORTANT: Never auto-create a doc here — signup functions handle doc creation
@@ -2271,12 +2282,9 @@ function submitWithdrawal(){
 function loadPlatformWallets(){
   var container=document.getElementById('platformWallets');
   if(!container)return;
-  container.innerHTML='<div style="color:var(--muted);font-size:13px;padding:10px 0">Loading wallets...</div>';
-  // Try loading from Firestore, show default if fails (permissions/network)
+  container.innerHTML='<div style="color:var(--muted);font-size:13px;padding:10px 0">⏳ Loading wallet addresses...</div>';
   var showWallets=function(wallets){
-    if(!wallets||wallets.length===0){
-      wallets=[{name:'USDT TRC20',address:'Contact admin for wallet address'}];
-    }
+    if(!wallets||wallets.length===0){return;}
     var c2=document.getElementById('platformWallets');if(!c2)return;
     c2.innerHTML='';
     var hdr=document.createElement('p');
@@ -2305,14 +2313,36 @@ function loadPlatformWallets(){
       container.appendChild(wDiv);
     });
   };
-  db.collection('settings').doc('wallets').get().then(function(snap){
-    showWallets(snap.exists&&snap.data().list?snap.data().list:[]);
-  }).catch(function(e){
-    console.warn('Wallet load error:',e.message);
-    // Show default message if Firestore fails
-    var c3=document.getElementById('platformWallets');
-    if(c3)c3.innerHTML='<div style="background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);padding:16px 18px"><div style="font-size:13px;font-weight:800;color:var(--accent);margin-bottom:8px">💬 Contact Support for Wallet Address</div><div style="font-size:13px;color:var(--muted)">Open live chat or contact admin to get the deposit wallet address.</div></div>';
-  });
+  // Try Firestore first - if permission denied, try as authenticated user
+  var tryLoad=function(){
+    db.collection('settings').doc('wallets').get().then(function(snap){
+      if(snap.exists&&snap.data().list&&snap.data().list.length>0){
+        showWallets(snap.data().list);
+      } else {
+        // Empty - show waiting message
+        var c3=document.getElementById('platformWallets');
+        if(c3)c3.innerHTML='<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;font-size:13px;color:var(--muted)">No wallet addresses configured yet. Please contact support via live chat.</div>';
+      }
+    }).catch(function(e){
+      console.warn('Wallet load:',e.message);
+      // Retry once after short delay (auth might not be ready)
+      setTimeout(function(){
+        db.collection('settings').doc('wallets').get().then(function(snap){
+          if(snap.exists&&snap.data().list)showWallets(snap.data().list);
+          else {
+            var c3=document.getElementById('platformWallets');
+            if(c3)c3.innerHTML='<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;font-size:13px;color:var(--muted)">Please contact support via live chat for the deposit wallet address.</div>';
+          }
+        }).catch(function(){
+          var c3=document.getElementById('platformWallets');
+          if(c3)c3.innerHTML='<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;font-size:13px;color:var(--muted)">Please contact support via live chat for the deposit wallet address.</div>';
+        });
+      },2000);
+    });
+  };
+  // Wait for auth before reading settings
+  if(window.currentUser){tryLoad();}
+  else{setTimeout(tryLoad,1500);}
 }
 
 function copyWallet(addr){
