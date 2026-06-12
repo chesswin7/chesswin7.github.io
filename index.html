@@ -500,7 +500,7 @@ header{padding:0 10px}
     </div>
     <button onclick="closeSidebar()" style="background:var(--surface2);border:1px solid var(--border2);color:var(--muted);width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0">✕</button>
   </div>
-  <div class="sb-section">Main</div>
+  <div class="sb-section" data-sec="main">Main</div>
   <div class="sb-link active" onclick="goPage('home',this)"><span class="sb-icon">🏠</span>Home</div>
   <div class="sb-link" onclick="goTourney('1v1')"><span class="sb-icon">⚔️</span>1 vs 1</div>
   <div class="sb-link" onclick="toggleTournDrop(event,this)" id="sbTourn"><span class="sb-icon">🏆</span>Tournaments <span style="margin-left:auto;font-size:10px">▾</span></div>
@@ -520,19 +520,19 @@ header{padding:0 10px}
     <div class="sb-sub" onclick="goTourney('winter')">❄️ Winter Open</div>
   </div>
   <div class="sb-link" onclick="goPage('promotions',this)"><span class="sb-icon">🎁</span>Promotions</div>
-  <div class="sb-section">Finance</div>
+  <div class="sb-section" data-sec="finance">Finance</div>
   <div class="sb-link" onclick="goPage('deposit',this)"><span class="sb-icon">💰</span>Deposit</div>
   <div class="sb-link" onclick="goPage('withdrawal',this)"><span class="sb-icon">💸</span>Withdraw</div>
-  <div class="sb-section">Account</div>
+  <div class="sb-section" data-sec="account">Account</div>
   <div class="sb-link" onclick="goPage('stats',this)"><span class="sb-icon">📊</span>Stats</div>
   <div class="sb-link" onclick="goPage('profile',this)"><span class="sb-icon">👤</span>Profile</div>
   <div class="sb-link" onclick="goPage('theme',this)"><span class="sb-icon">🎨</span>Board Theme</div>
-  <div class="sb-section">More</div>
+  <div class="sb-section" data-sec="more">More</div>
   <div class="sb-lang-wrap">
     <div class="sb-section" style="padding-top:0;padding-bottom:6px">🌐 Language</div>
     <div class="sb-lang-list" id="sbLangGrid"></div>
   </div>
-  <div class="sb-section" style="margin-top:4px">Support</div>
+  <div class="sb-section" data-sec="support" style="margin-top:4px">Support</div>
   <div class="sb-support-btn" onclick="openSupport()">
     <span class="sb-sup-dot"></span>
     <div>
@@ -720,6 +720,7 @@ header{padding:0 10px}
   <div class="play-layout">
     <div class="play-board-wrap">
       <div class="player-bar" id="oppBar"><span id="oppName">Opponent</span><span id="oppTimer">—</span></div>
+      <div id="aiThinkBar" style="display:none;text-align:center;padding:6px 12px;background:rgba(26,154,239,.12);border:1px solid var(--accent2);border-radius:var(--radius);font-size:13px;font-weight:700;color:var(--accent2);margin-top:-4px">🤖 AI is thinking...</div>
       <div style="display:flex;gap:8px;align-items:flex-start">
         <div style="display:flex;flex-direction:column;width:20px" id="p-ranks"></div>
         <div>
@@ -801,8 +802,8 @@ header{padding:0 10px}
     <div class="form-row"><label>Amount (USDT)</label><input type="number" id="dpAmt" placeholder="Min. 10 USDT" min="10"></div>
     <div class="form-row"><label>Transaction ID / TxHash</label><input type="text" id="dpTx" placeholder="Paste your TxID here"></div>
     <div class="form-row"><label>Note (Optional)</label><input type="text" id="dpNote" placeholder="e.g. TRC20"></div>
-    <div style="background:var(--surface2);border-radius:var(--radius);padding:12px;font-size:13px;color:var(--muted);margin-bottom:16px">📌 Send USDT to our wallet above, then submit your TxID. Admin credits within 24h.</div>
-    <button class="btn" onclick="submitDeposit()">📤 Submit Request</button>
+    <div id="depNoteBox" style="background:var(--surface2);border-radius:var(--radius);padding:12px;font-size:13px;color:var(--muted);margin-bottom:16px">📌 Send USDT to our wallet above, then submit your TxID. Admin credits within 24h.</div>
+    <button id="depSubmitBtn" class="btn" onclick="submitDeposit()">📤 Submit Request</button>
   </div>
   <div class="finance-form"><h3>My Deposit History</h3><div id="dpHistory"><p style="color:var(--muted)">No deposits yet</p></div></div>
 </div>
@@ -816,8 +817,8 @@ header{padding:0 10px}
     <div class="balance-box" style="flex-wrap:wrap"><span class="bal-label">Available Balance</span><span class="bal-value" id="wdBal" style="font-size:16px;word-break:break-all">0 COINS</span></div>
     <div class="form-row"><label>Amount (USDT)</label><input type="number" id="wdAmt" placeholder="Min. 10 USDT" min="10"></div>
     <div class="form-row"><label>Wallet Address (TRC20/ERC20)</label><input type="text" id="wdWallet" placeholder="Your USDT wallet address"></div>
-    <div style="background:var(--surface2);border-radius:var(--radius);padding:12px;font-size:13px;color:var(--muted);margin-bottom:16px">📌 5% platform fee deducted. 100 COINS → 95 USDT. Processing: 48h.</div>
-    <button class="btn" onclick="submitWithdrawal()">📤 Submit Request</button>
+    <div id="wdNoteBox" style="background:var(--surface2);border-radius:var(--radius);padding:12px;font-size:13px;color:var(--muted);margin-bottom:16px">📌 5% platform fee deducted. 100 COINS → 95 USDT. Processing: 48h.</div>
+    <button id="wdSubmitBtn" class="btn" onclick="submitWithdrawal()">📤 Submit Request</button>
   </div>
   <div class="finance-form"><h3>My Withdrawal History</h3><div id="wdHistory"><p style="color:var(--muted)">No withdrawals yet</p></div></div>
 </div>
@@ -1144,18 +1145,22 @@ function renderPlay(){
 }
 function highlightCheck(){
   var board=document.getElementById('pBoard');if(!board)return;
-  // Remove any existing check highlight
-  board.querySelectorAll('.sq.in-check').forEach(function(sq){sq.classList.remove('in-check');sq.style.background='';});
-  // Check both kings
   ['w','b'].forEach(function(col){
     var k=kng(col,pB);
     if(k>=0&&atk(k,Op(col),pB,pEp,pCr)){
+      var flip=pColor==='b';
       var sqs=board.querySelectorAll('.sq');
       sqs.forEach(function(sq){
         if(parseInt(sq.dataset.i)===k){
-          sq.classList.add('in-check');
           sq.style.background='rgba(249,56,72,0.85)';
-          sq.style.animation='checkFlash 0.4s ease 3';
+          sq.style.boxShadow='inset 0 0 0 3px #f93848, 0 0 12px rgba(249,56,72,0.6)';
+          // Flash animation via JS since CSS animation resets on re-render
+          var flashes=0;
+          var flashInterval=setInterval(function(){
+            sq.style.background=flashes%2===0?'rgba(249,56,72,0.3)':'rgba(249,56,72,0.85)';
+            flashes++;
+            if(flashes>=6)clearInterval(flashInterval);
+          },150);
         }
       });
     }
@@ -1177,16 +1182,11 @@ function playClick(i){if(pGO)return;if(pMode==='ai'&&pT!==pColor)return;var p=pB
       var res=applyM(mv,pB,pEp,pCr);pB=res.b;pEp=res.ep;pCr=res.cr;pLmv=mv;pSel=null;pLm=[];pT=Op(pT);pMH.push(mv);updMoves();renderPlay();
       var ended=playCheckEnd();
       if(!ended&&pMode==='ai'&&pT!==pColor){
-        // Show thinking on OPPONENT bar (above board)
-        var oppBar=document.getElementById('oppBar');
-        if(oppBar)oppBar.style.borderColor='var(--accent2)';
-        var oppName=document.getElementById('oppName');
-        if(oppName)oppName.innerHTML='🤖 <span style="color:var(--accent2);animation:pulse 0.8s infinite">Thinking...</span>';
+        var atb=document.getElementById('aiThinkBar');if(atb)atb.style.display='block';
         setTimeout(function(){
           var bm=bestAI(pB,4,pEp,pCr);
           if(bm){pHist.push({b:pB.slice(),t:pT,s:null,l:[],lv:pLmv,cr:Object.assign({},pCr),ep:pEp});var r2=applyM(bm,pB,pEp,pCr);pB=r2.b;pEp=r2.ep;pCr=r2.cr;pLmv=bm;pT=Op(pT);pMH.push(bm);updMoves();renderPlay();playCheckEnd();
-            var ob=document.getElementById('oppBar');if(ob)ob.style.borderColor='';
-            var on2=document.getElementById('oppName');if(on2)on2.textContent='AI';}
+            var atb2=document.getElementById('aiThinkBar');if(atb2)atb2.style.display='none';}
         },300);
       }
     } else{pSel=null;pLm=[];renderPlay();}
@@ -3248,18 +3248,16 @@ function setLang(code){
   if(sb1v1){var nodes=sb1v1.childNodes;for(var ni=0;ni<nodes.length;ni++){if(nodes[ni].nodeType===3&&nodes[ni].textContent.trim()){nodes[ni].textContent=t.tourn_1v1||'1 vs 1';break;}}}
 
   // ── Deposit page inner text ──
-  var depNote=document.querySelector('#page-deposit .finance-form > div[style]');
+  var depNote=document.getElementById('depNoteBox');
   if(depNote)depNote.textContent=t.dep_note_text||'📌 Send crypto to our wallet above, then submit your TxID. Admin credits within 24h.';
-  var depSubmitBtn=document.querySelector('#page-deposit .finance-form:first-of-type .btn');
-  if(depSubmitBtn)depSubmitBtn.textContent=t.dep_submit||'📤 Submit Request';
+  var depSBtn=document.getElementById('depSubmitBtn');
+  if(depSBtn)depSBtn.textContent=t.dep_submit||'📤 Submit Request';
   var depEmpty=document.querySelector('#dpHistory p');
-  if(depEmpty&&depEmpty.textContent.indexOf('No deposits')!==-1||depEmpty&&depEmpty.textContent.indexOf('deposits')!==-1)depEmpty.textContent=t.dep_hist_empty||'No deposits yet';
-
-  // ── Withdrawal page inner text ──
-  var wdNote=document.querySelector('#page-withdrawal .finance-form > div[style]');
+  if(depEmpty)depEmpty.textContent=t.dep_hist_empty||'No deposits yet';
+  var wdNote=document.getElementById('wdNoteBox');
   if(wdNote)wdNote.textContent=t.wd_note_text||'📌 5% platform fee deducted. 100 COINS → 95 USDT. Processing: 48h.';
-  var wdSubmitBtn=document.querySelector('#page-withdrawal .finance-form:first-of-type .btn');
-  if(wdSubmitBtn)wdSubmitBtn.textContent=t.wd_submit||'📤 Submit Request';
+  var wdSBtn=document.getElementById('wdSubmitBtn');
+  if(wdSBtn)wdSBtn.textContent=t.wd_submit||'📤 Submit Request';
   var wdEmpty=document.querySelector('#wdHistory p');
   if(wdEmpty)wdEmpty.textContent=t.wd_hist_empty||'No withdrawals yet';
 
@@ -3268,15 +3266,14 @@ function setLang(code){
   if(sbTourn){var sbt2=sbTourn.childNodes;for(var si=0;si<sbt2.length;si++){if(sbt2[si].nodeType===3&&sbt2[si].textContent.trim()){sbt2[si].textContent=t.sb_tournaments||'Tournaments';break;}}}
 
   // ── Sidebar section labels ──
-  var sbSections=document.querySelectorAll('#sidebar .sb-section');
-  var sectionMap=[t.sb_main||'Main',null,null,t.sb_finance||'Finance',null,t.sb_account||'Account',null,t.sb_more||'More'];
-  // Re-translate section labels by content matching
-  sbSections.forEach(function(s){
-    var txt=s.textContent.trim().toLowerCase();
-    if(txt==='main'||txt==='principal'||txt==='главное'||txt==='主菜单'||txt==='メイン')s.textContent=t.sb_main||'Main';
-    else if(txt==='finance'||txt==='finanzas'||txt==='финансы'||txt==='财务'||txt==='재무')s.textContent=t.sb_finance||'Finance';
-    else if(txt==='account'||txt==='cuenta'||txt==='аккаунт'||txt==='账户'||txt==='계정')s.textContent=t.sb_account||'Account';
-    else if(txt==='more'||txt==='más'||txt==='ещё'||txt==='更多'||txt==='더보기')s.textContent=t.sb_more||'More';
+  // Use data-sec attributes for reliable translation (no text matching needed)
+  document.querySelectorAll('[data-sec]').forEach(function(s){
+    var sec=s.dataset.sec;
+    if(sec==='main')s.textContent=t.sb_main||'Main';
+    else if(sec==='finance')s.textContent=t.sb_finance||'Finance';
+    else if(sec==='account')s.textContent=t.sb_account||'Account';
+    else if(sec==='more')s.textContent=t.sb_more||'More';
+    else if(sec==='support')s.textContent=t.sb_support||'Support';
   });
 
   // ── FAQ section — rebuild with translated questions ──
