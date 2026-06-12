@@ -337,6 +337,7 @@ header{padding:0 14px;gap:8px}
 #headerRight > div{gap:4px!important}
 #navBalance{padding:3px 8px!important;font-size:10px!important}
 #navBalance span:first-child{display:none!important}
+#promoBtn{display:none!important}
 }
 @media(max-width:480px){
 header{padding:0 10px}
@@ -825,7 +826,7 @@ header{padding:0 10px}
   <p class="section-tag">Your Performance</p>
   <h2 style="font-size:24px;font-weight:900;margin-bottom:24px">Statistics</h2>
   <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px">
-    <div class="card" style="text-align:center"><div style="font-size:32px;font-weight:900;color:var(--accent)" id="st-rating">1200</div><div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em">Rating</div></div>
+    <div class="card" style="text-align:center"><div style="font-size:32px;font-weight:900;color:var(--accent)" id="st-rating">0</div><div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em">Rating</div></div>
     <div class="card" style="text-align:center"><div style="font-size:32px;font-weight:900;color:var(--green)" id="st-wins">0</div><div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em">Wins</div></div>
     <div class="card" style="text-align:center"><div style="font-size:32px;font-weight:900;color:var(--red)" id="st-losses">0</div><div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em">Losses</div></div>
     <div class="card" style="text-align:center"><div style="font-size:32px;font-weight:900;color:var(--accent)" id="st-wr">—</div><div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em">Win Rate</div></div>
@@ -1310,7 +1311,7 @@ var TIERS=[
   {n:'Platinum',i:'🎖️',min:1200,max:1399},{n:'Diamond',i:'💎',min:1400,max:1599},{n:'Crown',i:'👑',min:1600,max:1799},
   {n:'Ace',i:'⚔️',min:1800,max:1999},{n:'Master',i:'🧠',min:2000,max:2199},{n:'Grandmaster',i:'♛',min:2200,max:2399},{n:'Legend',i:'🌟',min:2400,max:9999}
 ];
-function getTier(r){return TIERS.find(function(t){return r>=t.min&&r<=t.max;})||TIERS[0];}
+function getTier(r){if(!r||r<=0)return TIERS[0];return TIERS.find(function(t){return r>=t.min&&r<=t.max;})||TIERS[0];}
 
 // Leaderboard with fixed RAF leak + XSS fix
 var lbY=0,lbRaf=null;
@@ -1328,7 +1329,7 @@ function buildLB(players){
     var nameDiv=document.createElement('div');nameDiv.style.fontWeight='700';nameDiv.textContent=safeText(p.u||p.username||'?');
     if(isCU){var you=makeSafeEl('small',null,' (you)');you.style.color='var(--muted)';nameDiv.appendChild(you);}
     var tierDiv=document.createElement('div');var tb=makeSafeEl('span','tier-badge',t.i+' '+t.n);tierDiv.appendChild(tb);
-    var ratingDiv=document.createElement('div');ratingDiv.className='rating';ratingDiv.textContent=safeText(p.r||p.rating||1200);
+    var ratingDiv=document.createElement('div');ratingDiv.className='rating';ratingDiv.textContent=safeText(p.r||p.rating||0);
     var winsDiv=document.createElement('div');winsDiv.textContent=safeText(p.w||p.wins||0);
     var coinsDiv=document.createElement('div');coinsDiv.className='coins';coinsDiv.style.textAlign='right';coinsDiv.textContent='🪙 '+((p.c||p.coins||0)).toLocaleString();
     row.appendChild(rankDiv);row.appendChild(nameDiv);row.appendChild(tierDiv);row.appendChild(ratingDiv);row.appendChild(winsDiv);row.appendChild(coinsDiv);
@@ -2170,7 +2171,7 @@ function updateProfilePage(data){
   var pe=document.getElementById('prof-em');if(pe)pe.value=window.currentUser?safeText(window.currentUser.email):'';
   var pp=document.getElementById('prof-phone');if(pp)pp.value=safeText(data.phone||'');
   var pt=document.getElementById('prof-tier');if(pt)pt.textContent=t.i+' '+t.n;
-  var pr=document.getElementById('prof-rating');if(pr)pr.textContent=data.rating||1200;
+  var pr=document.getElementById('prof-rating');if(pr)pr.textContent=data.rating||0;
   var pw=document.getElementById('prof-wins');if(pw)pw.textContent=data.wins||0;
   var pc=document.getElementById('prof-coins');if(pc)pc.textContent=(data.coins||0).toLocaleString();
   var wb=document.getElementById('wdBal');if(wb)wb.textContent=(data.coins||0).toLocaleString()+' COINS';
@@ -2296,50 +2297,68 @@ function loadPlatformWallets(){
     wallets.forEach(function(w,i){
       var color=w.color||'#26a17b';
       var emoji=w.emoji||'💵';
+      var color=w.color||'#26a17b';
+      var emoji=w.emoji||'💵';
       var wDiv=document.createElement('div');
-      wDiv.style.cssText='background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:16px 18px;margin-bottom:12px;overflow:hidden';
+      wDiv.style.cssText='background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:16px 18px;margin-bottom:12px';
 
-      // Header: badge + name + copy btn
-      var header=document.createElement('div');
-      header.style.cssText='display:flex;align-items:center;gap:12px;margin-bottom:12px';
+      // Main layout: left info + right QR
+      var mainRow=document.createElement('div');
+      mainRow.style.cssText='display:flex;gap:16px;align-items:flex-start';
+
+      // Left side
+      var leftSide=document.createElement('div');
+      leftSide.style.cssText='flex:1;min-width:0';
+
+      // Coin header row
+      var coinRow=document.createElement('div');
+      coinRow.style.cssText='display:flex;align-items:center;gap:10px;margin-bottom:10px';
       var badge=document.createElement('div');
-      badge.style.cssText='width:40px;height:40px;border-radius:50%;background:'+color+';display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;font-weight:900';
+      badge.style.cssText='width:36px;height:36px;border-radius:50%;background:'+color+';display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;font-weight:900';
       badge.textContent=emoji;
       var nameDiv=document.createElement('div');nameDiv.style.flex='1';
       var nameEl=document.createElement('div');
       nameEl.style.cssText='font-size:14px;font-weight:800;color:var(--text)';
       nameEl.textContent=w.name||(w.ticker||'');
       var tickEl=document.createElement('div');
-      tickEl.style.cssText='font-size:11px;color:var(--muted);font-weight:600;margin-top:2px';
+      tickEl.style.cssText='font-size:11px;color:var(--muted);font-weight:600';
       tickEl.textContent=w.ticker||'';
       nameDiv.appendChild(nameEl);nameDiv.appendChild(tickEl);
-      var copyBtn=document.createElement('button');
-      copyBtn.textContent='📋 Copy Address';
-      copyBtn.style.cssText='background:var(--surface2);border:1px solid var(--border2);color:var(--text);padding:6px 14px;border-radius:var(--radius);cursor:pointer;font-size:12px;font-weight:700;font-family:Inter,sans-serif;white-space:nowrap';
-      copyBtn.onclick=function(){copyWallet(w.address);};
-      header.appendChild(badge);header.appendChild(nameDiv);header.appendChild(copyBtn);
+      coinRow.appendChild(badge);coinRow.appendChild(nameDiv);
+      leftSide.appendChild(coinRow);
 
-      // Address box
+      // Address - inline-block width fits content
+      var addrLabel=document.createElement('div');
+      addrLabel.style.cssText='font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px';
+      addrLabel.textContent='Wallet Address';
+      var addrWrap=document.createElement('div');
+      addrWrap.style.cssText='display:flex;align-items:center;gap:8px;flex-wrap:wrap';
       var addrBox=document.createElement('div');
-      addrBox.style.cssText='font-size:12px;font-family:monospace;color:var(--text);word-break:break-all;background:var(--surface2);padding:10px 14px;border-radius:6px;border:1px solid var(--border);margin-bottom:'+(w.qr?'12px':'0');
+      addrBox.style.cssText='font-size:12px;font-family:monospace;color:var(--text);word-break:break-all;background:var(--surface2);padding:8px 12px;border-radius:6px;border:1px solid var(--border);flex:1';
       addrBox.textContent=w.address;
+      var copyBtn=document.createElement('button');
+      copyBtn.textContent='📋 Copy';
+      copyBtn.style.cssText='background:'+color+';border:none;color:#fff;padding:7px 14px;border-radius:var(--radius);cursor:pointer;font-size:12px;font-weight:700;font-family:Inter,sans-serif;white-space:nowrap;flex-shrink:0';
+      copyBtn.onclick=function(){copyWallet(w.address);};
+      addrWrap.appendChild(addrBox);addrWrap.appendChild(copyBtn);
+      leftSide.appendChild(addrLabel);leftSide.appendChild(addrWrap);
+      mainRow.appendChild(leftSide);
 
-      wDiv.appendChild(header);
-      wDiv.appendChild(addrBox);
-
-      // QR Code if available
+      // Right side: QR code (large, clear)
       if(w.qr){
-        var qrWrap=document.createElement('div');
-        qrWrap.style.cssText='display:flex;align-items:center;gap:14px;padding:12px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)';
+        var qrSide=document.createElement('div');
+        qrSide.style.cssText='flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:4px';
         var qrImg=document.createElement('img');
         qrImg.src=w.qr;
-        qrImg.style.cssText='width:90px;height:90px;object-fit:contain;border-radius:6px;background:#fff;padding:4px';
+        qrImg.style.cssText='width:120px;height:120px;object-fit:contain;border-radius:8px;background:#fff;padding:6px;border:2px solid var(--border2)';
         qrImg.alt='QR Code';
-        var qrText=document.createElement('div');
-        qrText.innerHTML='<div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px">📷 Scan QR Code</div><div style="font-size:11px;color:var(--muted);line-height:1.6">Scan this QR code with your crypto wallet app to get the address automatically</div>';
-        qrWrap.appendChild(qrImg);qrWrap.appendChild(qrText);
-        wDiv.appendChild(qrWrap);
+        var qrTxt=document.createElement('div');
+        qrTxt.style.cssText='font-size:10px;color:var(--muted);font-weight:600;text-align:center';
+        qrTxt.textContent='Scan to get address';
+        qrSide.appendChild(qrImg);qrSide.appendChild(qrTxt);
+        mainRow.appendChild(qrSide);
       }
+      wDiv.appendChild(mainRow);
       container.appendChild(wDiv);
     });
   };
