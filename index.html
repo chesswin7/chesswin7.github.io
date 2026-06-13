@@ -733,8 +733,8 @@ function _removeLoadBar(){
   </div>
   <div class="play-layout">
     <div class="play-board-wrap">
-      <div id="aiThinkBar" style="display:none;text-align:center;padding:8px 16px;background:rgba(26,154,239,.15);border:1px solid var(--accent2);border-radius:var(--radius);font-size:13px;font-weight:800;color:var(--accent2);letter-spacing:.02em">🤖 AI Thinking...</div>
       <div class="player-bar" id="oppBar"><span id="oppName">Opponent</span><span id="oppTimer">—</span></div>
+      <div id="aiThinkBar" style="display:none;text-align:center;padding:8px 16px;background:rgba(26,154,239,.15);border:1px solid var(--accent2);border-radius:var(--radius);font-size:13px;font-weight:800;color:var(--accent2)">🤖 AI Thinking...</div>
       <div style="display:flex;gap:8px;align-items:flex-start">
         <div style="display:flex;flex-direction:column;width:20px" id="p-ranks"></div>
         <div>
@@ -1142,7 +1142,6 @@ function homeClick(i){if(hGO)return;var p=hB[i];
       var res=applyM(mv,hB,hEp,hCr);hB=res.b;hEp=res.ep;hCr=res.cr;hLmv=mv;hSel=null;hLm=[];hT=Op(hT);renderHome();
       var ended=homeCheckEnd();
       if(!ended&&hT==='b'&&hAI){
-        var hst=document.getElementById('hSt');if(hst)hst.innerHTML='<span style="color:var(--accent2);font-weight:800">🤖 AI Thinking...</span>';
         setTimeout(function(){var bm=bestAI(hB,4,hEp,hCr);if(bm){hHist.push({b:hB.slice(),t:hT,s:null,l:[],lv:hLmv,cr:Object.assign({},hCr),ep:hEp});var r2=applyM(bm,hB,hEp,hCr);hB=r2.b;hEp=r2.ep;hCr=r2.cr;hLmv=bm;hT=Op(hT);renderHome();homeCheckEnd();}},300);}}
     else{hSel=null;hLm=[];renderHome();}}}
 function resetHome(){hB=mkB();hT='w';hSel=null;hLm=[];hLmv=null;hCr={wK:1,wQ:1,bK:1,bQ:1};hEp=null;hHist=[];hGO=false;renderHome();var st=document.getElementById('hSt');if(st)st.textContent='White to move';}
@@ -1154,25 +1153,25 @@ var pB=mkB(),pT='w',pSel=null,pLm=[],pLmv=null,pCr={wK:1,wQ:1,bK:1,bQ:1},pEp=nul
 function renderPlay(){
   renderBoard('pBoard',pB,pSel,pLm,pLmv,pColor==='b');
   setCoords('p-ranks','p-files',pColor==='b',55);
-  // Find king in check and mark square red directly in DOM
+  // Find king in check - capture board state in closure
+  var _b=pB.slice(),_ep=pEp,_cr=Object.assign({},pCr);
   setTimeout(function(){
+    var board=document.getElementById('pBoard');if(!board)return;
     ['w','b'].forEach(function(col){
-      var k=kng(col,pB);
-      if(k>=0&&atk(k,Op(col),pB,pEp,pCr)){
-        var board=document.getElementById('pBoard');if(!board)return;
-        board.querySelectorAll('.sq').forEach(function(sq){
-          if(parseInt(sq.dataset.i)===k){
-            sq.style.background='#f93848';
-            sq.style.boxShadow='0 0 0 3px #f93848 inset, 0 0 20px rgba(249,56,72,0.8)';
-            var n=0;var iv=setInterval(function(){
-              n++;sq.style.background=n%2?'rgba(249,56,72,0.2)':'#f93848';
-              if(n>=5){clearInterval(iv);sq.style.background='rgba(249,56,72,0.8)';}
-            },180);
-          }
-        });
-      }
+      var k=kng(col,_b);
+      if(k<0||!atk(k,Op(col),_b,_ep,_cr))return;
+      board.querySelectorAll('.sq').forEach(function(sq){
+        if(parseInt(sq.dataset.i)!==k)return;
+        sq.style.background='#f93848';
+        sq.style.boxShadow='0 0 0 4px #f93848 inset,0 0 20px rgba(249,56,72,0.9)';
+        var n=0;var iv=setInterval(function(){
+          n++;
+          sq.style.background=n%2===0?'#f93848':'rgba(249,56,72,0.15)';
+          if(n>=5){clearInterval(iv);sq.style.background='rgba(249,56,72,0.7)';}
+        },150);
+      });
     });
-  },10);
+  },20);
 }
 
 function playClick(i){if(pGO)return;if(pMode==='ai'&&pT!==pColor)return;var p=pB[i];
@@ -3292,8 +3291,8 @@ function setLang(code){
   if(wdEmpty)wdEmpty.textContent=t.wd_hist_empty||'No withdrawals yet';
   // Translate all input placeholders
   document.querySelectorAll('[data-ph-key]').forEach(function(inp){
-    var key=inp.dataset.phKey;
-    if(t[key])inp.placeholder=t[key];
+    var key=inp.getAttribute('data-ph-key');
+    if(key&&t[key])inp.placeholder=t[key];
   });
 
   // ── Sidebar tournament link text ──
@@ -3475,7 +3474,15 @@ buildSbLangGrid();
 buildHomeLangGrid();
 // Load saved language from localStorage
 var _savedLang=loadLangCookie();
-if(_savedLang&&_savedLang!=='en'){activeLang=_savedLang;setLang(_savedLang);}else{buildSbLangGrid();buildHomeLangGrid();}
+if(_savedLang&&_savedLang!=='en'){activeLang=_savedLang;setLang(_savedLang);}else{
+  buildSbLangGrid();buildHomeLangGrid();
+  // Even for English, translate placeholders on load
+  var _t=TRANSLATIONS['en']||{};
+  document.querySelectorAll('[data-ph-key]').forEach(function(inp){
+    var key=inp.getAttribute('data-ph-key');
+    if(key&&_t[key])inp.placeholder=_t[key];
+  });
+}
 setTimeout(loadLB,1500);
 </script>
 </body>
