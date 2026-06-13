@@ -1154,42 +1154,27 @@ var pB=mkB(),pT='w',pSel=null,pLm=[],pLmv=null,pCr={wK:1,wQ:1,bK:1,bQ:1},pEp=nul
 function renderPlay(){
   renderBoard('pBoard',pB,pSel,pLm,pLmv,pColor==='b');
   setCoords('p-ranks','p-files',pColor==='b',55);
-  // Apply check highlight AFTER board is built
-  setTimeout(highlightCheck,0);
-}
-function highlightCheck(){
-  var board=document.getElementById('pBoard');if(!board)return;
-  var inCheck=false;
-  ['w','b'].forEach(function(col){
-    var k=kng(col,pB);
-    if(k<0||!atk(k,Op(col),pB,pEp,pCr))return;
-    inCheck=true;
-    var sqs=board.querySelectorAll('.sq');
-    sqs.forEach(function(sq){
-      if(parseInt(sq.dataset.i)!==k)return;
-      // Immediately set red background
-      sq.style.cssText+=';background:rgba(249,56,72,0.9)!important;box-shadow:inset 0 0 0 4px #f93848,0 0 16px rgba(249,56,72,0.8)!important;';
-      // Flash 3 times
-      var count=0;
-      var iv=setInterval(function(){
-        count++;
-        sq.style.background=count%2===0?'rgba(249,56,72,0.9)':'rgba(249,56,72,0.2)';
-        if(count>=5){
-          clearInterval(iv);
-          // Keep red solid after flashing
-          sq.style.background='rgba(249,56,72,0.75)';
-          sq.style.boxShadow='inset 0 0 0 4px #f93848';
-        }
-      },200);
+  // Find king in check and mark square red directly in DOM
+  setTimeout(function(){
+    ['w','b'].forEach(function(col){
+      var k=kng(col,pB);
+      if(k>=0&&atk(k,Op(col),pB,pEp,pCr)){
+        var board=document.getElementById('pBoard');if(!board)return;
+        board.querySelectorAll('.sq').forEach(function(sq){
+          if(parseInt(sq.dataset.i)===k){
+            sq.style.background='#f93848';
+            sq.style.boxShadow='0 0 0 3px #f93848 inset, 0 0 20px rgba(249,56,72,0.8)';
+            var n=0;var iv=setInterval(function(){
+              n++;sq.style.background=n%2?'rgba(249,56,72,0.2)':'#f93848';
+              if(n>=5){clearInterval(iv);sq.style.background='rgba(249,56,72,0.8)';}
+            },180);
+          }
+        });
+      }
     });
-  });
+  },10);
 }
-function playCheckEnd(){var mv=allL(pT,pB,pEp,pCr),k=kng(pT,pB),inC=atk(k,Op(pT),pB,pEp,pCr);
-  var st=document.getElementById('pSt');
-  if(!mv.length){pGO=true;if(st)st.textContent=(pT==='w'?'Black':'White')+' wins!';
-    if(pMode==='ai'&&pT!==pColor)toast('You Win! +150 coins 🎉','ok');else if(pMode==='ai')toast('You Lose.','info');return{status:'checkmate',winner:Op(pT)};}
-  if(inC){if(st)st.textContent=(pT==='w'?'White':'Black')+' in check!';}
-  else{if(st)st.textContent=pT==='w'?'White to move':'Black to move';}return null;}
+
 function playClick(i){if(pGO)return;if(pMode==='ai'&&pT!==pColor)return;var p=pB[i];
   if(pSel===null){if(!p||p.c!==pT)return;pSel=i;pLm=legal(i,pB,pEp,pCr).map(function(m){return m.t;});renderPlay();}
   else{if(i===pSel){pSel=null;pLm=[];renderPlay();return;}
@@ -1201,10 +1186,17 @@ function playClick(i){if(pGO)return;if(pMode==='ai'&&pT!==pColor)return;var p=pB
       var ended=playCheckEnd();
       if(!ended&&pMode==='ai'&&pT!==pColor){
         var atb=document.getElementById('aiThinkBar');if(atb)atb.style.display='block';
+        // Also update oppBar to show thinking state
+        var oppBar=document.getElementById('oppBar');
+        if(oppBar)oppBar.style.borderColor='var(--accent2)';
+        var oppN=document.getElementById('oppName');
+        if(oppN)oppN.innerHTML='🤖 <span style="color:var(--accent2)">Thinking...</span>';
         setTimeout(function(){
           var bm=bestAI(pB,4,pEp,pCr);
           if(bm){pHist.push({b:pB.slice(),t:pT,s:null,l:[],lv:pLmv,cr:Object.assign({},pCr),ep:pEp});var r2=applyM(bm,pB,pEp,pCr);pB=r2.b;pEp=r2.ep;pCr=r2.cr;pLmv=bm;pT=Op(pT);pMH.push(bm);updMoves();renderPlay();playCheckEnd();
-            var atb2=document.getElementById('aiThinkBar');if(atb2)atb2.style.display='none';}
+            var atb2=document.getElementById('aiThinkBar');if(atb2)atb2.style.display='none';
+            var ob=document.getElementById('oppBar');if(ob)ob.style.borderColor='';
+            var on3=document.getElementById('oppName');if(on3)on3.textContent='AI';}
         },300);
       }
     } else{pSel=null;pLm=[];renderPlay();}
@@ -1222,7 +1214,7 @@ function startAI(){var col=document.getElementById('aiCol').value;pColor=col==='
   var mn=document.getElementById('meName'),on=document.getElementById('oppName');
   if(mn)mn.textContent='You ('+(pColor==='w'?'White':'Black')+')';if(on)on.textContent='AI';
   var st=document.getElementById('pSt');if(st)st.textContent=pColor==='w'?'Your move':'AI moves first...';
-  if(pColor==='b'){var bm=bestAI(pB,2,pEp,pCr);if(bm){var res=applyM(bm,pB,pEp,pCr);pB=res.b;pEp=res.ep;pCr=res.cr;pLmv=bm;pT=Op(pT);pMH.push(bm);updMoves();renderPlay();playCheckEnd();}}}
+  if(pColor==='b'){var atbS=document.getElementById('aiThinkBar');if(atbS)atbS.style.display='block';var bm=bestAI(pB,4,pEp,pCr);if(bm){var res=applyM(bm,pB,pEp,pCr);pB=res.b;pEp=res.ep;pCr=res.cr;pLmv=bm;pT=Op(pT);pMH.push(bm);updMoves();renderPlay();playCheckEnd();var atbE=document.getElementById('aiThinkBar');if(atbE)atbE.style.display='none';}}}
 function switchMode(m,btn){pMode=m;document.querySelectorAll('.mt').forEach(function(t){t.classList.remove('active');});btn.classList.add('active');document.querySelectorAll('.mc').forEach(function(c){c.classList.remove('active');});var mc=document.getElementById('mc-'+m);if(mc)mc.classList.add('active');}
 function offerDraw(){toast('Draw offered','info');}
 function resignGame(){if(pGO)return;pGO=true;toast('You resigned','info');var st=document.getElementById('pSt');if(st)st.textContent='Resigned';}
@@ -2165,7 +2157,6 @@ auth.onAuthStateChanged(function(user){
 
   window.currentUser=user;
   var hRight=document.getElementById('headerRight'),gNav=document.getElementById('guestNav'),sidebar=document.getElementById('sidebar');
-  if(hRight)hRight.style.visibility='visible';
   if(window._removeLoadBar)_removeLoadBar();
   if(user){
     db.collection('users').doc(user.uid).get().then(function(snap){
@@ -2177,7 +2168,7 @@ auth.onAuthStateChanged(function(user){
       var t=getTier(data.rating||1200);
       var sbt=document.getElementById('sb-tier');if(sbt)sbt.textContent=t.i+' '+t.n;
       if(sidebar)sidebar.classList.add('show');if(gNav)gNav.style.display='none';var sbBtn=document.getElementById('sbReopenBtn');if(sbBtn)sbBtn.style.display='none';var pb=document.getElementById('promoBtn');if(pb)pb.style.display='none';
-      if(hRight)buildNavbarAuth(data);
+      if(hRight){hRight.style.visibility='visible';buildNavbarAuth(data);}
       updateProfilePage(data);updateStatsPage(data);checkDailyBtn(data);loadLB();updateMobDrawer(user,data);
       // Load deposit wallets immediately on login
       loadPlatformWallets();
@@ -2186,7 +2177,7 @@ auth.onAuthStateChanged(function(user){
     window.currentUserData=null;
     if(sidebar)sidebar.classList.remove('show');if(gNav)gNav.style.display='flex';var pb2=document.getElementById('promoBtn');if(pb2)pb2.style.display='';
     updateMobDrawer(null,null);
-    if(hRight)hRight.innerHTML='<div style="display:flex;gap:8px"><button class="btn btn-o btn-sm" onclick="openAuth(\'login\')">Login</button><button class="btn btn-sm" onclick="openAuth(\'signup\')">Sign Up</button></div>';
+    if(hRight){hRight.style.visibility='visible';hRight.innerHTML='<div style="display:flex;gap:8px"><button class="btn btn-o btn-sm" onclick="openAuth(\'login\')">Login</button><button class="btn btn-sm" onclick="openAuth(\'signup\')">Sign Up</button></div>';}
     loadLB();
   }
 });
